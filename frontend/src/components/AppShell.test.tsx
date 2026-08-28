@@ -10,6 +10,11 @@ describe('AppShell', () => {
     const navigation = screen.getByRole('navigation', { name: 'Primary workspaces' });
     const expected = new Map([
       ['Today', '/'],
+      ['Operations Inbox', '/inbox'],
+      ['Roster & Personnel', '/roster'],
+      ['Outcome Analytics', '/analytics'],
+      ['Delivery Center', '/delivery'],
+      ['Collaboration', '/collaboration'],
       ['Playbook', '/playbook'],
       ['Film Room', '/film'],
       ['Practice', '/practice'],
