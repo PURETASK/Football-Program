@@ -114,6 +114,21 @@ class PlayCreationTests(unittest.TestCase):
         self.assertEqual(collision["severity"], "error")
         self.assertTrue(collision["overrideable"])
 
+    def test_route_collision_requires_both_intentional_crossing_explanations(self):
+        candidate = design()
+        candidate["elements"].append({"id": "E-ROUTE-2", "kind": "route", "player_id": "P1", "type": "post", "points": [{"x": 30, "y": 5}, {"x": 10, "y": 30}], "arrow_style": "route", "collision_intent": "intentional"})
+        candidate["elements"][0]["collision_intent"] = "intentional"
+        findings = validate_advanced_legality(candidate)
+        explanation = next(issue for issue in findings if issue["code"] == "LEGALITY-ROUTE-CROSSING-EXPLANATION")
+        self.assertEqual(explanation["severity"], "warning")
+        candidate["elements"][0]["collision_intent"] = "intentional"
+        candidate["elements"][0]["collision_note"] = "Mesh crossing by design."
+        candidate["elements"][1]["collision_note"] = "Mesh crossing by design."
+        findings = validate_advanced_legality(candidate)
+        self.assertNotIn("LEGALITY-ROUTE-CROSSING-EXPLANATION", {issue["code"] for issue in findings})
+        collision = next(issue for issue in findings if issue["code"] == "LEGALITY-ROUTE-COLLISION")
+        self.assertTrue(collision["observed"]["documented"])
+
     def test_advanced_legality_reports_defensive_coverage_protection_and_fit_conflicts(self):
         candidate = design("defense")
         candidate["coverage_zones"] = ["deep_left", "deep_middle"]
