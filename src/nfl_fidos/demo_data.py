@@ -488,7 +488,13 @@ def _purge(repository: JsonRepository | SqliteRepository, *, database_path: Path
                     path.unlink()
                     media_result["removed"].append(str(path))
             if root.exists() and root.is_dir() and not any(root.iterdir()):
-                root.rmdir()
+                try:
+                    root.rmdir()
+                except OSError:
+                    # OneDrive/antivirus/indexer races can briefly deny removal
+                    # after the owned files are deleted. Preserve the empty
+                    # directory and report it instead of failing the data purge.
+                    media_result["preserved"].append(str(root))
         elif root.exists():
             media_result["preserved"].append(str(root))
     return {"status": "purged", "organization_id": organization_id, "seed_id": seed_id, "matched_before_delete": counts, **result, "media": media_result, "production_implementation_allowed": False}
