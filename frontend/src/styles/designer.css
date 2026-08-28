@@ -1217,6 +1217,8 @@
 .version-list article > div { display: grid; min-width: 0; }
 .version-list strong { color: #b9c9da; font-size: 0.52rem; }
 .version-list small { overflow: hidden; margin-top: 0.1rem; color: #586e86; font-size: 0.43rem; text-overflow: ellipsis; white-space: nowrap; }
+.version-integrity { margin-left: auto; color: #79d7a0; font-size: 0.42rem; font-style: normal; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+.version-integrity--invalid { color: #ff9e9e; }
 
 .designer-conflict {
   position: absolute;

@@ -488,12 +488,15 @@ export interface PlayVersionSnapshot {
   checksum?: string;
   created_at?: string;
   created_by?: string;
+  renderer_version?: string;
+  renderer_checksum?: string;
+  integrity?: { valid: boolean; issues?: string[]; expected_checksum?: string; expected_snapshot_id?: string };
 }
 
 export interface PlayVersionHistory {
   design_id?: string;
   snapshots: PlayVersionSnapshot[];
-  releases: Array<Record<string, unknown>>;
+  releases: Array<Record<string, unknown> & { integrity?: { valid: boolean; issues?: string[] } }>;
 }
 
 export interface PlayDesignDiffCollection {

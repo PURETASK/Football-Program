@@ -456,7 +456,7 @@ function ReviewPanel({
       <InspectorSection title={`Immutable history · ${versions?.snapshots.length ?? 0}`}>
         <div className="version-list">
           {[...(versions?.snapshots ?? [])].reverse().slice(0, 8).map((snapshot) => (
-            <article key={snapshot.id}><span><History size={14} /></span><div><strong>v{snapshot.version ?? '0.1.0'} · {snapshot.source ?? 'save'}</strong><small>{snapshot.checksum?.slice(0, 12) ?? snapshot.id}</small></div></article>
+            <article key={snapshot.id}><span><History size={14} /></span><div><strong>v{snapshot.version ?? '0.1.0'} · {snapshot.source ?? 'save'}</strong><small>{snapshot.checksum?.slice(0, 12) ?? snapshot.id}</small></div><em className={snapshot.integrity?.valid === false ? 'version-integrity version-integrity--invalid' : 'version-integrity'}>{snapshot.integrity?.valid === false ? 'Integrity review' : 'Verified'}</em></article>
           ))}
           {!versions?.snapshots.length ? <div className="comment-empty"><History size={18} /> Save the design to create its first immutable snapshot.</div> : null}
         </div>

@@ -13,7 +13,7 @@ from .play_creation import validate_legality, validate_play_design
 from .play_assignment_graph import build_assignment_graph
 from .play_design_exports import build_export, build_export_preflight
 from .play_timeline import normalize_timeline_design
-from .play_design_versioning import RENDERER_VERSION, build_snapshot, bump_version, design_checksum, design_diff, renderer_checksum, snapshot_id, three_way_merge, verify_design_integrity, verify_release_integrity
+from .play_design_versioning import RENDERER_VERSION, build_snapshot, bump_version, design_checksum, design_diff, renderer_checksum, snapshot_id, three_way_merge, verify_design_integrity, verify_release_integrity, verify_snapshot_integrity
 from .play_legality import profile_metadata
 from .tenant_repository import TenantRepository
 from .security_controls import sign_payload
@@ -834,6 +834,10 @@ class PlayDesignService:
             raise KeyError(f"Unknown play design: {design_id}")
         snapshots = sorted([item for item in self.repository.list("play_design_versions") if item.get("design_id") == design_id], key=lambda item: item.get("created_at", ""))
         releases = sorted([item for item in self.repository.list("play_design_releases") if item.get("design_id") == design_id], key=lambda item: item.get("published_at", ""))
+        for snapshot in snapshots:
+            snapshot["integrity"] = verify_snapshot_integrity(snapshot)
+        for release in releases:
+            release["integrity"] = verify_release_integrity(release)
         return {"design_id": design_id, "snapshots": snapshots, "releases": releases}
 
     def diff(self, design_id: str, *, base_snapshot_id: str, compare_snapshot_id: str) -> dict[str, Any]:
