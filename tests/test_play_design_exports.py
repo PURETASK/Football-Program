@@ -1,4 +1,5 @@
 import base64
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -129,6 +130,33 @@ class PlayDesignExportTests(unittest.TestCase):
         pdf = service.export_artifact([saved["id"]], kind="play_card", format="pdf", actor="coach")
         self.assertTrue(base64.b64decode(png["content_base64"]).startswith(b"\x89PNG"))
         self.assertGreater(len(base64.b64decode(pdf["content_base64"])), 500)
+
+    def test_direct_export_normalizes_legacy_timeline_and_preserves_authored_phases(self):
+        candidate = design()
+        candidate["timeline"] = {
+            "duration_ms": 1600,
+            "events": [{"id": "READ-LEGACY", "type": "qb_read", "at_ms": 425, "end_ms": 700, "element_id": "E1"}],
+        }
+        candidate["elements"][0]["timing"] = {
+            "start_ms": 100,
+            "end_ms": 1100,
+            "phases": [{"id": "custom-stem", "label": "Custom stem", "start_ms": 280, "end_ms": 640}],
+        }
+        rendered = build_export(designs=[candidate], kind="play_card", format="json")
+        payload = json.loads(base64.b64decode(rendered["content_base64"]))
+        normalized = payload["designs"][0]
+        self.assertEqual(normalized["timeline"]["events"][0]["kind"], "read")
+        self.assertEqual(normalized["timeline"]["events"][0]["start_ms"], 425)
+        self.assertEqual(normalized["elements"][0]["timing"]["phases"][0]["label"], "Custom stem")
+
+    def test_preflight_uses_same_normalized_timeline_contract_as_render(self):
+        candidate = design()
+        candidate["timeline"] = {"events": [{"type": "coverage_rotation", "at_ms": 300}]}
+        preflight = build_export_preflight(designs=[candidate], kind="play_card", format="json")
+        rendered = build_export(designs=[candidate], kind="play_card", format="json")
+        payload = json.loads(base64.b64decode(rendered["content_base64"]))
+        self.assertTrue(preflight["can_render"])
+        self.assertEqual(payload["designs"][0]["timeline"]["events"][0]["kind"], "rotation")
 
 
 if __name__ == "__main__":

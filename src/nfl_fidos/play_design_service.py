@@ -604,6 +604,10 @@ class PlayDesignService:
         design = self.repository.get("play_designs", design_id)
         if design is None:
             raise KeyError(f"Unknown play design: {design_id}")
+        # Older persisted records may predate phase/event normalization. Read
+        # through the canonical timeline contract so teaching views do not
+        # silently lose timing or legacy event semantics.
+        design = normalize_timeline_design(design)
         if mode not in {"player", "coach", "position_group"}:
             raise ValueError("mode must be player, position_group, or coach")
         players = [item for item in design.get("players", []) if isinstance(item, dict)]

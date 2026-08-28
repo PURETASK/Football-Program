@@ -18,6 +18,7 @@ from typing import Any
 
 from .play_creation import validate_legality, validate_play_design
 from .play_legality import RULE_PROFILE_CATALOG
+from .play_timeline import normalize_timeline_design
 
 try:  # Optional in the local foundation; the export contract remains testable without it.
     from reportlab.lib import colors
@@ -654,6 +655,9 @@ def build_export_preflight(*, designs: list[dict[str, Any]], kind: str, format: 
     """
     if not designs:
         raise ValueError("At least one design is required for export preflight")
+    # Keep preflight and rendering on the same canonical contract even when a
+    # caller supplies an older draft or an unsaved design directly.
+    designs = [normalize_timeline_design(deepcopy(design)) for design in designs]
     effective_layout = _effective_layout(kind=kind, format=format, layout=layout)
     issues: list[dict[str, str]] = []
     for design in designs:
@@ -676,6 +680,9 @@ def build_export_preflight(*, designs: list[dict[str, Any]], kind: str, format: 
 def build_export(*, designs: list[dict[str, Any]], kind: str, format: str, role: str | None = None, black_white: bool = False, branding: dict[str, Any] | None = None, layout: str | None = None) -> dict[str, Any]:
     if not designs:
         raise ValueError("At least one design is required for export")
+    # Exporters are also used by batch jobs and draft previews, so do not
+    # require every caller to have passed through PlayDesignService.save().
+    designs = [normalize_timeline_design(deepcopy(design)) for design in designs]
     effective_layout = _effective_layout(kind=kind, format=format, layout=layout)
     issues: list[dict[str, str]] = []
     for design in designs:

@@ -155,6 +155,19 @@ class PlayDesignServiceTests(unittest.TestCase):
         view = service.role_view(saved["id"], role="WR")
         self.assertEqual(view["status"], "renderable")
 
+    def test_role_view_normalizes_legacy_persisted_timeline_records(self):
+        service = self.service()
+        legacy = design()
+        legacy["id"] = "DESIGN-LEGACY-TIMELINE"
+        legacy["organization_id"] = "ORG-PLAY"
+        legacy["timeline"] = {"duration_ms": 1400, "events": [{"id": "READ-1", "type": "qb_read", "at_ms": 350}]}
+        legacy["elements"][0]["timing"] = {"start_ms": 100, "end_ms": 900, "phases": [{"id": "stem", "label": "Stem", "start_ms": 250, "end_ms": 600}]}
+        service.repository.put("play_designs", legacy["id"], legacy, actor="migration", reason="legacy_fixture")
+        view = service.role_view(legacy["id"], role="WR")
+        self.assertEqual(view["timeline"]["events"][0]["kind"], "read")
+        self.assertEqual(view["timeline"]["events"][0]["start_ms"], 350)
+        self.assertEqual(view["steps"][0]["label"].split(" · ")[-1], "Stem")
+
     def test_save_detects_optimistic_revision_conflict(self):
         service = self.service()
         saved = service.save(design=design(), actor="coach")
