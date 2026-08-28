@@ -2,7 +2,7 @@
 
 ## Current verification correction (2026-08-28)
 
-The current checkout passes 199/199 frontend tests and 626/626 Python regression tests. The production frontend build and TypeScript typecheck also pass. Older dated verification paragraphs below are preserved as historical records; use this correction for the current baseline.
+Current checkout baseline (2026-08-28): 252/252 frontend tests and 643/643 Python regression tests pass. The production frontend build and TypeScript typecheck also pass. Older dated verification paragraphs below are preserved as historical records; use this correction for the current baseline.
 
 The new interface is an incremental replacement, not a backend rewrite. The Python API, repositories, football validation, approval, versioning, export, and collaboration services remain authoritative.
 
