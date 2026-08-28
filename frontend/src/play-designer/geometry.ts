@@ -273,6 +273,8 @@ export interface RouteCollision {
   coachNote?: string;
   firstPathPoints: Point[];
   secondPathPoints: Point[];
+  firstOverlapPoints: Point[];
+  secondOverlapPoints: Point[];
 }
 
 function routeCorridor(element: PlayElement): number {
@@ -305,6 +307,26 @@ function pathTimingOverlap(first: RoutePathCandidate, second: RoutePathCandidate
   return start <= end ? { start, end } : undefined;
 }
 
+/** Return only the portion of a polyline active during a normalized timing window. */
+export function slicePathByProgress(points: Point[], startProgress: number, endProgress: number): Point[] {
+  if (points.length <= 1) return points.map((point) => ({ ...point }));
+  const lengths = points.slice(1).map((point, index) => pointDistance(points[index], point));
+  const total = lengths.reduce((sum, length) => sum + length, 0);
+  if (!total) return [{ ...points[0] }];
+  const start = clamp(Math.min(startProgress, endProgress), 0, 1) * total;
+  const end = clamp(Math.max(startProgress, endProgress), 0, 1) * total;
+  const output: Point[] = [positionAlongPath(points, start / total)!];
+  let travelled = 0;
+  lengths.forEach((length, index) => {
+    const segmentEnd = travelled + length;
+    if (segmentEnd > start && segmentEnd < end) output.push({ ...points[index + 1] });
+    travelled = segmentEnd;
+  });
+  const final = positionAlongPath(points, end / total)!;
+  if (pointDistance(output.at(-1)!, final) > 0.001) output.push(final);
+  return output;
+}
+
 export function routeCollisions(elements: PlayElement[]): RouteCollision[] {
   const routes = elements.filter((element) => element.kind === 'route' && !element.hidden && elementPoints(element).length > 1);
   const collisions: RouteCollision[] = [];
@@ -325,13 +347,17 @@ export function routeCollisions(elements: PlayElement[]): RouteCollision[] {
       const closest = candidates.sort((left, right) => left.minimumSeparation - right.minimumSeparation)[0];
       if (!closest) continue;
       const { firstPath, secondPath, overlap, minimumSeparation } = closest;
+      const firstSpan = Math.max(1, firstPath.end - firstPath.start);
+      const secondSpan = Math.max(1, secondPath.end - secondPath.start);
+      const firstOverlapPoints = slicePathByProgress(firstPath.points, (overlap.start - firstPath.start) / firstSpan, (overlap.end - firstPath.start) / firstSpan);
+      const secondOverlapPoints = slicePathByProgress(secondPath.points, (overlap.start - secondPath.start) / secondSpan, (overlap.end - secondPath.start) / secondSpan);
       const kind = minimumSeparation === 0 ? 'intersection' : 'corridor';
       const separation = minimumSeparation.toFixed(1);
       const overlapWindow = `${(overlap.start / 1000).toFixed(2)}–${(overlap.end / 1000).toFixed(2)}s`;
       const pathContext = firstPath.label === 'Primary path' && secondPath.label === 'Primary path' ? '' : ` (${firstPath.label} vs ${secondPath.label})`;
       const coachNote = [first.collision_note, second.collision_note].filter((note): note is string => typeof note === 'string' && note.trim().length > 0).join(' · ') || undefined;
       const noteContext = coachNote ? ` Coach note: ${coachNote}` : '';
-      collisions.push({ firstId: first.id, secondId: second.id, firstPathLabel: firstPath.label, secondPathLabel: secondPath.label, intentional, minimumSeparation, corridorThreshold, kind, overlapStartMs: overlap.start, overlapEndMs: overlap.end, firstPathPoints: firstPath.points, secondPathPoints: secondPath.points, explanation: intentional
+      collisions.push({ firstId: first.id, secondId: second.id, firstPathLabel: firstPath.label, secondPathLabel: secondPath.label, intentional, minimumSeparation, corridorThreshold, kind, overlapStartMs: overlap.start, overlapEndMs: overlap.end, firstPathPoints: firstPath.points, secondPathPoints: secondPath.points, firstOverlapPoints, secondOverlapPoints, explanation: intentional
         ? `Both routes are marked as an intentional crossing${pathContext} during ${overlapWindow}; minimum separation is ${separation} yd. Confirm spacing and timing in the teaching view.${noteContext}`
         : kind === 'intersection'
           ? `Routes intersect${pathContext} during ${overlapWindow}; separate the corridor or explicitly document the intentional crossing.${noteContext}`

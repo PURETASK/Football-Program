@@ -1,5 +1,5 @@
 import type { PlayElement } from '../types';
-import { anglePatch, collisionIds, depthPatch, elementProgress, fieldRect, handleRole, insertPointOnNearestSegment, landmarkPatch, normalizePoint, pathIntersectsRect, positionAlongPath, routeCollisions, simplifyPath, smoothPathData } from './geometry';
+import { anglePatch, collisionIds, depthPatch, elementProgress, fieldRect, handleRole, insertPointOnNearestSegment, landmarkPatch, normalizePoint, pathIntersectsRect, positionAlongPath, routeCollisions, simplifyPath, slicePathByProgress, smoothPathData } from './geometry';
 
 describe('play designer geometry', () => {
   it('clamps field coordinates and applies the authoring grid', () => {
@@ -18,6 +18,10 @@ describe('play designer geometry', () => {
 
   it('interpolates movement by actual path distance', () => {
     expect(positionAlongPath([{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 30 }], 0.5)).toEqual({ x: 10, y: 10 });
+  });
+
+  it('slices a route to the exact normalized overlap window', () => {
+    expect(slicePathByProgress([{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 20, y: 0 }], 0.25, 0.75)).toEqual([{ x: 5, y: 0 }, { x: 10, y: 0 }, { x: 15, y: 0 }]);
   });
 
   it('uses per-assignment timing windows for playback', () => {
@@ -89,6 +93,7 @@ describe('play designer geometry', () => {
     expect(result[0]).toMatchObject({ kind: 'corridor', minimumSeparation: 1, firstPathLabel: 'Primary path', secondPathLabel: 'Primary path', overlapStartMs: 1000, overlapEndMs: 1500 });
     expect(result[0].firstPathPoints).toEqual([{ x: 10, y: 20 }, { x: 90, y: 20 }]);
     expect(result[0].secondPathPoints).toEqual([{ x: 10, y: 21 }, { x: 90, y: 21 }]);
+    expect(result[0].firstOverlapPoints).toEqual([{ x: 50, y: 20 }, { x: 90, y: 20 }]);
     expect(result[0].explanation).toContain('corridors');
   });
 
