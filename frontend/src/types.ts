@@ -169,6 +169,8 @@ export interface PlayElement {
   rotation_sequence?: number;
   rotation_communication?: string;
   blocking_primitive?: string;
+  blocking_path_role?: string;
+  blocking_geometry?: 'manual' | 'target-aware' | string;
   block_target_element_id?: string;
   block_partner_element_id?: string;
   protection_mode?: string;

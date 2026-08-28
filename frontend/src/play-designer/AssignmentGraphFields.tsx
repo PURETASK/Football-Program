@@ -5,7 +5,7 @@ import { DEFENSIVE_PRESETS, defensivePresetPatch } from './defensivePresets';
 import { DEFENSIVE_EXCHANGE_ROLES, exchangePatch, exchangeRole, reciprocalExchangePatch, type DefensiveExchangeRole } from './defensiveExchanges';
 import { DEFENSIVE_GAP_OPTIONS, gapOwnerPatch } from './defensiveFront';
 import { ROTATION_TRIGGERS, rotationSequencePatch } from './rotationSequencing';
-import { OFFENSIVE_BLOCKING_PRIMITIVES, PROTECTION_MODES, offensiveBlockingPatch } from './offensiveBlocking';
+import { OFFENSIVE_BLOCKING_PRIMITIVES, PROTECTION_MODES, blockingConstructionPatch, offensiveBlockingPatch } from './offensiveBlocking';
 import { ROUTE_BREAKS, ROUTE_FAMILIES, ROUTE_FINISHES, ROUTE_OPTION_RULES, routeAuthoringPatch, routeConstructionPatch } from './routeAuthoring';
 import { addRouteBranch, branchStart } from './routeBranches';
 
@@ -56,13 +56,13 @@ export function AssignmentGraphFields({ design, element, onElement }: Assignment
     {isOffensiveBlock ? <fieldset className="offensive-blocking-editor">
       <legend>Blocking and protection primitive</legend>
       <p>Choose the block behavior first, then link the defender or partner it acts on. The path stays editable on the field.</p>
-      <label className="inspector-field"><span>Primitive</span><select value={element.blocking_primitive ?? ''} onChange={(event) => onElement(element.id, offensiveBlockingPatch({ blocking_primitive: event.target.value || undefined }))}><option value="">Unspecified</option>{OFFENSIVE_BLOCKING_PRIMITIVES.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+      <label className="inspector-field"><span>Primitive</span><select value={element.blocking_primitive ?? ''} onChange={(event) => onElement(element.id, blockingConstructionPatch(element, design, { blocking_primitive: event.target.value || undefined }))}><option value="">Unspecified</option>{OFFENSIVE_BLOCKING_PRIMITIVES.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
       <div className="inspector-form inspector-form--two inspector-form--nested">
         <label className="inspector-field"><span>Protection mode</span><select value={element.protection_mode ?? ''} onChange={(event) => onElement(element.id, offensiveBlockingPatch({ protection_mode: event.target.value || undefined }))}><option value="">Not specified</option>{PROTECTION_MODES.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
         <CommitInput label="Release after (ms)" type="number" min={0} value={element.release_after_ms} onCommit={(value) => onElement(element.id, offensiveBlockingPatch({ release_after_ms: value.trim() ? Math.max(0, Number(value)) : undefined }))} />
       </div>
       <div className="inspector-form inspector-form--two inspector-form--nested">
-        <label className="inspector-field"><span>Block target</span><select value={element.block_target_element_id ?? element.target_element_id ?? ''} onChange={(event) => onElement(element.id, offensiveBlockingPatch({ block_target_element_id: event.target.value || undefined, target_element_id: event.target.value || undefined }))}><option value="">No assignment target</option>{otherElements.map((item) => <option value={item.id} key={item.id}>{item.type ?? item.kind} · {item.id}</option>)}</select></label>
+        <label className="inspector-field"><span>Block target</span><select value={element.block_target_element_id ?? element.target_element_id ?? ''} onChange={(event) => onElement(element.id, blockingConstructionPatch(element, design, { block_target_element_id: event.target.value || undefined, target_element_id: event.target.value || undefined }))}><option value="">No assignment target</option>{otherElements.map((item) => <option value={item.id} key={item.id}>{item.type ?? item.kind} · {item.id}</option>)}</select></label>
         <label className="inspector-field"><span>Combo / partner</span><select value={element.block_partner_element_id ?? ''} onChange={(event) => onElement(element.id, offensiveBlockingPatch({ block_partner_element_id: event.target.value || undefined }))}><option value="">No partner</option>{otherElements.map((item) => <option value={item.id} key={item.id}>{item.type ?? item.kind} · {item.id}</option>)}</select></label>
       </div>
     </fieldset> : null}
