@@ -665,6 +665,19 @@ export function PlayDesignerCanvas({
           })}
         </g> : null}
 
+        {routeCollisionRecords.length ? <g className="designer-route-collision-corridors" role="group" aria-label="Route collision corridors">
+          {routeCollisionRecords.map((collision) => {
+            const active = playbackTime !== null && playbackTime >= collision.overlapStartMs && playbackTime <= collision.overlapEndMs;
+            const label = `${collision.firstPathLabel} and ${collision.secondPathLabel} ${collision.intentional ? 'intentional crossing' : collision.kind === 'intersection' ? 'intersection' : 'clearance corridor'}`;
+            return <g className={`designer-route-collision-corridor${collision.intentional ? ' is-intentional' : ''}${active ? ' is-active' : ''}`} key={`${collision.firstId}-${collision.secondId}`} role="img" aria-label={`${label}: ${collision.explanation}`}>
+              <path className="designer-route-collision-corridor__wide designer-route-collision-corridor__wide--first" d={smoothPathData(collision.firstPathPoints)} fill="none" strokeWidth={Math.max(1.5, collision.corridorThreshold * 2)} />
+              <path className="designer-route-collision-corridor__wide designer-route-collision-corridor__wide--second" d={smoothPathData(collision.secondPathPoints)} fill="none" strokeWidth={Math.max(1.5, collision.corridorThreshold * 2)} />
+              <path className="designer-route-collision-corridor__center" d={smoothPathData(collision.firstPathPoints)} fill="none" strokeWidth="0.35" />
+              <title>{collision.explanation}</title>
+            </g>;
+          })}
+        </g> : null}
+
         {activeTimelineEvents.length ? <g className="designer-active-timeline-events" role="group" aria-label="Active synchronized teaching events">
           {activeTimelineEvents.map(({ event, point }) => {
             const kind = timelineEventKind(event);

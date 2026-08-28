@@ -87,6 +87,8 @@ describe('play designer geometry', () => {
       { id: 'B', kind: 'route', points: [{ x: 10, y: 21 }, { x: 90, y: 21 }], start_ms: 1000, end_ms: 2000 },
     ]);
     expect(result[0]).toMatchObject({ kind: 'corridor', minimumSeparation: 1, firstPathLabel: 'Primary path', secondPathLabel: 'Primary path', overlapStartMs: 1000, overlapEndMs: 1500 });
+    expect(result[0].firstPathPoints).toEqual([{ x: 10, y: 20 }, { x: 90, y: 20 }]);
+    expect(result[0].secondPathPoints).toEqual([{ x: 10, y: 21 }, { x: 90, y: 21 }]);
     expect(result[0].explanation).toContain('corridors');
   });
 

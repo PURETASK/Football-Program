@@ -146,6 +146,8 @@ describe('PlayDesignerCanvas', () => {
     render(<PlayDesignerCanvas {...callbacks} design={design} />);
     expect(screen.getByRole('button', { name: /post assignment for X with intersection route collision/i })).toHaveAttribute('aria-label', expect.stringContaining('Routes intersect'));
     expect(screen.getAllByLabelText(/Route intersection:/i)).toHaveLength(2);
+    expect(screen.getByRole('img', { name: /Primary path and Primary path intersection/i })).toBeInTheDocument();
+    expect(document.querySelectorAll('.designer-route-collision-corridor__wide')).toHaveLength(2);
   });
 
   it('marquee-selects players and paths crossing a blank-field drag', () => {

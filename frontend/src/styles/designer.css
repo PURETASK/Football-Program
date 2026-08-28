@@ -1055,6 +1055,15 @@
 .designer-collision-badge text { fill: #190f1a; font-size: 1.5px; font-weight: 900; pointer-events: none; }
 .designer-collision-badge.is-intentional circle { fill: #56d8f6; stroke: #d9fbff; }
 .designer-collision-badge.is-intentional text { fill: #082033; }
+.designer-route-collision-corridors { pointer-events: none; }
+.designer-route-collision-corridor__wide { opacity: .08; stroke-linecap: round; stroke-linejoin: round; }
+.designer-route-collision-corridor__wide--first { stroke: #ff6674; }
+.designer-route-collision-corridor__wide--second { stroke: #ffb547; }
+.designer-route-collision-corridor__center { stroke: #ff8e86; stroke-dasharray: 1.1 .8; opacity: .28; }
+.designer-route-collision-corridor.is-intentional .designer-route-collision-corridor__wide { stroke: #57d7f4; opacity: .07; }
+.designer-route-collision-corridor.is-intentional .designer-route-collision-corridor__center { stroke: #67def9; opacity: .32; }
+.designer-route-collision-corridor.is-active .designer-route-collision-corridor__wide { opacity: .16; }
+.designer-route-collision-corridor.is-active .designer-route-collision-corridor__center { opacity: .7; }
 .designer-active-timeline-events { pointer-events: none; }
 .designer-active-timeline-event circle { fill: #d9a7ff; stroke: #20152f; stroke-width: .38; }
 .designer-active-timeline-event text { fill: #20152f; font-size: 1.45px; font-weight: 950; }

@@ -271,6 +271,8 @@ export interface RouteCollision {
   overlapStartMs: number;
   overlapEndMs: number;
   coachNote?: string;
+  firstPathPoints: Point[];
+  secondPathPoints: Point[];
 }
 
 function routeCorridor(element: PlayElement): number {
@@ -329,7 +331,7 @@ export function routeCollisions(elements: PlayElement[]): RouteCollision[] {
       const pathContext = firstPath.label === 'Primary path' && secondPath.label === 'Primary path' ? '' : ` (${firstPath.label} vs ${secondPath.label})`;
       const coachNote = [first.collision_note, second.collision_note].filter((note): note is string => typeof note === 'string' && note.trim().length > 0).join(' · ') || undefined;
       const noteContext = coachNote ? ` Coach note: ${coachNote}` : '';
-      collisions.push({ firstId: first.id, secondId: second.id, firstPathLabel: firstPath.label, secondPathLabel: secondPath.label, intentional, minimumSeparation, corridorThreshold, kind, overlapStartMs: overlap.start, overlapEndMs: overlap.end, explanation: intentional
+      collisions.push({ firstId: first.id, secondId: second.id, firstPathLabel: firstPath.label, secondPathLabel: secondPath.label, intentional, minimumSeparation, corridorThreshold, kind, overlapStartMs: overlap.start, overlapEndMs: overlap.end, firstPathPoints: firstPath.points, secondPathPoints: secondPath.points, explanation: intentional
         ? `Both routes are marked as an intentional crossing${pathContext} during ${overlapWindow}; minimum separation is ${separation} yd. Confirm spacing and timing in the teaching view.${noteContext}`
         : kind === 'intersection'
           ? `Routes intersect${pathContext} during ${overlapWindow}; separate the corridor or explicitly document the intentional crossing.${noteContext}`
