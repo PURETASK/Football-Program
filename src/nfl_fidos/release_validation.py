@@ -9,7 +9,7 @@ from typing import Any
 from .deployment_contract import validate_deployment_contract
 
 
-REQUIRED_ARTIFACTS = ("Dockerfile", "pyproject.toml", ".github/workflows/ci.yml", "control/manifest.json", "control/eval-manifest.json", "control/master-codex-build-spec.json", "contracts/api-response.schema.json", "contracts/deployment-contract.schema.json", "deployment/nfl-fidos-deployment.json", "scripts/validate_control_plane.py", "scripts/run_evals.py")
+REQUIRED_ARTIFACTS = ("Dockerfile", "pyproject.toml", ".github/workflows/ci.yml", "control/manifest.json", "control/eval-manifest.json", "control/master-codex-build-spec.json", "contracts/api-response.schema.json", "contracts/deployment-contract.schema.json", "contracts/play-design-variant.schema.json", "deployment/nfl-fidos-deployment.json", "scripts/validate_control_plane.py", "scripts/run_evals.py")
 
 
 def validate_release_artifacts(*, root: str | Path, eval_result: dict[str, Any] | None = None) -> dict[str, Any]:

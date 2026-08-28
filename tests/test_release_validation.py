@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from nfl_fidos.release_validation import validate_release_artifacts
+from nfl_fidos.release_validation import REQUIRED_ARTIFACTS, validate_release_artifacts
 
 
 class ReleaseValidationTests(unittest.TestCase):
@@ -11,6 +11,7 @@ class ReleaseValidationTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         result = validate_release_artifacts(root=root, eval_result={"status":"passed"})
         self.assertEqual(result["artifact_status"], "complete")
+        self.assertIn("contracts/play-design-variant.schema.json", REQUIRED_ARTIFACTS)
         self.assertEqual(result["status"], "blocked")
         self.assertTrue(result["human_approval_required"])
         self.assertFalse(result["deploy_performed"])
