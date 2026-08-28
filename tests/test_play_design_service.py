@@ -182,6 +182,9 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertFalse(bundle["production_activation"])
         self.assertEqual(bundle["manifest"]["variant_ids"], batch["variant_ids"])
         self.assertEqual(len(bundle["manifest_hash"]), 64)
+        history_with_bundle = service.variant_batches(source_design_id=source["id"])[0]
+        self.assertEqual(history_with_bundle["release_bundle"]["id"], bundle["id"])
+        self.assertTrue(history_with_bundle["release_bundle"]["immutable"])
         with self.assertRaises(ValueError):
             service.create_variant_release_bundle(batch["id"], actor="owner", decision_ref="DEC-BUNDLE-REPEAT")
 
