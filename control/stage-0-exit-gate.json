@@ -1,0 +1,21 @@
+{
+  "gate_id": "GATE-STAGE-0-001",
+  "stage": "STAGE-0",
+  "status": "open",
+  "owner": "program_owner",
+  "checks": [
+    {"id":"GATE-001","criterion":"Every discovered capability has a CAP-* ID","status":"complete","evidence":"control/stage-0a-registry.json"},
+    {"id":"GATE-002","criterion":"Every capability has a primary stage owner","status":"complete","evidence":"control/stage-0a-registry.json"},
+    {"id":"GATE-003","criterion":"Every capability has user, domain, and context classification","status":"complete","evidence":"control/stage-0a-registry.json"},
+    {"id":"GATE-004","criterion":"Dependencies are known or explicitly unknown","status":"complete","evidence":"control/stage-0a-registry.json"},
+    {"id":"GATE-005","criterion":"Agent families are represented","status":"complete","evidence":"control/stage-0a-registry.json"},
+    {"id":"GATE-006","criterion":"Major data objects are inventoried","status":"complete","evidence":"control/stage-0a-registry.json"},
+    {"id":"GATE-007","criterion":"Major workflows are represented","status":"complete","evidence":"control/stage-0a-registry.json"},
+    {"id":"GATE-008","criterion":"Nuance and exception classes are documented","status":"complete","evidence":"control/stage-0a-registry.json"},
+    {"id":"GATE-009","criterion":"Security and safety requirements are registered","status":"complete","evidence":"control/stage-0a-registry.json"},
+    {"id":"GATE-010","criterion":"Priorities are assigned","status":"complete","evidence":"control/stage-0a-registry.json"},
+    {"id":"GATE-011","criterion":"Gap and redundancy audit is complete","status":"complete","evidence":"control/stage-0-gap-audit.json"},
+    {"id":"GATE-012","criterion":"Final stage manifest is reviewed and owner-approved","status":"not_started","evidence":null}
+  ],
+  "exit_rule": "All checks must be complete and owner-approved before current_stage may advance to STAGE-1."
+}

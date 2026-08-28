@@ -1,0 +1,17 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Organization Context",
+  "type":"object",
+  "required":["id","name","league","season","people","terminology_version","owner","source","status"],
+  "properties":{
+    "id":{"type":"string","pattern":"^ORG-"},
+    "name":{"type":"string"},
+    "league":{"const":"NFL"},
+    "season":{"type":"string"},
+    "people":{"type":"array"},
+    "terminology_version":{"type":"string"},
+    "owner":{"type":"string"},
+    "source":{"type":"object","required":["kind","ref"]},
+    "status":{"enum":["draft","active","archived","rejected"]}
+  }
+}

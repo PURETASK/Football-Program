@@ -1,0 +1,16 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Non-Diagnostic Readiness Summary",
+  "type":"object",
+  "required":["id","athlete_id","observation_ids","signals","confidence","staff_review_required","boundaries","status"],
+  "properties":{
+    "id":{"type":"string","pattern":"^READINESS-"},
+    "athlete_id":{"type":"string"},
+    "observation_ids":{"type":"array","minItems":1},
+    "signals":{"type":"array"},
+    "confidence":{"enum":["low","moderate","high"]},
+    "staff_review_required":{"type":"boolean"},
+    "boundaries":{"type":"array","minItems":1},
+    "status":{"enum":["draft","requires_staff_review"]}
+  }
+}

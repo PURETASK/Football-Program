@@ -1,0 +1,14 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Feature Completion Gate",
+  "type":"object",
+  "required":["id","capability_id","owner","checks","status","blockers"],
+  "properties":{
+    "id":{"type":"string","pattern":"^DONE-"},
+    "capability_id":{"type":"string","pattern":"^CAP-"},
+    "owner":{"type":"string"},
+    "checks":{"type":"array","minItems":1},
+    "status":{"enum":["in_progress","blocked","complete"]},
+    "blockers":{"type":"array"}
+  }
+}

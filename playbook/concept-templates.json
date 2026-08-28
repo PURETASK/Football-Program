@@ -1,0 +1,119 @@
+{
+  "schema_version": "1.0.0",
+  "registry_id": "NFL-FIDOS-CONCEPT-TEMPLATES",
+  "coordinate_contract": "Assignment points are snap-relative field offsets from the named alignment slot.",
+  "templates": [
+    {
+      "id": "TPL-OFF-DAGGER-2X2", "name": "Dagger 2x2", "unit": "offense", "template_kind": "concept_layer", "layer": "route_concept", "formation": "shotgun_2x2", "personnel": "11", "concept": "Dagger", "version": "1.0.0", "status": "approved", "scope": "system",
+      "description": "Vertical clear with an intermediate dig and a back-side access answer.", "tags": ["dropback", "middle-open", "third-down"], "situations": ["2nd-and-medium", "3rd-and-medium"], "expected_companion_layers": ["protection"],
+      "coaching_points": ["Clear the near safety before the dig enters the window.", "QB confirms middle-field structure before hitching to the dig."],
+      "timeline": {"duration_ms": 3000, "markers": [{"id": "READ-MOF", "label": "Confirm middle-field safety", "kind": "read", "ms": 450}, {"id": "THROW-DIG", "label": "Dig throw window", "kind": "cue", "ms": 1700}]},
+      "assignments": [
+        {"key": "H-SEAM", "slot": "H", "kind": "route", "type": "seam", "arrow_style": "route", "objective": "Clear the near safety", "landmark": "near upright", "depth_yards": 22, "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -23}], "timing": {"start_ms": 0, "end_ms": 2400}},
+        {"key": "Y-DIG", "slot": "Y", "kind": "route", "type": "dig", "arrow_style": "route", "objective": "Cross the vacated intermediate window", "landmark": "18-yard hash", "depth_yards": 18, "depends_on": ["H-SEAM"], "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -17}, {"dx": -24, "dy": -17}], "timing": {"start_ms": 0, "end_ms": 2200}},
+        {"key": "X-COMEBACK", "slot": "X", "kind": "route", "type": "comeback", "arrow_style": "route", "objective": "Win the boundary access throw", "depth_yards": 15, "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -17}, {"dx": 4, "dy": -13}], "timing": {"start_ms": 0, "end_ms": 1850}},
+        {"key": "Z-GO", "slot": "Z", "kind": "route", "type": "go", "arrow_style": "route", "objective": "Remove the corner", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -25}], "timing": {"start_ms": 0, "end_ms": 2500}},
+        {"key": "RB-CHECK", "slot": "RB", "kind": "route", "type": "flat", "arrow_style": "route", "objective": "Check protection, then replace pressure", "technique": "scan inside-out", "points": [{"dx": 0, "dy": 0}, {"dx": 11, "dy": -5}], "timing": {"start_ms": 350, "end_ms": 1450}},
+        {"key": "QB-READ", "slot": "QB", "kind": "read", "type": "safety_key", "objective": "Read clear to dig to access", "read_key": "middle-field safety", "target_element_key": "Y-DIG", "depends_on": ["H-SEAM"], "timing": {"start_ms": 0, "end_ms": 1750}}
+      ]
+    },
+    {
+      "id": "TPL-OFF-FLOOD-TRIPS", "name": "Trips Flood", "unit": "offense", "template_kind": "concept_layer", "layer": "route_concept", "formation": "shotgun_trips", "personnel": "11", "concept": "Flood", "version": "1.0.0", "status": "approved", "scope": "system",
+      "description": "Three-level sideline stretch with a controlled back-side answer.", "tags": ["play-action", "zone-stretch", "sideline"], "situations": ["early-down", "move-the-pocket"], "expected_companion_layers": ["protection"],
+      "coaching_points": ["Maintain vertical spacing between clear, sail, and flat.", "QB works high to low unless the back-side access is declared."],
+      "timeline": {"duration_ms": 3000, "markers": [{"id": "FLOOD-EDGE", "label": "Clear edge defender", "kind": "read", "ms": 650}, {"id": "FLOOD-SAIL", "label": "Sail window", "kind": "cue", "ms": 1550}]},
+      "assignments": [
+        {"key": "Z-CLEAR", "slot": "Z", "kind": "route", "type": "go", "arrow_style": "route", "objective": "Clear the deep third", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -25}], "timing": {"start_ms": 0, "end_ms": 2500}},
+        {"key": "H-SAIL", "slot": "H", "kind": "route", "type": "corner", "arrow_style": "route", "objective": "Attack the intermediate sideline", "landmark": "18 yards at sideline", "depends_on": ["Z-CLEAR"], "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -12}, {"dx": 15, "dy": -21}], "timing": {"start_ms": 0, "end_ms": 2100}},
+        {"key": "Y-FLAT", "slot": "Y", "kind": "route", "type": "flat", "arrow_style": "route", "objective": "Control the flat defender", "points": [{"dx": 0, "dy": 0}, {"dx": 13, "dy": -4}], "timing": {"start_ms": 0, "end_ms": 1200}},
+        {"key": "X-DIG", "slot": "X", "kind": "route", "type": "dig", "arrow_style": "route", "objective": "Provide the back-side intermediate answer", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -14}, {"dx": 18, "dy": -14}], "timing": {"start_ms": 0, "end_ms": 2050}},
+        {"key": "QB-EDGE-READ", "slot": "QB", "kind": "read", "type": "flat_defender", "objective": "Read clear to sail to flat", "read_key": "force/flat defender", "target_element_key": "H-SAIL", "timing": {"start_ms": 250, "end_ms": 1700}}
+      ]
+    },
+    {
+      "id": "TPL-OFF-MESH-2X2", "name": "Mesh Traffic", "unit": "offense", "template_kind": "concept_layer", "layer": "route_concept", "formation": "shotgun_2x2", "personnel": "11", "concept": "Mesh", "version": "1.0.0", "status": "approved", "scope": "system",
+      "description": "Paired shallow crossers with a sit route, wheel answer, and man/zone rules.", "tags": ["quick-game", "man-beater", "zone-settle"], "situations": ["3rd-and-short", "red-zone"], "expected_companion_layers": ["protection"],
+      "coaching_points": ["Crossers set the mesh at six yards without colliding.", "Settle versus zone and run away versus man."],
+      "timeline": {"duration_ms": 2600, "markers": [{"id": "MESH-CROSS", "label": "Mesh point", "kind": "cue", "ms": 900}, {"id": "MESH-SETTLE", "label": "Man/zone decision", "kind": "pause", "ms": 1250}]},
+      "assignments": [
+        {"key": "H-DRAG", "slot": "H", "kind": "route", "type": "drag", "arrow_style": "route", "objective": "Set the front edge of the mesh", "landmark": "six yards", "points": [{"dx": 0, "dy": 0}, {"dx": 5, "dy": -6}, {"dx": 51, "dy": -6}], "timing": {"start_ms": 0, "end_ms": 1800}},
+        {"key": "Y-DRAG", "slot": "Y", "kind": "route", "type": "drag", "arrow_style": "route", "objective": "Trail under the first crosser", "landmark": "six yards", "exchange_with": "H-DRAG", "points": [{"dx": 0, "dy": 0}, {"dx": -5, "dy": -6}, {"dx": -51, "dy": -6}], "timing": {"start_ms": 100, "end_ms": 1900}},
+        {"key": "X-POST", "slot": "X", "kind": "route", "type": "post", "arrow_style": "route", "objective": "Remove the post safety", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -15}, {"dx": 14, "dy": -25}], "timing": {"start_ms": 0, "end_ms": 2350}},
+        {"key": "Z-CORNER", "slot": "Z", "kind": "route", "type": "corner", "arrow_style": "route", "objective": "Create the high-low with the crosser", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -12}, {"dx": -12, "dy": -21}], "timing": {"start_ms": 0, "end_ms": 2200}},
+        {"key": "RB-WHEEL", "slot": "RB", "kind": "route", "type": "wheel", "arrow_style": "route", "objective": "Punish low-hole leverage", "points": [{"dx": 0, "dy": 0}, {"dx": 12, "dy": -5}, {"dx": 16, "dy": -17}], "timing": {"start_ms": 200, "end_ms": 2200}},
+        {"key": "QB-MESH-READ", "slot": "QB", "kind": "read", "type": "man_zone_key", "objective": "Work wheel to mesh to settle", "read_key": "low-hole defender", "target_element_key": "H-DRAG", "timing": {"start_ms": 0, "end_ms": 1650}}
+      ]
+    },
+    {
+      "id": "TPL-OFF-IZ-RPO", "name": "Inside Zone RPO", "unit": "offense", "template_kind": "complete_call", "layer": "run_rpo", "formation": "shotgun_2x2", "personnel": "11", "concept": "Inside Zone / Glance", "version": "1.0.0", "status": "approved", "scope": "system",
+      "description": "Interior zone track paired with a conflict-defender glance read.", "tags": ["run", "rpo", "conflict-read"], "situations": ["early-down", "high-red"], "expected_companion_layers": [],
+      "coaching_points": ["Line owns the declared zone track independent of the throw key.", "QB gives unless the conflict defender closes the fit."],
+      "timeline": {"duration_ms": 2300, "markers": [{"id": "IZ-MESH", "label": "Mesh decision", "kind": "handoff", "ms": 450}, {"id": "IZ-CONFLICT", "label": "Conflict defender declared", "kind": "read", "ms": 600}]},
+      "assignments": [
+        {"key": "RB-IZ", "slot": "RB", "kind": "run", "type": "inside_zone", "arrow_style": "run", "objective": "Press play-side A gap and bend behind displacement", "landmark": "play-side leg of center", "points": [{"dx": 0, "dy": 0}, {"dx": -5, "dy": -6}, {"dx": -3, "dy": -18}], "timing": {"start_ms": 0, "end_ms": 1750}},
+        {"key": "X-GLANCE", "slot": "X", "kind": "route", "type": "slant", "arrow_style": "route", "objective": "Replace the conflict defender", "depth_yards": 8, "points": [{"dx": 0, "dy": 0}, {"dx": 1, "dy": -6}, {"dx": 13, "dy": -12}], "timing": {"start_ms": 0, "end_ms": 1300}},
+        {"key": "Y-ARC", "slot": "Y", "kind": "block", "type": "arc", "arrow_style": "block", "objective": "Arc to support unless tagged otherwise", "points": [{"dx": 0, "dy": 0}, {"dx": 7, "dy": -6}], "timing": {"start_ms": 0, "end_ms": 1100}},
+        {"key": "LT-ZONE", "slot": "LT", "kind": "block", "type": "zone", "arrow_style": "block", "objective": "Reach or overtake first play-side threat", "gap": "B", "points": [{"dx": 0, "dy": 0}, {"dx": -2, "dy": -6}], "timing": {"start_ms": 0, "end_ms": 1050}},
+        {"key": "LG-ZONE", "slot": "LG", "kind": "block", "type": "zone", "arrow_style": "block", "objective": "Combination to second level", "gap": "A", "points": [{"dx": 0, "dy": 0}, {"dx": -1, "dy": -6}], "timing": {"start_ms": 0, "end_ms": 1050}},
+        {"key": "C-ZONE", "slot": "C", "kind": "block", "type": "zone", "arrow_style": "block", "objective": "Secure play-side A gap", "gap": "A", "points": [{"dx": 0, "dy": 0}, {"dx": -1, "dy": -6}], "timing": {"start_ms": 0, "end_ms": 1050}},
+        {"key": "QB-CONFLICT", "slot": "QB", "kind": "read", "type": "conflict_defender", "objective": "Give unless the apex inserts into the fit", "read_key": "back-side apex", "target_element_key": "X-GLANCE", "depends_on": ["RB-IZ"], "timing": {"start_ms": 0, "end_ms": 750}}
+      ]
+    },
+    {
+      "id": "TPL-OFF-HALF-SLIDE", "name": "Six-Man Half Slide", "unit": "offense", "template_kind": "protection_layer", "layer": "protection", "formation": "shotgun_2x2", "personnel": "11", "concept": "Half Slide Protection", "version": "1.0.0", "status": "approved", "scope": "system",
+      "description": "Five linemen plus the back with declared man and slide responsibilities.", "tags": ["dropback", "six-man", "protection"], "situations": ["dropback"], "expected_companion_layers": ["route_concept"],
+      "coaching_points": ["Center declares the slide point before the cadence.", "Back scans inside-out on the man side before releasing."],
+      "timeline": {"duration_ms": 2600, "markers": [{"id": "PRO-ID", "label": "Declare point", "kind": "cue", "ms": -500}, {"id": "PRO-EXCHANGE", "label": "Pass games exchanged", "kind": "exchange", "ms": 550}]},
+      "assignments": [
+        {"key": "LT-MAN", "slot": "LT", "kind": "block", "type": "man", "arrow_style": "block", "objective": "Set the man-side edge", "leverage": "inside", "points": [{"dx": 0, "dy": 0}, {"dx": -3, "dy": -5}], "timing": {"start_ms": 0, "end_ms": 1900}},
+        {"key": "LG-MAN", "slot": "LG", "kind": "block", "type": "man", "arrow_style": "block", "objective": "Own first down lineman man-side", "points": [{"dx": 0, "dy": 0}, {"dx": -1, "dy": -5}], "timing": {"start_ms": 0, "end_ms": 1900}},
+        {"key": "C-SLIDE", "slot": "C", "kind": "block", "type": "slide", "arrow_style": "block", "objective": "Set slide point and protect first threat", "gap": "A", "points": [{"dx": 0, "dy": 0}, {"dx": 2, "dy": -5}], "timing": {"start_ms": 0, "end_ms": 1900}},
+        {"key": "RG-SLIDE", "slot": "RG", "kind": "block", "type": "slide", "arrow_style": "block", "objective": "Protect inside gap before helping out", "gap": "A", "depends_on": ["C-SLIDE"], "points": [{"dx": 0, "dy": 0}, {"dx": 2, "dy": -5}], "timing": {"start_ms": 0, "end_ms": 1900}},
+        {"key": "RT-SLIDE", "slot": "RT", "kind": "block", "type": "slide", "arrow_style": "block", "objective": "Close the slide-side edge", "gap": "B", "depends_on": ["RG-SLIDE"], "points": [{"dx": 0, "dy": 0}, {"dx": 3, "dy": -5}], "timing": {"start_ms": 0, "end_ms": 1900}},
+        {"key": "RB-SCAN", "slot": "RB", "kind": "block", "type": "scan", "arrow_style": "block", "objective": "Scan inside-out on the man side", "read_key": "first second-level threat", "points": [{"dx": 0, "dy": 0}, {"dx": -8, "dy": -8}], "timing": {"start_ms": 50, "end_ms": 1500}}
+      ]
+    },
+    {
+      "id": "TPL-DEF-C3-BUZZ", "name": "4-2-5 Cover 3 Buzz", "unit": "defense", "template_kind": "complete_call", "layer": "coverage_call", "formation": "4-2-5_over", "front": "4-2-5_over", "coverage": "cover_3", "personnel": "nickel", "concept": "Cover 3 Buzz", "version": "1.0.0", "status": "approved", "scope": "system",
+      "description": "Three-deep shell with a late safety buzz and four-man rush.", "tags": ["zone", "rotation", "early-down"], "situations": ["1st-and-10", "2nd-and-medium"], "expected_companion_layers": [],
+      "coaching_points": ["Hold the two-high picture until the rotation trigger.", "Hook defenders overlap seams before driving checkdowns."],
+      "timeline": {"duration_ms": 2700, "markers": [{"id": "C3-ROTATE", "label": "Buzz rotation", "kind": "rotation", "ms": 250}, {"id": "C3-MATCH", "label": "Pattern distribution", "kind": "read", "ms": 850}]},
+      "assignments": [
+        {"key": "FS-MIDDLE", "slot": "FS", "kind": "coverage", "type": "middle_third", "coverage": "cover_3", "zone": "deep_middle", "arrow_style": "coverage", "objective": "Own the deep middle and overlap verticals", "points": [{"dx": 0, "dy": 0}, {"dx": 1, "dy": -10}], "timing": {"start_ms": 0, "end_ms": 2300}},
+        {"key": "CBL-THIRD", "slot": "CB-L", "kind": "coverage", "type": "outside_third", "coverage": "cover_3", "zone": "deep_left", "arrow_style": "coverage", "objective": "Stay on top of the widest vertical", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -12}], "timing": {"start_ms": 0, "end_ms": 2300}},
+        {"key": "CBR-THIRD", "slot": "CB-R", "kind": "coverage", "type": "outside_third", "coverage": "cover_3", "zone": "deep_right", "arrow_style": "coverage", "objective": "Stay on top of the widest vertical", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -12}], "timing": {"start_ms": 0, "end_ms": 2300}},
+        {"key": "SS-BUZZ", "slot": "SS", "kind": "rotation", "type": "buzz", "arrow_style": "rotation", "objective": "Rotate into hook/curl after the trigger", "zone": "hook_right", "points": [{"dx": 0, "dy": 0}, {"dx": -10, "dy": 8}], "timing": {"start_ms": -350, "end_ms": 850}},
+        {"key": "NB-FLAT", "slot": "NB", "kind": "coverage", "type": "curl_flat", "coverage": "cover_3", "zone": "flat_left", "arrow_style": "coverage", "objective": "Carry seam to flat threat", "points": [{"dx": 0, "dy": 0}, {"dx": -8, "dy": 3}], "timing": {"start_ms": 0, "end_ms": 1700}},
+        {"key": "DE-L-RUSH", "slot": "DE-L", "kind": "rush", "type": "contain", "arrow_style": "rush", "objective": "Set the rush edge", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": 13}], "timing": {"start_ms": 0, "end_ms": 1650}},
+        {"key": "DE-R-RUSH", "slot": "DE-R", "kind": "rush", "type": "contain", "arrow_style": "rush", "objective": "Set the rush edge", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": 13}], "timing": {"start_ms": 0, "end_ms": 1650}}
+      ]
+    },
+    {
+      "id": "TPL-DEF-QUARTERS-MATCH", "name": "Quarters Match", "unit": "defense", "template_kind": "coverage_layer", "layer": "coverage", "formation": "4-2-5_over", "front": "4-2-5_over", "coverage": "quarters", "personnel": "nickel", "concept": "Quarters Match", "version": "1.0.0", "status": "approved", "scope": "system",
+      "description": "Four-deep pattern match with explicit vertical distribution keys.", "tags": ["match", "split-safety", "vertical-control"], "situations": ["early-down", "long-yardage"], "expected_companion_layers": ["rush"],
+      "coaching_points": ["Safeties key number two through the release.", "Corners stay on top of number one unless the match rule transfers him."],
+      "timeline": {"duration_ms": 2800, "markers": [{"id": "Q-RELEASE", "label": "Number two declares", "kind": "read", "ms": 450}, {"id": "Q-MATCH", "label": "Match transfer", "kind": "exchange", "ms": 900}]},
+      "assignments": [
+        {"key": "FS-Q", "slot": "FS", "kind": "coverage", "type": "quarter", "coverage": "quarters", "zone": "deep_left", "arrow_style": "coverage", "objective": "Match vertical number two", "read_key": "number two release", "points": [{"dx": 0, "dy": 0}, {"dx": -12, "dy": -8}], "timing": {"start_ms": 0, "end_ms": 2400}},
+        {"key": "SS-Q", "slot": "SS", "kind": "coverage", "type": "quarter", "coverage": "quarters", "zone": "deep_right", "arrow_style": "coverage", "objective": "Match vertical number two", "read_key": "number two release", "points": [{"dx": 0, "dy": 0}, {"dx": 11, "dy": -8}], "timing": {"start_ms": 0, "end_ms": 2400}},
+        {"key": "CBL-Q", "slot": "CB-L", "kind": "coverage", "type": "quarter", "coverage": "quarters", "zone": "deep_left", "arrow_style": "coverage", "objective": "Own number one vertical", "leverage": "outside", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -12}], "timing": {"start_ms": 0, "end_ms": 2400}},
+        {"key": "CBR-Q", "slot": "CB-R", "kind": "coverage", "type": "quarter", "coverage": "quarters", "zone": "deep_right", "arrow_style": "coverage", "objective": "Own number one vertical", "leverage": "outside", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -12}], "timing": {"start_ms": 0, "end_ms": 2400}},
+        {"key": "NB-SEAM", "slot": "NB", "kind": "coverage", "type": "seam_match", "coverage": "quarters", "zone": "flat_left", "arrow_style": "coverage", "objective": "Carry two until safety declares", "target_element_key": "FS-Q", "points": [{"dx": 0, "dy": 0}, {"dx": -5, "dy": -2}], "timing": {"start_ms": 0, "end_ms": 1650}},
+        {"key": "MLB-HOOK", "slot": "MLB", "kind": "coverage", "type": "hook", "coverage": "quarters", "zone": "hook_middle", "arrow_style": "coverage", "objective": "Wall crossers and overlap the dig", "points": [{"dx": 0, "dy": 0}, {"dx": -3, "dy": -4}], "timing": {"start_ms": 0, "end_ms": 1700}}
+      ]
+    },
+    {
+      "id": "TPL-DEF-SIM-PRESSURE", "name": "Nickel Sim Pressure", "unit": "defense", "template_kind": "pressure_layer", "layer": "rush", "formation": "4-2-5_over", "front": "4-2-5_over", "coverage": "cover_3", "personnel": "nickel", "concept": "Nickel Sim", "version": "1.0.0", "status": "approved", "scope": "system",
+      "description": "Present five threats, drop an edge, and bring the nickel with a four-man rush count.", "tags": ["simulated-pressure", "four-man-rush", "presentation"], "situations": ["2nd-and-long", "3rd-and-medium"], "expected_companion_layers": ["coverage"],
+      "coaching_points": ["Pressure picture must hold until the center commits the protection.", "Dropping edge replaces the nickel in the hot lane."],
+      "timeline": {"duration_ms": 2400, "markers": [{"id": "SIM-HOLD", "label": "Hold pressure picture", "kind": "pause", "ms": -250}, {"id": "SIM-EXCHANGE", "label": "Rush/drop exchange", "kind": "exchange", "ms": 300}]},
+      "assignments": [
+        {"key": "NB-PRESSURE", "slot": "NB", "kind": "rush", "type": "nickel", "arrow_style": "rush", "objective": "Attack the back's inside shoulder", "gap": "C", "points": [{"dx": 0, "dy": 0}, {"dx": 8, "dy": 13}], "timing": {"start_ms": 0, "end_ms": 1500}},
+        {"key": "DE-L-DROP", "slot": "DE-L", "kind": "coverage", "type": "hot_drop", "coverage": "cover_3", "zone": "flat_left", "arrow_style": "coverage", "objective": "Replace the pressure in the hot lane", "exchange_with": "NB-PRESSURE", "points": [{"dx": 0, "dy": 0}, {"dx": -8, "dy": -4}], "timing": {"start_ms": 0, "end_ms": 1450}},
+        {"key": "DT-L-RUSH", "slot": "DT-L", "kind": "rush", "type": "penetrate", "arrow_style": "rush", "objective": "Cross face into the near A gap", "gap": "A", "points": [{"dx": 0, "dy": 0}, {"dx": 4, "dy": 11}], "timing": {"start_ms": 0, "end_ms": 1400}},
+        {"key": "DT-R-RUSH", "slot": "DT-R", "kind": "rush", "type": "penetrate", "arrow_style": "rush", "objective": "Compress the opposite A gap", "gap": "A", "points": [{"dx": 0, "dy": 0}, {"dx": -3, "dy": 11}], "timing": {"start_ms": 0, "end_ms": 1400}},
+        {"key": "DE-R-RUSH", "slot": "DE-R", "kind": "rush", "type": "contain", "arrow_style": "rush", "objective": "Close the launch point", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": 13}], "timing": {"start_ms": 0, "end_ms": 1550}}
+      ]
+    }
+  ]
+}

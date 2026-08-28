@@ -1,0 +1,7 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Film Observation",
+  "type":"object",
+  "required":["id","clip_id","asset_id","domain","label","context","source_frame","confidence","classification","annotator","correction"],
+  "properties":{"id":{"type":"string","pattern":"^FILM-OBS-"},"clip_id":{"type":"string","pattern":"^CLIP-"},"asset_id":{"type":"string","pattern":"^FILM-"},"domain":{"type":"string"},"confidence":{"enum":["low","moderate","high"]},"classification":{"enum":["observed","measured","reported","inferred","hypothesized"]},"correction":{"type":"object","required":["state"]}}
+}

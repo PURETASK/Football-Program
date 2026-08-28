@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nfl-fidos.local/contracts/organization-game-plan-package.schema.json",
+  "title": "NFL FIDOS Organization Weekly Game Plan Package",
+  "type": "object",
+  "required": ["id", "organization_id", "season", "team_context", "week_context", "plan", "status", "human_review_required"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^ORG-GAMEPLAN-"},
+    "organization_id": {"type": "string", "pattern": "^ORG-"},
+    "season": {"type": "string", "minLength": 1},
+    "team_context": {"type": "string", "minLength": 1},
+    "week_context": {"type": "string", "minLength": 1},
+    "plan": {"type": "object"},
+    "status": {"enum": ["under_review", "validated", "rejected"]},
+    "human_review_required": {"type": "boolean"},
+    "approved_by": {"type": ["string", "null"]},
+    "owner_decision_ref": {"type": ["string", "null"]}
+  },
+  "additionalProperties": true
+}

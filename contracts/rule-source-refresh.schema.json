@@ -1,0 +1,16 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Rule Source Refresh Review",
+  "type":"object",
+  "required":["id","jurisdiction","current_registry_id","candidate_registry_id","status","changes","human_review_required","promotion_allowed"],
+  "properties":{
+    "id":{"type":"string","pattern":"^RULE-REFRESH-"},
+    "jurisdiction":{"const":"NFL"},
+    "current_registry_id":{"type":"string"},
+    "candidate_registry_id":{"type":"string"},
+    "status":{"enum":["no_change","under_review","approved","rejected"]},
+    "changes":{"type":"array"},
+    "human_review_required":{"const":true},
+    "promotion_allowed":{"const":false}
+  }
+}

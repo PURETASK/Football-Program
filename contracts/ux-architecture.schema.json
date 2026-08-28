@@ -1,0 +1,7 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS UX Architecture",
+  "type":"object",
+  "required":["architecture_id","information_architecture","screen_inventory","role_journeys","permissions_to_ui","interaction_states","accessibility","notification_rules"],
+  "properties":{"architecture_id":{"type":"string","pattern":"^UX-ARCH-"},"screen_inventory":{"type":"array","minItems":1},"role_journeys":{"type":"array","minItems":1},"permissions_to_ui":{"type":"array","minItems":1}}
+}

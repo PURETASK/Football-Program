@@ -1,0 +1,13 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Practice Plan",
+  "type":"object",
+  "required":["id","team_context","objective","periods","evaluation"],
+  "properties":{
+    "id":{"type":"string","pattern":"^PRACTICE-"},
+    "team_context":{"type":"string"},
+    "objective":{"type":"string"},
+    "periods":{"type":"array","minItems":1},
+    "evaluation":{"type":"array","minItems":1}
+  }
+}

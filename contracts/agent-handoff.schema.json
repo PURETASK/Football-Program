@@ -1,0 +1,18 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Agent Handoff",
+  "type":"object",
+  "required":["id","from_agent","to_agent","workflow_id","payload","requested_permissions","human_review_required","created_at","status","issues"],
+  "properties":{
+    "id":{"type":"string","pattern":"^HANDOFF-"},
+    "from_agent":{"type":"string","pattern":"^AGT-"},
+    "to_agent":{"type":"string","pattern":"^AGT-"},
+    "workflow_id":{"type":"string","pattern":"^WF-"},
+    "payload":{"type":"object"},
+    "requested_permissions":{"type":"array"},
+    "human_review_required":{"type":"boolean"},
+    "created_at":{"type":"string"},
+    "status":{"enum":["ready","rejected"]},
+    "issues":{"type":"array"}
+  }
+}

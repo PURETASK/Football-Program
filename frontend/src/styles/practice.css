@@ -1,0 +1,14 @@
+@media print {
+  .sidebar, .topbar, .operational-workbench__header, .workbench-tabs, .workbench-toolbar, .workbench-form__actions, .workspace-feature-section, .workspace-workflow, .description-box, .workspace-metrics { display: none !important; }
+  .app-stage { margin-left: 0; }
+  .app-content, .page-stack, .operational-workbench, .workbench-pane { min-width: 0; border: 0; box-shadow: none; background: #fff; }
+  .practice-card-print { display: block; }
+}
+fieldset[draggable="true"] { cursor: grab; }
+fieldset[draggable="true"]:active { cursor: grabbing; opacity: 0.82; }
+fieldset[draggable="true"] h3 { display: inline-flex; align-items: center; gap: 0.28rem; }
+.practice-search { display: grid; gap: 0.32rem; margin: 0 0 0.7rem; padding: 0.55rem; border: 1px solid rgb(255 255 255 / 0.07); border-radius: 10px; background: rgb(255 255 255 / 0.025); }
+.practice-search span { color: var(--text-muted); font-size: 0.68rem; font-weight: 750; letter-spacing: 0.04em; text-transform: uppercase; }
+.practice-multi-select { min-height: 86px; padding: 0.28rem; border-color: rgb(255 255 255 / 0.13); background: rgb(0 0 0 / 0.18); }
+.practice-multi-select option { padding: 0.28rem 0.38rem; border-radius: 4px; color: var(--text-primary); }
+.practice-multi-select option:checked { color: #d9fbff; background: rgb(48 184 215 / 0.28); }

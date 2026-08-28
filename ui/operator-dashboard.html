@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NFL FIDOS Operator Dashboard</title>
+  <link rel="stylesheet" href="/play-designer.css">
+  <link rel="stylesheet" href="/play-designer-enhancements.css">
+  <link rel="stylesheet" href="/play-designer-interactive.css">
+  <link rel="stylesheet" href="/play-designer-timeline.css">
+  <link rel="stylesheet" href="/play-designer-sync.css">
+  <link rel="stylesheet" href="/play-designer-collaboration.css">
+  <link rel="stylesheet" href="/play-designer-versioning.css">
+  <link rel="stylesheet" href="/play-designer-teaching.css">
+  <link rel="stylesheet" href="/play-designer-export.css">
+  <link rel="stylesheet" href="/play-designer-legality.css">
+  <link rel="stylesheet" href="/pilot-verification.css">
+  <style>
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --ink:#172033; --ink-soft:#334155; --muted:#667085; --line:#d9e1ec; --surface:#fff; --surface-soft:#f8fafc; --bg:#eef3f8; --navy:#10213d; --navy-2:#1a3157; --blue:#2563eb; --blue-soft:#eaf2ff; --good:#087443; --good-soft:#e8f7ef; --warn:#8a5500; --warn-soft:#fff7df; --bad:#a51d2d; --bad-soft:#fff0f1; --shadow:0 10px 26px rgba(16,33,61,.07); --radius:14px; }
+    * { box-sizing:border-box; } html { scroll-behavior:smooth; } body { margin:0; color:var(--ink); background:var(--bg); line-height:1.5; } body::selection { background:#cfe0ff; }
+    header { background:linear-gradient(115deg,var(--navy),#183663); color:#fff; padding:1.25rem clamp(1rem,4vw,3rem); box-shadow:0 2px 12px rgba(16,33,61,.18); } .brand-lockup { display:flex; align-items:center; gap:.75rem; } .brand-mark { width:2.4rem; height:2.4rem; flex:0 0 auto; } header strong { display:block; font-size:clamp(1rem,2vw,1.25rem); letter-spacing:-.01em; } header div { color:#cbd8eb; font-size:.9rem; margin-top:.15rem; }
+    main { width:min(100% - 2rem, 1240px); margin:0 auto; padding:1.25rem 0 3rem; } nav { display:flex; gap:.5rem; flex-wrap:wrap; margin:0 0 1.25rem; padding:.55rem; background:rgba(255,255,255,.72); border:1px solid var(--line); border-radius:var(--radius); box-shadow:0 4px 14px rgba(16,33,61,.04); } nav a { color:var(--ink-soft); background:var(--surface); border:1px solid transparent; border-radius:9px; padding:.55rem .75rem; text-decoration:none; font-size:.9rem; font-weight:650; white-space:nowrap; transition:background .16s ease,border-color .16s ease,color .16s ease,transform .16s ease; } nav a:hover { color:var(--blue); background:var(--blue-soft); border-color:#b8d0ff; transform:translateY(-1px); } nav a:focus-visible { outline:3px solid #83b8ff; outline-offset:2px; }
+    h1,h2,h3,h4 { letter-spacing:-.025em; line-height:1.2; } h1 { font-size:clamp(1.8rem,3vw,2.35rem); margin:1.5rem 0 .9rem; } h2 { font-size:1.45rem; margin:2.25rem 0 .75rem; } h3 { font-size:1.1rem; margin-top:0; } h4 { font-size:1rem; } p { max-width:78ch; } hr { border:0; border-top:1px solid var(--line); margin:1.25rem 0; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:1rem; } .card { min-width:0; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:clamp(1rem,2vw,1.35rem); box-shadow:var(--shadow); } .card > :first-child { margin-top:0; } .label { color:var(--muted); font-size:.88rem; } .value { font-size:clamp(1.2rem,2vw,1.5rem); font-weight:750; margin-top:.35rem; overflow-wrap:anywhere; } .state-good { color:var(--good); } .state-warn { color:var(--warn); } .state-bad { color:var(--bad); }
+    .notice { border:1px solid #f2d28b; border-left:5px solid var(--warn); border-radius:10px; background:var(--warn-soft); color:#60400b; padding:.9rem 1rem; margin:1rem 0 1.5rem; overflow-wrap:anywhere; } .notice::before { content:"Safety boundary"; display:block; color:var(--warn); font-size:.72rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; margin-bottom:.15rem; }
+    form { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:1rem; align-items:end; } label { display:grid; gap:.4rem; color:var(--ink-soft); font-size:.84rem; font-weight:650; min-width:0; } input, textarea, select, button { width:100%; min-height:2.7rem; border:1px solid #cbd5e1; border-radius:9px; padding:.62rem .7rem; font:inherit; color:var(--ink); background:#fff; } textarea { min-height:6rem; resize:vertical; line-height:1.45; } input::placeholder, textarea::placeholder { color:#98a2b3; } input:hover, textarea:hover, select:hover { border-color:#94a3b8; } input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible { outline:3px solid #83b8ff; outline-offset:2px; border-color:var(--blue); } button { background:var(--navy); border-color:var(--navy); color:#fff; cursor:pointer; font-weight:700; transition:background .16s ease,transform .16s ease,box-shadow .16s ease; } button:hover { background:var(--navy-2); box-shadow:0 5px 12px rgba(16,33,61,.18); transform:translateY(-1px); } button:active { transform:translateY(0); } button[type="button"] { background:#fff; color:var(--navy); border-color:#b8c5d6; } button[type="button"]:hover { background:var(--blue-soft); color:var(--blue); border-color:#9dbdff; }
+    .results { margin-top:1rem; display:grid; gap:.6rem; } .result { border:1px solid var(--line); border-radius:9px; background:var(--surface-soft); padding:.7rem .8rem; overflow-wrap:anywhere; } .authoring-surface { border:1px solid #b8d0ff; border-radius:12px; background:linear-gradient(180deg,#f7faff,#fff); padding:1rem; margin-bottom:1rem; } footer { color:var(--muted); padding:1.5rem; text-align:center; font-size:.85rem; }
+    @media (max-width:760px) { main { width:min(100% - 1rem,1240px); padding-top:.75rem; } nav { position:sticky; top:0; z-index:5; overflow-x:auto; flex-wrap:nowrap; scrollbar-width:thin; } nav a { flex:0 0 auto; } .card { border-radius:11px; } h2 { margin-top:1.75rem; } }
+    .skip-link { position:absolute; left:1rem; top:-3rem; z-index:10; padding:.65rem .85rem; background:#fff; color:var(--navy); border-radius:8px; box-shadow:var(--shadow); } .skip-link:focus { top:1rem; }
+    @media (prefers-reduced-motion:reduce) { *, *::before, *::after { scroll-behavior:auto !important; transition:none !important; } }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <header><div class="brand-lockup"><svg class="brand-mark" viewBox="0 0 48 48" role="img" aria-label="NFL FIDOS mark"><path d="M24 3C13 3 5 12 5 24s8 21 19 21 19-9 19-21S35 3 24 3Z" fill="#dbeafe"/><path d="M16 14c5 2 11 2 16 0M14 21c6 2 14 2 20 0M16 29c5 2 11 2 16 0M20 36c3 1 5 1 8 0" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/><path d="M24 9v30" stroke="#10213d" stroke-width="2" stroke-linecap="round"/></svg><div><strong>NFL Football Intelligence &amp; Development OS</strong><div>Operator dashboard · NFL scope only</div></div></div></header>
+  <main id="main-content">
+    <nav aria-label="Primary navigation">
+      <a href="#today">Today</a><a href="#playbook">Playbook</a><a href="#film">Film Room</a><a href="#practice-workspace">Practice</a><a href="#scouting-workspace">Scouting</a><a href="#game-plan-workspace">Game Plan</a><a href="#agent-runtime">Agent Runtime</a><a href="#pilot-readiness">Pilot Readiness</a><a href="#governance">Governance</a>
+    </nav>
+    <div class="notice" role="status">Recommendations and locked artifacts require human review and approval. This dashboard does not make medical, officiating, or personnel-clearance decisions.</div>
+    <section id="today" aria-labelledby="today-heading"><h1 id="today-heading">Program status</h1><div class="grid">
+      <article class="card"><div class="label">Service</div><div id="service-state" class="value">Loading…</div></article>
+      <article class="card"><div class="label">Current stage</div><div id="stage-state" class="value">Loading…</div></article>
+      <article class="card"><div class="label">Evaluation suite</div><div id="eval-state" class="value">Loading…</div></article>
+      <article class="card"><div class="label">Approval state</div><div class="value state-warn">Human approval required</div></article>
+    </div></section>
+    <section id="governance" aria-labelledby="governance-heading"><h2 id="governance-heading">Governance</h2><div class="card"><p>Use the Governance workspace to review audit events, permissions, eval results, change requests, and release candidates.</p><p id="governance-state" class="label">Loading control evidence…</p><hr><h3>Stage 0 owner approval evidence</h3><p class="label">This records explicit program-owner evidence only. It never edits the stage manifest, advances the stage, or enables production.</p><form id="stage0-approval-form"><label>Approval ID<input id="stage0-approval-id" required value="APPROVAL-STAGE0-UI-001" autocomplete="off"></label><label>Rationale<textarea id="stage0-approval-rationale" required rows="2" placeholder="I reviewed the Stage 0 registry, gap audit, and exit gate..."></textarea></label><label>Evidence references<input id="stage0-approval-evidence" required value="control/stage-0a-registry.json,control/stage-0-gap-audit.json,control/stage-0-exit-gate.json" autocomplete="off"></label><label>Approved at<input id="stage0-approval-time" required value="2026-08-23T12:00:00Z" autocomplete="off"></label><button type="submit">Record owner approval evidence</button></form><p id="stage0-approval-status" class="label" role="status"></p><div id="stage0-approval-results" class="results" aria-live="polite"></div><button id="stage0-approval-load" type="button">Load Stage 0 gate and approval evidence</button><p id="stage0-approval-load-status" class="label" role="status"></p><div id="stage0-approval-load-results" class="results" aria-live="polite"></div></div></section>
+    <section id="pilot-readiness" aria-labelledby="pilot-readiness-heading"><h2 id="pilot-readiness-heading">Pilot readiness</h2><div class="card"><p class="label">This evaluates evidence for a bounded pilot. It never activates production or bypasses human approval.</p><form id="pilot-readiness-form"><label>Wave ID<input id="pilot-wave-id" required value="WAVE-001" autocomplete="off"></label><label>Pilot users JSON<textarea id="pilot-users" required rows="3">[{"id":"OWNER","role":"program_owner"},{"id":"COACH","role":"coach_staff"},{"id":"ANALYST","role":"analyst"},{"id":"PLAYER","role":"player"}]</textarea></label><label>Completed capability IDs<input id="pilot-capabilities" required value="CAP-004,CAP-009,CAP-010,CAP-011,CAP-012,CAP-013,CAP-021,CAP-022" autocomplete="off"></label><label>Acceptance evidence IDs<input id="pilot-evidence" required placeholder="TEST-1,AUDIT-1" autocomplete="off"></label><label>Feature flags JSON<input id="pilot-flags" required value='{"production_recommendations":false}' autocomplete="off"></label><label>Rollback tested<select id="pilot-rollback"><option value="true">Yes</option><option value="false">No</option></select></label><label>Owner approval reference (optional)<input id="pilot-approval" placeholder="APPROVAL-..." autocomplete="off"></label><button type="submit">Evaluate pilot readiness</button></form><p id="pilot-readiness-status" class="label" role="status"></p><div id="pilot-readiness-results" class="results" aria-live="polite"></div></div></section>
+    <section id="organization-onboarding" aria-labelledby="organization-onboarding-heading"><h2 id="organization-onboarding-heading">Organization onboarding</h2><div class="card"><p class="label">Program-owner-only initialization of NFL organization context and a draft terminology bundle. Approval and activation remain separate.</p><form id="organization-onboarding-form"><label>Organization ID<input id="onboard-org" required placeholder="ORG-..." autocomplete="organization"></label><label>Name<input id="onboard-name" required placeholder="Organization name" autocomplete="organization"></label><label>Season<input id="onboard-season" required value="2026" autocomplete="off"></label><label>Team ID<input id="onboard-team" required placeholder="TEAM-..." autocomplete="off"></label><label>Terminology version<input id="onboard-terms" required value="TERM-0.1.0" autocomplete="off"></label><label>People JSON<textarea id="onboard-people" required rows="3">[]</textarea></label><label>Source reference<input id="onboard-source" required placeholder="APPROVED-SOURCE-..." autocomplete="off"></label><button type="submit">Create draft organization context</button></form><hr><form id="organization-approval-form"><label>Decision record reference<input id="onboard-decision" required placeholder="DEC-..." autocomplete="off"></label><button type="submit">Approve context and terminology</button></form><p id="organization-onboarding-status" class="label" role="status"></p><div id="organization-onboarding-results" class="results" aria-live="polite"></div></div></section>
+    <section id="organization-operating-bundle" aria-labelledby="organization-operating-bundle-heading"><h2 id="organization-operating-bundle-heading">Organization operating bundle</h2><div class="card"><p class="label">Composes validated organization packages into one readiness record. Submission and approval are program-owner controlled; approval remains non-production and does not activate or advance the stage.</p><form id="organization-operating-bundle-form"><label>Organization ID<input id="operating-bundle-org" required placeholder="ORG-..." autocomplete="organization"></label><label>Bundle ID<input id="operating-bundle-id" required value="ORG-BUNDLE-001" autocomplete="off"></label><label>Season<input id="operating-bundle-season" required value="2026" autocomplete="off"></label><label>Component package JSON<textarea id="operating-bundle-components" required rows="7" placeholder='{"organization_context": {"id":"ORG-...","season":"2026","status":"active"}, "terminology_bundle": {"id":"TERM-...","organization_id":"ORG-...","season":"2026","status":"approved"}}'></textarea></label><button type="submit">Submit bundle for owner review</button></form><hr><form id="organization-operating-bundle-approval-form"><label>Bundle ID to approve<input id="operating-bundle-approval-id" required placeholder="ORG-BUNDLE-..." autocomplete="off"></label><label>Decision record reference<input id="operating-bundle-decision" required placeholder="DEC-..." autocomplete="off"></label><button type="submit">Approve for non-production review</button></form><p id="organization-operating-bundle-status" class="label" role="status"></p><div id="organization-operating-bundle-results" class="results" aria-live="polite"></div></div></section>
+    <section id="agent-runtime" aria-labelledby="agent-runtime-heading"><h2 id="agent-runtime-heading">Controlled agent runtime</h2><div class="card"><p class="label">Local validation only. Program owners and validators may rehearse a controlled role. No provider is called, no canonical artifact is written, and production remains disabled.</p><form id="agent-runtime-form"><label>Organization ID<input id="agent-runtime-org" required placeholder="ORG-..." autocomplete="organization"></label><label>Bearer token<input id="agent-runtime-token" required type="password" placeholder="signed owner or validator token"></label><label>Run ID<input id="agent-runtime-run-id" required value="RUN-UI-001" autocomplete="off"></label><label>Agent ID<input id="agent-runtime-agent-id" required value="AGT-007" autocomplete="off"></label><label>Family<input id="agent-runtime-family" required value="validation" autocomplete="off"></label><label>Capability<input id="agent-runtime-capability" required value="validate" autocomplete="off"></label><label>Workflow ID<input id="agent-runtime-workflow-id" required value="WF-UI-001" autocomplete="off"></label><label>Payload JSON<textarea id="agent-runtime-payload" required rows="3">{"play_id":"PLAY-UI-001","rule_context":"local"}</textarea></label><button type="submit">Run local validation</button></form><p id="agent-runtime-status" class="label" role="status"></p><div id="agent-runtime-results" class="results" aria-live="polite"></div><button id="agent-runtime-load" type="button">Load tenant-scoped agent runs</button><p id="agent-runtime-load-status" class="label" role="status"></p><div id="agent-runtime-load-results" class="results" aria-live="polite"></div></div></section>
+    <section id="playbook" aria-labelledby="playbook-heading"><h2 id="playbook-heading">Role-based workspaces</h2><div class="grid"><article class="card"><h3>Playbook</h3><p>Validated plays, role assignments, visual views, checks, and teaching notes.</p><h4>Core play review package</h4><p class="label">Creates a pending-approval package containing a validated play, role-specific teaching view, measurable drill, and audit history.</p><form id="core-play-form"><label>Play JSON<textarea id="core-play-json" required rows="5">{"id":"PLAY-UI-001","name":"UI Core Play","unit":"offense","formation":"shotgun","personnel":"11","assignments":[{"role":"QB","assignment":"read coverage","responsibility":"read coverage"},{"role":"RB","assignment":"check release","responsibility":"check release"},{"role":"WR","assignment":"win leverage","responsibility":"win leverage"},{"role":"C","assignment":"set protection","responsibility":"set protection"}]}</textarea></label><label>Role<input id="core-play-role" required value="QB" autocomplete="off"></label><label>Drill JSON<textarea id="core-play-drill-json" required rows="5">{"id":"DRILL-UI-001","name":"Read and replace","drill_type":"individual","position":"QB","target_skill":"coverage recognition","competencies":["CAP-003"],"classification":{"contact_level":"non_contact","decision_load":"high"},"setup":{"space":"half_field"},"dose":{"minutes":8,"reps":12,"intensity":"moderate"},"coaching_cues":["eyes before feet"],"common_errors":["late confirmation"],"corrections":["reset vision"],"kpis":[{"name":"correct_read_rate","target":0.8}],"regressions":["static shell"],"progressions":["add rotation"],"film_angles":["wide"],"safety":{"controls":["no contact","hydration"]}}</textarea></label><label>Decision reference<input id="core-play-decision" required placeholder="DEC-..." autocomplete="off"></label><button type="submit">Create pending review package</button></form><p id="core-play-status" class="label" role="status"></p><div id="core-play-results" class="results" aria-live="polite"></div><form id="core-play-approval-form"><label>Play ID to approve<input id="core-play-approval-play-id" required placeholder="PLAY-UI-001" autocomplete="off"></label><label>Approval decision reference<input id="core-play-approval-decision" required placeholder="DEC-..." autocomplete="off"></label><button type="submit">Approve and lock play</button></form><p id="core-play-approval-status" class="label" role="status"></p><div id="core-play-approval-results" class="results" aria-live="polite"></div><hr><form id="visual-playbook-form"><label>Visual ID<input id="visual-id" required placeholder="VISUAL-..." autocomplete="off"></label><label>Role<input id="visual-role" placeholder="QB or coach" autocomplete="off"></label><label>What-if adjustment (optional)<input id="visual-adjustment" placeholder="rotate_coverage" autocomplete="off"></label><button type="submit">Load visual play</button></form><p id="visual-playbook-status" class="label" role="status"></p><div id="visual-playbook-results" class="results" aria-live="polite"></div></article><article class="card"><h3>Film Room</h3><p>Authorized clips, observations, corrections, playlists, and QA.</p></article><article class="card"><h3>Game Plan</h3><p>Evidence-linked calls, counters, triggers, rule facts, and approval gates.</p></article></div></section>
+    <section id="film" aria-labelledby="film-heading"><h2 id="film-heading">Film room search</h2><div class="card"><p class="label">Use an organization-scoped Bearer token issued by the approved identity boundary.</p><form id="film-search-form"><label>Organization ID<input id="film-org" required placeholder="ORG-..." autocomplete="organization"></label><label>Bearer token<input id="film-token" required type="password" placeholder="signed token"></label><label>Opponent<input id="film-opponent" placeholder="TEAM-..." autocomplete="off"></label><label>Search text<input id="film-query" placeholder="coverage, rotation..." autocomplete="off"></label><button type="submit">Search film</button></form><p id="film-search-status" class="label" role="status"></p><div id="film-results" class="results" aria-live="polite"></div><hr><h3>Annotation session</h3><form id="film-annotation-form"><label>Session ID<input id="annotation-session-id" required placeholder="ANNOTATION-..." autocomplete="off"></label><label>Clip ID<input id="annotation-clip-id" required placeholder="CLIP-..." autocomplete="off"></label><label>Allowed domain<input id="annotation-domain" required placeholder="coverage" autocomplete="off"></label><label>Source reference<input id="annotation-source" required placeholder="CLIP-..." autocomplete="off"></label><button type="submit">Open annotation session</button></form><p id="film-annotation-status" class="label" role="status"></p><form id="film-annotation-append-form"><label>Observation JSON<textarea id="annotation-observation" required rows="4" placeholder='{"clip_id":"CLIP-...","domain":"coverage","confidence":"low","status":"needs_review"}'></textarea></label><button type="submit">Append observation</button></form><p id="film-annotation-append-status" class="label" role="status"></p><hr><h3>Clip playlist</h3><form id="film-playlist-form"><label>Playlist ID<input id="playlist-id" required placeholder="PLAYLIST-..." autocomplete="off"></label><label>Name<input id="playlist-name" required placeholder="Third down teaching" autocomplete="off"></label><label>Purpose<input id="playlist-purpose" required placeholder="teaching" autocomplete="off"></label><label>Clip IDs<input id="playlist-clips" required placeholder="CLIP-001, CLIP-002" autocomplete="off"></label><label>Access roles<input id="playlist-roles" required placeholder="coach_staff, analyst" autocomplete="off"></label><button type="submit">Create playlist</button></form><p id="film-playlist-status" class="label" role="status"></p><div id="film-playlist-results" class="results" aria-live="polite"></div></div></section>
+    <section id="workspace" aria-labelledby="workspace-heading"><h2 id="workspace-heading">Workspace summary</h2><div class="card"><button id="workspace-load" type="button">Load authorized workspace summary</button><p id="workspace-status" class="label" role="status"></p><div id="workspace-results" class="results" aria-live="polite"></div></div></section>
+    <section id="governance-inbox" aria-labelledby="inbox-heading"><h2 id="inbox-heading">Approval inbox</h2><div class="card"><button id="inbox-load" type="button">Load approval inbox</button><p id="inbox-status" class="label" role="status"></p><div id="inbox-results" class="results" aria-live="polite"></div></div></section>
+    <section id="player-today" aria-labelledby="player-today-heading"><h2 id="player-today-heading">Player Today</h2><div class="card"><form id="player-today-form"><label>Player ID<input id="player-id" required placeholder="PLAYER-..." autocomplete="off"></label><button type="submit">Load player workspace</button></form><p id="player-today-status" class="label" role="status"></p><div id="player-today-results" class="results" aria-live="polite"></div></div></section>
+    <section id="game-plan-workspace" aria-labelledby="game-plan-heading"><h2 id="game-plan-heading">Game-plan workspace</h2><div class="card"><form id="game-plan-form"><label>Week<input id="game-plan-week" placeholder="WEEK-..." autocomplete="off"></label><button type="submit">Load game plan</button></form><p id="game-plan-status" class="label" role="status"></p><div id="game-plan-results" class="results" aria-live="polite"></div></div></section>
+    <section id="practice-workspace" aria-labelledby="practice-heading"><h2 id="practice-heading">Practice builder</h2><div class="card"><form id="practice-workspace-form"><label>Week<input id="practice-week" placeholder="WEEK-..." autocomplete="off"></label><button type="submit">Load practice plans</button></form><p id="practice-status" class="label" role="status"></p><div id="practice-results" class="results" aria-live="polite"></div></div></section>
+    <section id="scheme-workspace" aria-labelledby="scheme-heading"><h2 id="scheme-heading">Scheme workspace</h2><div class="card"><form id="scheme-workspace-form"><label>Unit<select id="scheme-unit"><option value="">All units</option><option value="offense">Offense</option><option value="defense">Defense</option></select></label><button type="submit">Load schemes</button></form><p id="scheme-status" class="label" role="status"></p><div id="scheme-results" class="results" aria-live="polite"></div></div></section>
+    <section id="analytics-workspace" aria-labelledby="analytics-heading"><h2 id="analytics-heading">Analytics workspace</h2><div class="card"><form id="analytics-workspace-form"><label>Situation<input id="analytics-situation" placeholder="third_down" autocomplete="off"></label><button type="submit">Load analytics</button></form><p id="analytics-status" class="label" role="status"></p><div id="analytics-results" class="results" aria-live="polite"></div></div></section>
+    <section id="scouting-workspace" aria-labelledby="scouting-heading"><h2 id="scouting-heading">Scouting workspace</h2><div class="card"><p class="label">Organization-scoped opponent evidence, matchup context, and adaptation warnings. Use the same approved Bearer token as Film Room.</p><form id="scouting-workspace-form"><label>Opponent<input id="scouting-opponent" placeholder="TEAM-..." autocomplete="off"></label><button type="submit">Load scouting workspace</button></form><p id="scouting-status" class="label" role="status"></p><div id="scouting-results" class="results" aria-live="polite"></div><hr><h3>Create situational scouting report</h3><form id="scouting-report-form"><label>Report ID<input id="scouting-report-id" required placeholder="SCOUT-REPORT-..." autocomplete="off"></label><label>Situation JSON<textarea id="scouting-situation" required rows="2">{"down":3,"distance":"medium","field_zone":"open_field"}</textarea></label><label>Claims JSON<textarea id="scouting-claims" required rows="4">[{"classification":"observed","confidence":"moderate","uncertainty":["sample"],"evidence_refs":["CLIP-..."]}]</textarea></label><label>Sample size<input id="scouting-sample-size" required type="number" min="1" value="10"></label><label>Source references<input id="scouting-source-refs" required placeholder="CLIP-001,SOURCE-002" autocomplete="off"></label><button type="submit">Submit report for review</button></form><p id="scouting-report-status" class="label" role="status"></p></div></section>
+    <section id="media-workspace" aria-labelledby="media-workspace-heading"><h2 id="media-workspace-heading">Media pipeline</h2><div class="card"><p class="label">Authorized local media paths only. Registration and worker operations remain organization-scoped, bounded, and auditable.</p><form id="media-asset-form"><label>Asset ID<input id="media-asset-id" required placeholder="FILM-..." autocomplete="off"></label><label>Authorized file path<input id="media-file-path" required placeholder="C:\\approved\\film\\game.mp4" autocomplete="off"></label><label>Duration seconds<input id="media-duration" required type="number" min="0.01" step="0.01" placeholder="3600"></label><label>Source kind<select id="media-source-kind"><option value="team_film">Team film</option><option value="licensed_film">Licensed film</option><option value="public_gamebook">Public gamebook</option><option value="authorized_media">Authorized media</option></select></label><label>Source reference<input id="media-source-ref" required placeholder="SOURCE-..." autocomplete="off"></label><label>Captured at<input id="media-captured-at" required placeholder="2026-08-23T00:00:00Z" autocomplete="off"></label><label>Team context<input id="media-team-context" required placeholder="self or opponent" autocomplete="off"></label><label>Allowed roots<input id="media-allowed-roots" required placeholder="C:\\approved\\film" autocomplete="off"></label><button type="submit">Register authorized asset</button></form><p id="media-asset-status" class="label" role="status"></p><div id="media-asset-results" class="results" aria-live="polite"></div><hr><h3>Bounded worker job</h3><form id="media-job-form"><label>Job ID<input id="media-job-id" required placeholder="MEDIA-JOB-..." autocomplete="off"></label><label>Operation<select id="media-operation"><option value="probe">Probe</option><option value="transcode">Transcode</option><option value="segment">Segment</option><option value="thumbnail">Thumbnail</option></select></label><label>Worker file path<input id="media-job-file-path" required placeholder="managed media path" autocomplete="off"></label><label>Worker allowed roots<input id="media-job-roots" required placeholder="C:\\approved\\managed" autocomplete="off"></label><button type="submit">Queue bounded job</button></form><p id="media-job-status" class="label" role="status"></p><div id="media-job-results" class="results" aria-live="polite"></div><button id="media-jobs-load" type="button">Load media jobs</button><p id="media-jobs-status" class="label" role="status"></p><div id="media-jobs-results" class="results" aria-live="polite"></div></div></section>
+    <section id="pilot-organization" aria-labelledby="pilot-organization-heading"><h2 id="pilot-organization-heading">Pilot organization selection</h2><div class="card"><p class="label">Selects an already approved organization context for a bounded wave. This does not start a live pilot or enable production.</p><form id="pilot-organization-form"><label>Selection ID<input id="pilot-selection-id" required value="PILOT-SEL-001" autocomplete="off"></label><label>Wave ID<input id="pilot-selection-wave" required value="WAVE-001" autocomplete="off"></label><label>Pilot users JSON<textarea id="pilot-selection-users" required rows="3">[{"id":"OWNER","role":"program_owner"},{"id":"COACH","role":"coach_staff"},{"id":"ANALYST","role":"analyst"},{"id":"PLAYER","role":"player"}]</textarea></label><label>Decision reference<input id="pilot-selection-decision" required placeholder="DEC-PILOT-..." autocomplete="off"></label><button type="submit">Select approved organization for pilot</button></form><p id="pilot-organization-status" class="label" role="status"></p><div id="pilot-organization-results" class="results" aria-live="polite"></div><button id="pilot-organization-load" type="button">Load pilot organization selections</button><p id="pilot-organization-load-status" class="label" role="status"></p><div id="pilot-organization-load-results" class="results" aria-live="polite"></div></div></section>
+    <section id="pilot-delivery-package" aria-labelledby="pilot-delivery-package-heading"><h2 id="pilot-delivery-package-heading">Pilot delivery package</h2><div class="card"><p class="label">Composes organization selection, readiness evidence, and rollback evidence into one non-live delivery record.</p><form id="pilot-delivery-package-form"><label>Package ID<input id="pilot-package-id" required value="PILOT-PKG-001" autocomplete="off"></label><label>Selection ID<input id="pilot-package-selection-id" required value="PILOT-SEL-001" autocomplete="off"></label><label>Readiness report ID<input id="pilot-package-readiness-id" required placeholder="PILOT-READINESS-..." autocomplete="off"></label><label>Rollback result JSON<textarea id="pilot-package-rollback" required rows="3">{"status":"passed","external_state_changed":false,"historical_evidence_preserved":true}</textarea></label><button type="submit">Compose bounded pilot package</button></form><p id="pilot-delivery-package-status" class="label" role="status"></p><div id="pilot-delivery-package-results" class="results" aria-live="polite"></div><button id="pilot-delivery-package-load" type="button">Load pilot delivery packages</button><p id="pilot-delivery-package-load-status" class="label" role="status"></p><div id="pilot-delivery-package-load-results" class="results" aria-live="polite"></div></div></section>
+    <section id="usability-feedback" aria-labelledby="usability-feedback-heading"><h2 id="usability-feedback-heading">Usability feedback</h2><div class="card"><p class="label">Capture role-scoped pilot or deployment feedback. The server derives your role from the approved identity token; blocked, accessibility, major, and critical findings require human review.</p><form id="usability-feedback-form"><label>Session ID<input id="usability-session-id" required value="UX-SESSION-UI-001" placeholder="UX-SESSION-..." autocomplete="off"></label><label>Screen<select id="usability-screen-id" required><option value="SCREEN-PLAYER-TODAY">Player Today</option><option value="SCREEN-PLAYER-PLAYBOOK">Player Playbook</option><option value="SCREEN-FILM-ROOM">Film Room</option><option value="SCREEN-COACH-DASHBOARD">Coach Dashboard</option><option value="SCREEN-SCHEME-WORKSPACE">Scheme Workspace</option><option value="SCREEN-PRACTICE-BUILDER">Practice Builder</option><option value="SCREEN-GAMEPLAN">Game Plan</option><option value="SCREEN-GOVERNANCE" selected>Governance</option></select></label><label>Task ID<input id="usability-task-id" required value="TASK-DASHBOARD-REVIEW" placeholder="TASK-..." autocomplete="off"></label><label>Outcome<select id="usability-outcome" required><option value="completed">Completed</option><option value="partially_completed">Partially completed</option><option value="blocked">Blocked</option></select></label><label>Severity<select id="usability-severity" required><option value="note">Note</option><option value="minor">Minor</option><option value="major">Major</option><option value="critical">Critical</option></select></label><label>Accessibility issue<select id="usability-accessibility"><option value="false">No</option><option value="true">Yes</option></select></label><label>Feedback<textarea id="usability-feedback-text" required rows="3" placeholder="What worked, what was confusing, or what blocked the task?"></textarea></label><label>Evidence references<input id="usability-evidence-refs" required value="BROWSER-VALIDATION-LOCAL-001" placeholder="BROWSER-...,TEST-..." autocomplete="off"></label><button type="submit">Submit usability feedback</button></form><p id="usability-feedback-status" class="label" role="status"></p><div id="usability-feedback-results" class="results" aria-live="polite"></div></div></section>
+    <section id="organization-population-readiness" aria-labelledby="organization-population-readiness-heading"><h2 id="organization-population-readiness-heading">Organization population readiness</h2><div class="card"><p class="label">This checklist reports missing or stale tenant packages. It never marks a package validated and never creates synthetic organization data.</p><form id="organization-population-readiness-form"><label>Organization ID<input id="population-readiness-org" required placeholder="ORG-..." autocomplete="organization"></label><label>Season<input id="population-readiness-season" required value="2026" autocomplete="off"></label><button type="submit">Inspect package population</button></form><p id="organization-population-readiness-status" class="label" role="status"></p><div id="organization-population-readiness-results" class="results" aria-live="polite"></div></div></section>
+    <section id="play-designer-section" aria-labelledby="play-designer-heading"><h2 id="play-designer-heading">Interactive play designer</h2><div id="play-designer" class="play-designer"></div></section>
+  </main>
+  <footer>Accessible status surfaces · organization-scoped data · auditable decisions</footer>
+  <script src="/play-designer.js"></script>
+  <script src="/play-designer-assets.js"></script>
+  <script src="/play-designer-enhancements.js"></script>
+  <script src="/play-designer-interactive.js"></script>
+  <script src="/play-designer-timeline.js"></script>
+  <script src="/play-designer-sync.js"></script>
+  <script src="/play-designer-collaboration.js"></script>
+  <script src="/play-designer-versioning.js"></script>
+  <script src="/play-designer-teaching.js"></script>
+  <script src="/play-designer-export.js"></script>
+  <script src="/play-designer-legality.js"></script>
+  <script src="/pilot-verification.js"></script>
+  <script>
+    const setState = (id, text, state) => { const el = document.getElementById(id); el.textContent = text; if (state) el.classList.add(`state-${state}`); };
+    Promise.all([fetch('/health'), fetch('/v1/control'), fetch('/v1/evals')]).then(async ([health, control, evals]) => {
+      const h = await health.json(), c = await control.json(), e = await evals.json();
+      setState('service-state', h.status === 'ok' ? 'Operational' : 'Unavailable', h.status === 'ok' ? 'good' : 'bad');
+      setState('stage-state', `${c.data.stage} · ${c.data.work_package}`, 'warn');
+      setState('eval-state', e.data.status === 'passed' ? `${e.data.passed}/${e.data.passed} passed` : 'Blocked', e.data.status === 'passed' ? 'good' : 'bad');
+      document.getElementById('governance-state').textContent = 'Control evidence loaded; approval remains a human action.';
+    }).catch(() => { setState('service-state', 'Unavailable', 'bad'); document.getElementById('governance-state').textContent = 'Unable to load control evidence.'; });
+    const corePlayFixture = {id:'PLAY-UI-001', name:'UI Core Play', version:'0.1.0', unit:'offense', team_context:'TEAM-UI-FIXTURE', situation:{down:3, distance:6, field_zone:'open_field'}, motion:null, formation:'shotgun', personnel:'11', assignments:[{role:'QB', assignment:'read coverage', responsibility:'read coverage'}, {role:'RB', assignment:'check release', responsibility:'check release'}, {role:'WR1', assignment:'win leverage', responsibility:'win leverage'}, {role:'C', assignment:'set protection', responsibility:'set protection'}], source:{kind:'team_playbook', ref:'PB-UI-FIXTURE'}, status:'draft', play_family_id:'PLAY-FAM-UI-001', checks:[{role:'QB', text:'confirm rotation'}], situational_variants:[{situation:'third_down', variant:'hot'}], opponent_notes:['check pressure'], coaching_notes:['eyes before feet'], install_level:'game_ready', dependencies:['SCHEME-UI-001'], approval:{state:'draft', approver:null, decision_ref:null}};
+    document.getElementById('core-play-json').value = JSON.stringify(corePlayFixture);
+    document.querySelector('#game-plan-workspace .card').insertAdjacentHTML('beforeend', `<hr><h3>Staff review collaboration</h3><p class="label">Evidence-linked discussion and decisions remain separate from publication and release.</p><form id="game-plan-thread-form"><label>Organization ID<input id="collab-org" required placeholder="ORG-..."></label><label>Plan ID<input id="collab-plan" required placeholder="GAMEPLAN-..."></label><label>Thread ID<input id="collab-thread" required value="GAMEPLAN-THREAD-UI-001"></label><label>Week<input id="collab-week" required value="WEEK-1"></label><label>Topic<input id="collab-topic" required value="third down"></label><label>Comment<input id="collab-comment" required value="Review the pressure answer."></label><label>Evidence refs<input id="collab-evidence" required value="CLIP-UI-001"></label><button type="submit">Open review thread</button></form><form id="game-plan-thread-resolve-form"><label>Thread ID<input id="collab-resolve-thread" required value="GAMEPLAN-THREAD-UI-001"></label><label>Decision<select id="collab-decision"><option value="accepted">Accepted</option><option value="deferred">Deferred</option><option value="rejected">Rejected</option></select></label><label>Decision ref<input id="collab-decision-ref" required placeholder="DEC-..."></label><label>Rationale<input id="collab-rationale" required value="Staff reviewed the cited evidence."></label><button type="submit">Resolve thread</button></form><p id="game-plan-collaboration-status" class="label" role="status"></p>`);
+    document.getElementById('game-plan-thread-form').addEventListener('submit', async (event) => { event.preventDefault(); const status = document.getElementById('game-plan-collaboration-status'); try { const token = document.getElementById('film-token').value.trim(); const body = {organization_id:document.getElementById('collab-org').value.trim(), thread_id:document.getElementById('collab-thread').value.trim(), plan_id:document.getElementById('collab-plan').value.trim(), week:document.getElementById('collab-week').value.trim(), topic:document.getElementById('collab-topic').value.trim(), comment:document.getElementById('collab-comment').value.trim(), evidence_refs:document.getElementById('collab-evidence').value.split(',').map((value) => value.trim()).filter(Boolean)}; const response = await fetch('/v1/game-plan/threads', {method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer '+token}, body:JSON.stringify(body)}); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Thread creation failed'); status.textContent = 'Game-plan review thread opened; evidence and human decision are required.'; status.className = 'label state-warn'; } catch (error) { status.textContent = 'Collaboration unavailable: '+error.message; status.className = 'label state-bad'; } });
+    document.getElementById('game-plan-thread-resolve-form').addEventListener('submit', async (event) => { event.preventDefault(); const status = document.getElementById('game-plan-collaboration-status'); try { const token = document.getElementById('film-token').value.trim(); const body = {organization_id:document.getElementById('collab-org').value.trim(), thread_id:document.getElementById('collab-resolve-thread').value.trim(), decision:document.getElementById('collab-decision').value, decision_ref:document.getElementById('collab-decision-ref').value.trim(), rationale:document.getElementById('collab-rationale').value.trim()}; const response = await fetch('/v1/game-plan/threads/resolve', {method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer '+token}, body:JSON.stringify(body)}); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Thread resolution failed'); status.textContent = 'Review thread resolved and recorded; game-plan publication remains separately gated.'; status.className = 'label state-warn'; } catch (error) { status.textContent = 'Resolution unavailable: '+error.message; status.className = 'label state-bad'; } });
+    document.querySelector('#playbook .card').insertAdjacentHTML('afterbegin', `<div class="authoring-surface"><h4>Playbook authoring workspace</h4><p class="label">Save a tenant-scoped compiler-validated draft, request approval, and publish only after explicit owner lock.</p><form id="playbook-authoring-form"><label>Organization ID<input id="authoring-org" required placeholder="ORG-..."></label><label>Play JSON<textarea id="authoring-play" required rows="5">${JSON.stringify({id:'PLAY-AUTHOR-001', version:'0.1.0', unit:'offense', team_context:'TEAM-AUTHOR', situation:{down:3,distance:6,field_zone:'open_field'}, personnel:'11', formation:'shotgun', motion:null, assignments:corePlayFixture.assignments, source:{kind:'team_playbook',ref:'PB-AUTHOR-001'}})}</textarea></label><label>Play family ID<input id="authoring-family" required value="PLAY-FAM-AUTHOR-001"></label><label>Install level<select id="authoring-install"><option value="install">Install</option><option value="review" selected>Review</option><option value="game_ready">Game ready</option><option value="situational">Situational</option></select></label><label>Checks JSON<textarea id="authoring-checks" required rows="2">[{"role":"QB","text":"confirm rotation"}]</textarea></label><label>Situational variants JSON<textarea id="authoring-variants" required rows="2">[{"situation":"third_down","variant":"hot"}]</textarea></label><label>Opponent notes<input id="authoring-opponent-notes" required value="check pressure"></label><label>Coaching notes<input id="authoring-coaching-notes" required value="eyes before feet"></label><label>Dependencies<input id="authoring-dependencies" required value="SCHEME-AUTHOR-001"></label><button type="submit">Save validated play draft</button></form><p id="playbook-authoring-status" class="label" role="status"></p><div id="playbook-authoring-results" class="results" aria-live="polite"></div><form id="playbook-approval-request-form"><label>Draft play ID<input id="playbook-request-id" required placeholder="PLAY-AUTHOR-001"></label><label>Decision reference<input id="playbook-request-decision" required placeholder="DEC-PLAY-..."></label><button type="submit">Request play approval</button></form><form id="playbook-approval-form"><label>Play ID to lock<input id="playbook-approve-id" required placeholder="PLAY-AUTHOR-001"></label><label>Owner decision reference<input id="playbook-approve-decision" required placeholder="DEC-PLAY-..."></label><button type="submit">Approve and lock play</button></form></div>`);
+    document.getElementById('playbook-authoring-form').addEventListener('submit', async (event) => {
+      event.preventDefault(); const status = document.getElementById('playbook-authoring-status'); const results = document.getElementById('playbook-authoring-results'); results.replaceChildren();
+      try { const org = document.getElementById('authoring-org').value.trim(); const token = document.getElementById('film-token').value.trim(); const body = {organization_id:org, play:JSON.parse(document.getElementById('authoring-play').value), play_family_id:document.getElementById('authoring-family').value.trim(), install_level:document.getElementById('authoring-install').value, checks:JSON.parse(document.getElementById('authoring-checks').value), situational_variants:JSON.parse(document.getElementById('authoring-variants').value), opponent_notes:[document.getElementById('authoring-opponent-notes').value.trim()], coaching_notes:[document.getElementById('authoring-coaching-notes').value.trim()], dependencies:[document.getElementById('authoring-dependencies').value.trim()]}; const response = await fetch('/v1/playbook/drafts', {method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer '+token}, body:JSON.stringify(body)}); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Playbook draft failed'); status.textContent = 'Playbook draft saved; publication remains approval-gated.'; status.className = 'label state-warn'; const item = document.createElement('article'); item.className = 'result'; item.textContent = 'Draft: ' + payload.data.id + ' · status: ' + payload.data.status; results.appendChild(item); } catch (error) { status.textContent = 'Playbook authoring unavailable: ' + error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('playbook-approval-request-form').addEventListener('submit', async (event) => { event.preventDefault(); const status = document.getElementById('playbook-authoring-status'); try { const org = document.getElementById('authoring-org').value.trim(); const token = document.getElementById('film-token').value.trim(); const response = await fetch('/v1/playbook/drafts/request-approval', {method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer '+token}, body:JSON.stringify({organization_id:org, play_id:document.getElementById('playbook-request-id').value.trim(), decision_ref:document.getElementById('playbook-request-decision').value.trim()})}); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Approval request failed'); status.textContent = 'Play approval requested; owner review is required.'; status.className = 'label state-warn'; } catch (error) { status.textContent = 'Approval request unavailable: ' + error.message; status.className = 'label state-bad'; } });
+    document.getElementById('playbook-approval-form').addEventListener('submit', async (event) => { event.preventDefault(); const status = document.getElementById('playbook-authoring-status'); try { const org = document.getElementById('authoring-org').value.trim(); const token = document.getElementById('film-token').value.trim(); const response = await fetch('/v1/playbook/drafts/approve', {method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer '+token}, body:JSON.stringify({organization_id:org, play_id:document.getElementById('playbook-approve-id').value.trim(), decision_ref:document.getElementById('playbook-approve-decision').value.trim()})}); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Play approval failed'); status.textContent = 'Play approved and locked by the owner boundary.'; status.className = 'label state-warn'; } catch (error) { status.textContent = 'Play approval unavailable: ' + error.message; status.className = 'label state-bad'; } });
+    document.getElementById('pilot-organization-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('film-org').value.trim(); const token = document.getElementById('film-token').value.trim();
+      const status = document.getElementById('pilot-organization-status'); const results = document.getElementById('pilot-organization-results');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token in Film Room first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Validating approved organization context and pilot roles...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const body = {organization_id:org, selection_id:document.getElementById('pilot-selection-id').value.trim(), wave_id:document.getElementById('pilot-selection-wave').value.trim(), pilot_users:JSON.parse(document.getElementById('pilot-selection-users').value), decision_ref:document.getElementById('pilot-selection-decision').value.trim()};
+        const response = await fetch('/v1/delivery/pilot-organization', {method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + token}, body:JSON.stringify(body)}); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Pilot organization selection failed');
+        const data = payload.data; status.textContent = 'Pilot organization selected; live pilot remains inactive.'; status.className = 'label state-warn';
+        [['Selection', data.id], ['Organization', data.organization_id], ['Wave', data.wave_id], ['Live pilot', String(data.live_pilot)], ['Production enabled', String(data.production_implementation_allowed)]].forEach(([label, value]) => { const item = document.createElement('article'); item.className = 'result'; item.textContent = label + ': ' + value; results.appendChild(item); });
+      } catch (error) { status.textContent = 'Pilot organization selection unavailable: ' + error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('pilot-organization-load').addEventListener('click', async () => {
+      const org = document.getElementById('film-org').value.trim(); const token = document.getElementById('film-token').value.trim();
+      const status = document.getElementById('pilot-organization-load-status'); const results = document.getElementById('pilot-organization-load-results');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token in Film Room first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Loading pilot organization selections...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const response = await fetch('/v1/delivery/pilot-organization?organization_id=' + encodeURIComponent(org), {headers:{Authorization:'Bearer ' + token}}); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Pilot selection request failed');
+        const selections = payload.data.selections || []; status.textContent = selections.length + ' pilot selection' + (selections.length === 1 ? '' : 's') + ' found.'; selections.forEach((selection) => { const item = document.createElement('article'); item.className = 'result'; item.textContent = selection.id + ' · ' + selection.wave_id + ' · live pilot: ' + selection.live_pilot; results.appendChild(item); });
+      } catch (error) { status.textContent = 'Pilot selection evidence unavailable: ' + error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('pilot-delivery-package-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('film-org').value.trim(); const token = document.getElementById('film-token').value.trim();
+      const status = document.getElementById('pilot-delivery-package-status'); const results = document.getElementById('pilot-delivery-package-results');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token in Film Room first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Composing selection, readiness, and rollback evidence...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const body = {organization_id:org, package_id:document.getElementById('pilot-package-id').value.trim(), selection_id:document.getElementById('pilot-package-selection-id').value.trim(), readiness_report_id:document.getElementById('pilot-package-readiness-id').value.trim(), rollback:JSON.parse(document.getElementById('pilot-package-rollback').value)};
+        const response = await fetch('/v1/delivery/pilot-package', {method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + token}, body:JSON.stringify(body)}); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Pilot package composition failed');
+        const data = payload.data; status.textContent = 'Bounded pilot package composed; live pilot remains inactive.'; status.className = 'label state-warn';
+        [['Package', data.id], ['Status', data.status], ['Live pilot', String(data.live_pilot)], ['Production enabled', String(data.production_implementation_allowed)]].forEach(([label, value]) => { const item = document.createElement('article'); item.className = 'result'; item.textContent = label + ': ' + value; results.appendChild(item); });
+      } catch (error) { status.textContent = 'Pilot delivery package unavailable: ' + error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('pilot-delivery-package-load').addEventListener('click', async () => {
+      const org = document.getElementById('film-org').value.trim(); const token = document.getElementById('film-token').value.trim(); const status = document.getElementById('pilot-delivery-package-load-status'); const results = document.getElementById('pilot-delivery-package-load-results');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token in Film Room first.'; status.className = 'label state-warn'; return; }
+      try { const response = await fetch('/v1/delivery/pilot-package?organization_id=' + encodeURIComponent(org), {headers:{Authorization:'Bearer ' + token}}); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Pilot package request failed'); const packages = payload.data.packages || []; status.textContent = packages.length + ' pilot delivery package' + (packages.length === 1 ? '' : 's') + ' found.'; packages.forEach((item) => { const result = document.createElement('article'); result.className = 'result'; result.textContent = item.id + ' · ' + item.status + ' · live pilot: ' + item.live_pilot; results.appendChild(result); }); } catch (error) { status.textContent = 'Pilot package evidence unavailable: ' + error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('stage0-approval-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const status = document.getElementById('stage0-approval-status');
+      const results = document.getElementById('stage0-approval-results');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token in Film Room first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Validating Stage 0 gate and recording non-activating approval evidence...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const body = {organization_id:org, approval_id:document.getElementById('stage0-approval-id').value.trim(), rationale:document.getElementById('stage0-approval-rationale').value.trim(), evidence_refs:document.getElementById('stage0-approval-evidence').value.split(',').map((value) => value.trim()).filter(Boolean), approved_at:document.getElementById('stage0-approval-time').value.trim()};
+        const response = await fetch('/v1/control/stage-0-approval', {method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + token}, body:JSON.stringify(body)});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Stage 0 approval evidence rejected');
+        const data = payload.data; status.textContent = 'Approval evidence recorded; control manifest unchanged.'; status.className = 'label state-warn';
+        [['Decision', data.record.decision], ['Validation', data.validation.status], ['Production enabled', String(data.production_implementation_allowed)], ['Stage advance authorized', String(data.stage_advance_authorized)]].forEach(([label, value]) => { const item = document.createElement('article'); item.className = 'result'; item.textContent = label + ': ' + value; results.appendChild(item); });
+      } catch (error) { status.textContent = 'Stage 0 approval unavailable: ' + error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('stage0-approval-load').addEventListener('click', async () => {
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const status = document.getElementById('stage0-approval-load-status');
+      const results = document.getElementById('stage0-approval-load-results');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token in Film Room first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Loading Stage 0 gate evidence...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const response = await fetch('/v1/control/stage-0-approval?organization_id=' + encodeURIComponent(org), {headers:{Authorization:'Bearer ' + token}});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Stage 0 evidence request failed');
+        const data = payload.data; status.textContent = 'Gate: ' + data.gate.status + ' · approvals: ' + data.approvals.length; status.className = 'label state-warn';
+        [['Gate status', data.gate.status], ['Eligible to advance', String(data.gate.eligible_to_advance)], ['Production enabled', String(data.production_implementation_allowed)], ['Approval records', data.approvals.map((item) => item.id + ' (' + item.decision + ')').join(', ') || 'None']].forEach(([label, value]) => { const item = document.createElement('article'); item.className = 'result'; item.textContent = label + ': ' + value; results.appendChild(item); });
+      } catch (error) { status.textContent = 'Stage 0 evidence unavailable: ' + error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('core-play-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const status = document.getElementById('core-play-status');
+      const results = document.getElementById('core-play-results');
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      status.textContent = 'Validating play, teaching view, and measurable drill...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const body = {organization_id: org, play: JSON.parse(document.getElementById('core-play-json').value), role: document.getElementById('core-play-role').value.trim(), drill: JSON.parse(document.getElementById('core-play-drill-json').value), decision_ref: document.getElementById('core-play-decision').value.trim()};
+        const response = await fetch('/v1/workflows/core-play', {method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + token}, body:JSON.stringify(body)});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Core play package rejected');
+        const data = payload.data; status.textContent = 'Package created and held for human approval: ' + data.id; status.className = 'label state-warn';
+        [['Play', data.play_id], ['Role view', data.play_view_id], ['Practice drill', data.drill_id], ['Approval state', data.approval_state]].forEach(([label, value]) => { const item = document.createElement('article'); item.className = 'result'; item.textContent = label + ': ' + value; results.appendChild(item); });
+      } catch (error) { status.textContent = 'Core play package unavailable: ' + error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('core-play-approval-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const status = document.getElementById('core-play-approval-status');
+      const results = document.getElementById('core-play-approval-results');
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const playId = document.getElementById('core-play-approval-play-id').value.trim();
+      status.textContent = 'Submitting explicit program-owner approval...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const response = await fetch('/v1/workflows/core-play/' + encodeURIComponent(playId) + '/approve', {method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + token}, body:JSON.stringify({organization_id:org, decision_ref:document.getElementById('core-play-approval-decision').value.trim()})});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Core play approval rejected');
+        status.textContent = 'Play locked and approval recorded: ' + payload.data.play_id; status.className = 'label state-good';
+        const item = document.createElement('article'); item.className = 'result'; item.textContent = 'Status: ' + payload.data.status + ' · approval: ' + payload.data.approval_state; results.appendChild(item);
+      } catch (error) { status.textContent = 'Core play approval unavailable: ' + error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('film-search-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const params = new URLSearchParams({organization_id: org});
+      const opponent = document.getElementById('film-opponent').value.trim();
+      const searchText = document.getElementById('film-query').value.trim();
+      if (opponent) params.set('opponent', opponent);
+      if (searchText) params.set('query', searchText);
+      const status = document.getElementById('film-search-status');
+      const results = document.getElementById('film-results');
+      status.textContent = 'Searching authorized film records...';
+      status.className = 'label';
+      results.replaceChildren();
+      try {
+        const response = await fetch('/v1/film/search?' + params.toString(), {headers: {Authorization: 'Bearer ' + token}});
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || 'Film search failed');
+        const records = payload.data.results || [];
+        status.textContent = records.length + ' observation' + (records.length === 1 ? '' : 's') + ' found.';
+        records.forEach((record) => {
+          const item = document.createElement('article');
+          item.className = 'result';
+          item.textContent = record.id + ' · ' + record.domain + ' · ' + record.label + ' · ' + ((record.context || {}).opponent || 'opponent unknown') + ' · confidence ' + record.confidence;
+          results.appendChild(item);
+        });
+      } catch (error) {
+        status.textContent = error.message;
+        status.className = 'label state-bad';
+      }
+    });
+    document.getElementById('film-annotation-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const status = document.getElementById('film-annotation-status');
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      status.textContent = 'Opening annotation session...'; status.className = 'label';
+      try {
+        const response = await fetch('/v1/film/annotation-sessions', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + token}, body: JSON.stringify({organization_id: org, session_id: document.getElementById('annotation-session-id').value.trim(), clip_id: document.getElementById('annotation-clip-id').value.trim(), allowed_domains: [document.getElementById('annotation-domain').value.trim()], source_refs: [document.getElementById('annotation-source').value.trim()]})});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Annotation session failed');
+        status.textContent = 'Annotation session open; observations remain source-linked and correction-aware.';
+      } catch (error) { status.textContent = error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('film-playlist-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const status = document.getElementById('film-playlist-status');
+      const results = document.getElementById('film-playlist-results');
+      status.textContent = 'Creating organization-scoped playlist...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const body = {organization_id: org, playlist_id: document.getElementById('playlist-id').value.trim(), name: document.getElementById('playlist-name').value.trim(), purpose: document.getElementById('playlist-purpose').value.trim(), clip_ids: document.getElementById('playlist-clips').value.split(',').map((value) => value.trim()).filter(Boolean), filters: {}, access_roles: document.getElementById('playlist-roles').value.split(',').map((value) => value.trim()).filter(Boolean)};
+        const response = await fetch('/v1/film/playlists', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + token}, body: JSON.stringify(body)});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Playlist creation failed');
+        status.textContent = 'Playlist persisted with ' + payload.data.clip_ids.length + ' source-linked clip(s).';
+        const item = document.createElement('article'); item.className = 'result'; item.textContent = payload.data.id + ' · ' + payload.data.name + ' · access: ' + payload.data.access_roles.join(', '); results.appendChild(item);
+      } catch (error) { status.textContent = error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('film-annotation-append-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const sessionId = document.getElementById('annotation-session-id').value.trim();
+      const status = document.getElementById('film-annotation-append-status');
+      status.textContent = 'Appending source-linked observation...'; status.className = 'label';
+      try {
+        const observation = JSON.parse(document.getElementById('annotation-observation').value);
+        const response = await fetch('/v1/film/annotation-sessions/' + encodeURIComponent(sessionId) + '/annotations', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + token}, body: JSON.stringify({organization_id: org, observation})});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Annotation append failed');
+        status.textContent = payload.data.correction_required ? 'Observation appended; correction review is required.' : 'Observation appended and source-linked.';
+        status.className = payload.data.correction_required ? 'label state-warn' : 'label state-good';
+      } catch (error) { status.textContent = error.message; status.className = 'label state-bad'; }
+    });
+    const addVisualTimelineControls = (data, results) => {
+      const timeline = (data.visual || {}).timeline || [];
+      if (!timeline.length) return;
+      const panel = document.createElement('fieldset'); panel.className = 'result';
+      const legend = document.createElement('legend'); legend.textContent = 'Canonical timeline playback'; panel.appendChild(legend);
+      const slider = document.createElement('input'); slider.type = 'range'; slider.min = '0'; slider.max = String(timeline.length - 1); slider.value = '0'; slider.setAttribute('aria-label', 'Canonical play timeline position');
+      const toggle = document.createElement('button'); toggle.type = 'button'; toggle.textContent = 'Play'; toggle.setAttribute('aria-label', 'Play or pause canonical timeline');
+      const status = document.createElement('span'); status.className = 'label'; status.setAttribute('role', 'status');
+      const update = () => { const item = timeline[Number(slider.value)] || {}; status.textContent = `Event ${Number(slider.value) + 1}/${timeline.length}: ${item.event || 'timeline event'} at ${item.time_ms || 0} ms`; };
+      slider.addEventListener('input', update);
+      let timer = null;
+      toggle.addEventListener('click', () => { if (timer) { clearInterval(timer); timer = null; toggle.textContent = 'Play'; return; } toggle.textContent = 'Pause'; timer = setInterval(() => { const next = Number(slider.value) + 1; slider.value = String(next > Number(slider.max) ? 0 : next); update(); }, 500); });
+      panel.append(slider, toggle, status); results.appendChild(panel); update();
+    };
+    document.getElementById('visual-playbook-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const visualId = document.getElementById('visual-id').value.trim();
+      const role = document.getElementById('visual-role').value.trim();
+      const adjustment = document.getElementById('visual-adjustment').value.trim();
+      const status = document.getElementById('visual-playbook-status');
+      const results = document.getElementById('visual-playbook-results');
+      status.textContent = 'Loading authorized visual play...'; results.replaceChildren();
+      try {
+        const query = new URLSearchParams({organization_id: org, visual_id: visualId}); if (role) query.set('role', role);
+        const response = await fetch('/v1/playbook/visual?' + query.toString(), {headers: {Authorization: 'Bearer ' + token}});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Visual play request failed');
+        const data = payload.data; status.textContent = 'Canonical visual loaded · role: ' + data.role;
+        const frame = document.createElement('div'); frame.setAttribute('role', 'img'); frame.setAttribute('aria-label', 'Rendered NFL play diagram for ' + data.role); frame.innerHTML = data.svg; results.appendChild(frame);
+        addVisualTimelineControls(data, results);
+        if (adjustment) {
+          const simulation = await fetch('/v1/playbook/visuals/' + encodeURIComponent(visualId) + '/what-if', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + token}, body: JSON.stringify({organization_id: org, simulation_id: 'SIM-' + Date.now(), adjustment: {type: adjustment}})});
+          const scenarioPayload = await simulation.json(); if (!simulation.ok) throw new Error(scenarioPayload.error || 'What-if scenario failed');
+          const notice = document.createElement('p'); notice.className = 'notice'; notice.textContent = 'What-if scenario ' + (scenarioPayload.data.id || 'created') + ' is isolated for human review; canonical play remains unchanged.'; results.appendChild(notice);
+          const scenarioPanel = document.createElement('pre'); scenarioPanel.className = 'result'; scenarioPanel.setAttribute('aria-label', 'What-if scenario review details'); scenarioPanel.textContent = JSON.stringify({status: scenarioPayload.data.status, adjustment: scenarioPayload.data.adjustment, canonical_unchanged: scenarioPayload.data.canonical_unchanged, human_review_required: scenarioPayload.data.human_review_required}, null, 2); results.appendChild(scenarioPanel);
+        }
+      } catch (error) { status.textContent = 'Visual play unavailable: ' + error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('workspace-load').addEventListener('click', async () => {
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const status = document.getElementById('workspace-status');
+      const results = document.getElementById('workspace-results');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Loading authorized workspace summary...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const response = await fetch('/v1/operator/summary?organization_id=' + encodeURIComponent(org) + '&include_evals=true', {headers: {Authorization: 'Bearer ' + token}});
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || 'Workspace summary failed');
+        const data = payload.data;
+        status.textContent = 'Role: ' + data.role + ' · allowed workspaces: ' + data.allowed_sections.join(', ');
+        const population = data.organization_population;
+        [['Pending review', data.pending_review_count], ['Stale sources', data.stale_source_count], ['Eval status', data.eval.status + ' (' + data.eval.passed + '/' + (data.eval.passed + data.eval.failed) + ')'], ...(population ? [['Organization population', population.status + ' (' + population.ready_component_count + '/' + population.required_component_count + ')']] : [])].forEach(([label, value]) => {
+          const item = document.createElement('article'); item.className = 'result'; item.textContent = label + ': ' + value; results.appendChild(item);
+        });
+      } catch (error) { status.textContent = error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('inbox-load').addEventListener('click', async () => {
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const status = document.getElementById('inbox-status');
+      const results = document.getElementById('inbox-results');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Loading approval evidence...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const response = await fetch('/v1/governance/inbox?organization_id=' + encodeURIComponent(org), {headers: {Authorization: 'Bearer ' + token}});
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || 'Approval inbox failed');
+        const data = payload.data;
+        status.textContent = data.count + ' item' + (data.count === 1 ? '' : 's') + ' require review.';
+        data.items.forEach((item) => {
+          const row = document.createElement('article'); row.className = 'result';
+          row.textContent = item.collection + '/' + item.id + ' · ' + item.status + ' · ' + (item.can_approve ? 'approval authority available' : 'review only');
+          results.appendChild(row);
+        });
+      } catch (error) { status.textContent = error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('player-today-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const player = document.getElementById('player-id').value.trim();
+      const status = document.getElementById('player-today-status');
+      const results = document.getElementById('player-today-results');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Loading privacy-scoped player workspace...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const query = '?organization_id=' + encodeURIComponent(org) + '&player_id=' + encodeURIComponent(player);
+        const response = await fetch('/v1/player/today' + query, {headers: {Authorization: 'Bearer ' + token}});
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || 'Player workspace failed');
+        const data = payload.data;
+        status.textContent = 'Workspace status: ' + data.status + ' · player: ' + data.player_id;
+        [['Assignments', data.assignments.length], ['Lessons', data.lessons.length], ['Mastery records', data.mastery.length], ['Quiz attempts', data.quiz_attempts.length]].forEach(([label, value]) => {
+          const item = document.createElement('article'); item.className = 'result'; item.textContent = label + ': ' + value; results.appendChild(item);
+        });
+      } catch (error) { status.textContent = error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('game-plan-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const week = document.getElementById('game-plan-week').value.trim();
+      const status = document.getElementById('game-plan-status');
+      const results = document.getElementById('game-plan-results');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Loading game-plan evidence...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const query = '?organization_id=' + encodeURIComponent(org) + (week ? '&week=' + encodeURIComponent(week) : '');
+        const response = await fetch('/v1/game-plan/workspace' + query, {headers: {Authorization: 'Bearer ' + token}});
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || 'Game-plan workspace failed');
+        const data = payload.data;
+        status.textContent = 'Status: ' + data.status + ' · pending review: ' + data.pending_review_count;
+        [['Plans', data.plans.length], ['Scouting reports', data.evidence_summary.scouting_reports], ['Metrics', data.evidence_summary.metric_observations], ['Blockers', data.blockers.length]].forEach(([label, value]) => {
+          const item = document.createElement('article'); item.className = 'result'; item.textContent = label + ': ' + value; results.appendChild(item);
+        });
+      } catch (error) { status.textContent = error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('practice-workspace-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const week = document.getElementById('practice-week').value.trim();
+      const status = document.getElementById('practice-status');
+      const results = document.getElementById('practice-results');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Loading practice plans...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const query = '?organization_id=' + encodeURIComponent(org) + (week ? '&week=' + encodeURIComponent(week) : '');
+        const response = await fetch('/v1/practice/workspace' + query, {headers: {Authorization: 'Bearer ' + token}});
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || 'Practice workspace failed');
+        const data = payload.data;
+        status.textContent = 'Status: ' + data.status + ' · plans: ' + data.plans.length + ' · load exceeded: ' + data.load_exceeded;
+        data.plans.forEach((plan) => {
+          const item = document.createElement('article'); item.className = 'result'; item.textContent = plan.id + ' · ' + plan.objective + ' · ' + plan.total_minutes + ' minutes · ' + plan.status; results.appendChild(item);
+        });
+      } catch (error) { status.textContent = error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('scheme-workspace-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const unit = document.getElementById('scheme-unit').value;
+      const status = document.getElementById('scheme-status');
+      const results = document.getElementById('scheme-results');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Loading scheme composition...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const query = '?organization_id=' + encodeURIComponent(org) + (unit ? '&unit=' + encodeURIComponent(unit) : '');
+        const response = await fetch('/v1/schemes/workspace' + query, {headers: {Authorization: 'Bearer ' + token}});
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || 'Scheme workspace failed');
+        const data = payload.data;
+        status.textContent = 'Status: ' + data.status + ' · schemes: ' + data.schemes.length + ' · incompatibilities: ' + data.incompatibility_count;
+        data.schemes.forEach((scheme) => {
+          const item = document.createElement('article'); item.className = 'result'; item.textContent = scheme.id + ' · ' + scheme.unit + ' · ' + scheme.name + ' · ' + scheme.status; results.appendChild(item);
+        });
+      } catch (error) { status.textContent = error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('analytics-workspace-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const situation = document.getElementById('analytics-situation').value.trim();
+      const status = document.getElementById('analytics-status');
+      const results = document.getElementById('analytics-results');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Loading metric lineage...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const query = '?organization_id=' + encodeURIComponent(org) + (situation ? '&situation=' + encodeURIComponent(situation) : '');
+        const response = await fetch('/v1/analytics/workspace' + query, {headers: {Authorization: 'Bearer ' + token}});
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || 'Analytics workspace failed');
+        const data = payload.data;
+        status.textContent = 'Status: ' + data.status + ' · reports: ' + data.reports.length + ' · review: ' + data.review_count;
+        [['Metric observations', data.observations.length], ['Lineage complete', data.lineage_complete_count], ['Uncertainty records', data.uncertainty_count]].forEach(([label, value]) => {
+          const item = document.createElement('article'); item.className = 'result'; item.textContent = label + ': ' + value; results.appendChild(item);
+        });
+      } catch (error) { status.textContent = error.message; status.className = 'label state-bad'; }
+    });
+    const mediaAuth = () => ({org: document.getElementById('film-org').value.trim(), token: document.getElementById('film-token').value.trim()});
+    const splitRoots = (value) => value.split(',').map((item) => item.trim()).filter(Boolean);
+    document.getElementById('media-asset-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const {org, token} = mediaAuth();
+      const status = document.getElementById('media-asset-status');
+      const results = document.getElementById('media-asset-results');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token in Film Room first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Registering authorized media metadata...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const body = {organization_id: org, asset_id: document.getElementById('media-asset-id').value.trim(), file_path: document.getElementById('media-file-path').value.trim(), duration_seconds: Number(document.getElementById('media-duration').value), source: {kind: document.getElementById('media-source-kind').value, ref: document.getElementById('media-source-ref').value.trim()}, captured_at: document.getElementById('media-captured-at').value.trim(), team_context: document.getElementById('media-team-context').value.trim(), allowed_roots: splitRoots(document.getElementById('media-allowed-roots').value)};
+        const response = await fetch('/v1/media/assets', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + token}, body: JSON.stringify(body)});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Media asset registration failed');
+        status.textContent = 'Authorized asset registered: ' + payload.data.id; status.className = 'label state-good';
+      } catch (error) { status.textContent = error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('media-job-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const {org, token} = mediaAuth();
+      const status = document.getElementById('media-job-status');
+      const results = document.getElementById('media-job-results');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token in Film Room first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Queueing bounded media worker job...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const body = {organization_id: org, job_id: document.getElementById('media-job-id').value.trim(), asset_id: document.getElementById('media-asset-id').value.trim(), operation: document.getElementById('media-operation').value, payload: {file_path: document.getElementById('media-job-file-path').value.trim(), allowed_roots: splitRoots(document.getElementById('media-job-roots').value)}};
+        const response = await fetch('/v1/media/jobs', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + token}, body: JSON.stringify(body)});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Media job creation failed');
+        status.textContent = 'Bounded job queued: ' + payload.data.id; status.className = 'label state-good';
+      } catch (error) { status.textContent = error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('media-jobs-load').addEventListener('click', async () => {
+      const {org, token} = mediaAuth();
+      const status = document.getElementById('media-jobs-status');
+      const results = document.getElementById('media-jobs-results');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token in Film Room first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Loading organization-scoped media jobs...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const response = await fetch('/v1/media/jobs?organization_id=' + encodeURIComponent(org), {headers: {Authorization: 'Bearer ' + token}});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Media jobs request failed');
+        const jobs = payload.data.jobs || []; status.textContent = jobs.length + ' media job' + (jobs.length === 1 ? '' : 's') + ' found.';
+        jobs.forEach((job) => { const item = document.createElement('article'); item.className = 'result'; item.textContent = job.id + ' · ' + job.operation + ' · ' + job.status; results.appendChild(item); });
+      } catch (error) { status.textContent = error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('pilot-readiness-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const status = document.getElementById('pilot-readiness-status');
+      const results = document.getElementById('pilot-readiness-results');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token in Film Room first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Evaluating pilot evidence and approval gates...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const body = {organization_id: org, wave_id: document.getElementById('pilot-wave-id').value.trim(), pilot_users: JSON.parse(document.getElementById('pilot-users').value), completed_capabilities: splitRoots(document.getElementById('pilot-capabilities').value), acceptance_evidence: splitRoots(document.getElementById('pilot-evidence').value), feature_flags: JSON.parse(document.getElementById('pilot-flags').value), rollback_tested: document.getElementById('pilot-rollback').value === 'true', owner_approval: document.getElementById('pilot-approval').value.trim() || null};
+        const response = await fetch('/v1/delivery/pilot-readiness', {method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + token}, body:JSON.stringify(body)});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Pilot readiness request failed');
+        const data = payload.data; status.textContent = 'Status: ' + data.status + ' · human review required: ' + data.human_review_required; status.className = 'label ' + (data.status === 'ready_for_pilot' ? 'state-good' : 'state-warn');
+        [['Blockers', (data.blockers || []).join('; ') || 'None'], ['Pilot roles', (data.pilot_roles || []).join(', ')], ['Production enabled', String(data.production_implementation_allowed)]].forEach(([label, value]) => { const item = document.createElement('article'); item.className = 'result'; item.textContent = label + ': ' + value; results.appendChild(item); });
+      } catch (error) { status.textContent = error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('organization-onboarding-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('film-org').value.trim() || document.getElementById('onboard-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const status = document.getElementById('organization-onboarding-status');
+      const results = document.getElementById('organization-onboarding-results');
+      if (!org || !token) { status.textContent = 'Enter the program-owner organization ID and Bearer token.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Creating draft organization context...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const body = {organization_id: org, name: document.getElementById('onboard-name').value.trim(), season: document.getElementById('onboard-season').value.trim(), team_id: document.getElementById('onboard-team').value.trim(), people: JSON.parse(document.getElementById('onboard-people').value), terminology_version: document.getElementById('onboard-terms').value.trim(), source: {kind:'approved_team_source', ref: document.getElementById('onboard-source').value.trim()}};
+        const response = await fetch('/v1/organizations/context', {method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + token}, body:JSON.stringify(body)});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Organization onboarding failed');
+        const data = payload.data; status.textContent = 'Draft context created; human approval remains required.'; status.className = 'label state-warn';
+        [['Organization', data.organization.id], ['Terminology bundle', data.terminology_bundle.id], ['Status', data.status], ['Production enabled', String(data.production_implementation_allowed)]].forEach(([label, value]) => { const item = document.createElement('article'); item.className = 'result'; item.textContent = label + ': ' + value; results.appendChild(item); });
+      } catch (error) { status.textContent = error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('organization-approval-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('film-org').value.trim() || document.getElementById('onboard-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const status = document.getElementById('organization-onboarding-status');
+      if (!org || !token) { status.textContent = 'Enter the program-owner organization ID and Bearer token.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Submitting explicit organization approval...'; status.className = 'label';
+      try {
+        const response = await fetch('/v1/organizations/context/approve', {method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + token}, body:JSON.stringify({organization_id:org, decision_ref:document.getElementById('onboard-decision').value.trim()})});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Organization approval failed');
+        status.textContent = 'Approved context: ' + payload.data.organization.id + '; production remains disabled.'; status.className = 'label state-warn';
+      } catch (error) { status.textContent = error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('organization-operating-bundle-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const status = document.getElementById('organization-operating-bundle-status');
+      const results = document.getElementById('organization-operating-bundle-results');
+      const org = document.getElementById('operating-bundle-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token in Film Room first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Composing organization operating bundle...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const body = {organization_id: org, bundle_id: document.getElementById('operating-bundle-id').value.trim(), season: document.getElementById('operating-bundle-season').value.trim(), components: JSON.parse(document.getElementById('operating-bundle-components').value)};
+        const response = await fetch('/v1/organizations/operating-bundle', {method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + token}, body:JSON.stringify(body)});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Operating bundle blocked');
+        const data = payload.data; status.textContent = 'Bundle ready for explicit owner review.'; status.className = 'label state-warn';
+        [['Bundle', data.id], ['Status', data.status], ['Components', String(Object.keys(data.component_refs || {}).length)], ['Production enabled', String(data.production_implementation_allowed)]].forEach(([label, value]) => { const item = document.createElement('article'); item.className = 'result'; item.textContent = label + ': ' + value; results.appendChild(item); });
+      } catch (error) { status.textContent = 'Operating bundle unavailable: ' + error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('organization-operating-bundle-approval-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const status = document.getElementById('organization-operating-bundle-status');
+      const results = document.getElementById('organization-operating-bundle-results');
+      const org = document.getElementById('operating-bundle-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token in Film Room first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Submitting explicit owner approval...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const body = {organization_id: org, bundle_id: document.getElementById('operating-bundle-approval-id').value.trim(), decision_ref: document.getElementById('operating-bundle-decision').value.trim()};
+        const response = await fetch('/v1/organizations/operating-bundle/approve', {method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + token}, body:JSON.stringify(body)});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Operating bundle approval rejected');
+        const data = payload.data; const approvedStatus = 'approved_for_non_production'; status.textContent = 'Approved for non-production review only (' + approvedStatus + '); activation remains disabled.'; status.className = 'label state-warn';
+        [['Status', data.status], ['Decision', data.decision_ref], ['Production enabled', String(data.production_implementation_allowed)], ['Activation performed', String(data.activation_performed)], ['Stage advance authorized', String(data.stage_advance_authorized)]].forEach(([label, value]) => { const item = document.createElement('article'); item.className = 'result'; item.textContent = label + ': ' + value; results.appendChild(item); });
+      } catch (error) { status.textContent = 'Operating bundle approval unavailable: ' + error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('scouting-workspace-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const opponent = document.getElementById('scouting-opponent').value.trim();
+      const status = document.getElementById('scouting-status');
+      const results = document.getElementById('scouting-results');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Loading opponent evidence...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const query = '?organization_id=' + encodeURIComponent(org) + (opponent ? '&opponent=' + encodeURIComponent(opponent) : '');
+        const response = await fetch('/v1/scouting/workspace' + query, {headers: {Authorization: 'Bearer ' + token}});
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || 'Scouting workspace failed');
+        const data = payload.data;
+        status.textContent = 'Status: ' + data.status + ' · reports: ' + data.scouting_reports.length + ' · low-sample: ' + data.low_sample_count;
+        [['Profiles', data.opponent_profiles.length], ['Scouting reports', data.scouting_reports.length], ['Matchup models', data.matchup_models.length], ['Adaptation warnings', data.adaptation_warning_count]].forEach(([label, value]) => {
+          const item = document.createElement('article'); item.className = 'result'; item.textContent = label + ': ' + value; results.appendChild(item);
+        });
+      } catch (error) { status.textContent = error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('scouting-report-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const status = document.getElementById('scouting-report-status');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token in Film Room first.'; status.className = 'label state-warn'; return; }
+      try {
+        const report = {id:document.getElementById('scouting-report-id').value.trim(), opponent:document.getElementById('scouting-opponent').value.trim(), situation:JSON.parse(document.getElementById('scouting-situation').value), claims:JSON.parse(document.getElementById('scouting-claims').value), sample_size:Number(document.getElementById('scouting-sample-size').value), source_refs:document.getElementById('scouting-source-refs').value.split(',').map((value) => value.trim()).filter(Boolean)};
+        const response = await fetch('/v1/scouting/reports', {method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + token}, body:JSON.stringify({organization_id:org, report})});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Scouting report failed');
+        status.textContent = 'Report stored under review; evidence classification and uncertainty are retained.'; status.className = 'label state-warn';
+      } catch (error) { status.textContent = error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('agent-runtime-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('agent-runtime-org').value.trim();
+      const token = document.getElementById('agent-runtime-token').value.trim();
+      const status = document.getElementById('agent-runtime-status');
+      const results = document.getElementById('agent-runtime-results');
+      status.textContent = 'Running bounded local agent validation...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const body = {organization_id:org, run_id:document.getElementById('agent-runtime-run-id').value.trim(), agent_id:document.getElementById('agent-runtime-agent-id').value.trim(), family:document.getElementById('agent-runtime-family').value.trim(), capability:document.getElementById('agent-runtime-capability').value.trim(), workflow_id:document.getElementById('agent-runtime-workflow-id').value.trim(), payload:JSON.parse(document.getElementById('agent-runtime-payload').value), local_validation:true};
+        const response = await fetch('/v1/agents/runs', {method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer '+token}, body:JSON.stringify(body)});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Agent runtime request failed');
+        const data = payload.data; status.textContent = 'Local validation completed; human review remains required.'; status.className = 'label state-warn';
+        [['Run', data.run.id], ['Status', data.run.status], ['Agent', data.run.agent_id], ['External provider called', String(data.external_provider_called)], ['Canonical write performed', String(data.canonical_write_performed)], ['Production enabled', String(data.production_implementation_allowed)]].forEach(([label, value]) => { const item = document.createElement('article'); item.className = 'result'; item.textContent = label + ': ' + value; results.appendChild(item); });
+      } catch (error) { status.textContent = 'Agent runtime unavailable: ' + error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('agent-runtime-load').addEventListener('click', async () => {
+      const org = document.getElementById('agent-runtime-org').value.trim();
+      const token = document.getElementById('agent-runtime-token').value.trim();
+      const status = document.getElementById('agent-runtime-load-status');
+      const results = document.getElementById('agent-runtime-load-results');
+      status.textContent = 'Loading tenant-scoped agent runs...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const response = await fetch('/v1/agents/runs?organization_id='+encodeURIComponent(org), {headers:{Authorization:'Bearer '+token}});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Agent run request failed');
+        const runs = payload.data.runs || []; status.textContent = runs.length + ' agent run' + (runs.length === 1 ? '' : 's') + ' found.';
+        runs.forEach((run) => { const item = document.createElement('article'); item.className = 'result'; item.textContent = run.id + ' · ' + run.status + ' · ' + (run.agent_id || 'unassigned'); results.appendChild(item); });
+      } catch (error) { status.textContent = 'Agent run history unavailable: ' + error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('usability-feedback-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('film-org').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const status = document.getElementById('usability-feedback-status');
+      const results = document.getElementById('usability-feedback-results');
+      if (!org || !token) { status.textContent = 'Enter organization ID and Bearer token in Film Room first.'; status.className = 'label state-warn'; return; }
+      status.textContent = 'Submitting role-scoped usability feedback...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const body = {organization_id: org, feedback_id: 'UX-FEEDBACK-' + Date.now(), session_id: document.getElementById('usability-session-id').value.trim(), screen_id: document.getElementById('usability-screen-id').value, task_id: document.getElementById('usability-task-id').value.trim(), outcome: document.getElementById('usability-outcome').value, severity: document.getElementById('usability-severity').value, accessibility_issue: document.getElementById('usability-accessibility').value === 'true', feedback_text: document.getElementById('usability-feedback-text').value.trim(), submitted_at: new Date().toISOString(), evidence_refs: document.getElementById('usability-evidence-refs').value.split(',').map((value) => value.trim()).filter(Boolean)};
+        const response = await fetch('/v1/ux/usability-feedback', {method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + token}, body:JSON.stringify(body)});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Usability feedback failed');
+        const data = payload.data; status.textContent = 'Feedback recorded; human review required: ' + data.validation.human_review_required; status.className = 'label ' + (data.validation.human_review_required ? 'state-warn' : 'state-good');
+        [['Feedback ID', data.feedback.feedback_id], ['Role', data.feedback.user_role], ['Disposition', data.feedback.disposition], ['Pilot validation complete', String(data.pilot_validation_complete)]].forEach(([label, value]) => { const item = document.createElement('article'); item.className = 'result'; item.textContent = label + ': ' + value; results.appendChild(item); });
+      } catch (error) { status.textContent = error.message; status.className = 'label state-bad'; }
+    });
+    document.getElementById('organization-population-readiness-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const org = document.getElementById('population-readiness-org').value.trim();
+      const season = document.getElementById('population-readiness-season').value.trim();
+      const token = document.getElementById('film-token').value.trim();
+      const status = document.getElementById('organization-population-readiness-status');
+      const results = document.getElementById('organization-population-readiness-results');
+      status.textContent = 'Inspecting persisted organization packages...'; status.className = 'label'; results.replaceChildren();
+      try {
+        const response = await fetch('/v1/organizations/population-readiness?organization_id='+encodeURIComponent(org)+'&season='+encodeURIComponent(season), {headers:{Authorization:'Bearer '+token}});
+        const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'Population readiness request failed');
+        const data = payload.data; status.textContent = 'Population status: '+data.status+' · '+data.ready_component_count+'/'+data.required_component_count+' components ready'; status.className = 'label '+(data.status === 'ready_for_bundle' ? 'state-good' : 'state-warn');
+        data.components.forEach((component) => { const item = document.createElement('article'); item.className = 'result'; item.textContent = component.component + ': ' + (component.ready ? 'ready' : (component.actual_status || 'missing') + ' · required '+component.required_status); results.appendChild(item); });
+      } catch (error) { status.textContent = 'Population readiness unavailable: '+error.message; status.className = 'label state-bad'; }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Athlete Performance Observation",
+  "type":"object",
+  "required":["id","athlete_id","session_type","workload","quality_score","context","source","status"],
+  "properties":{
+    "id":{"type":"string","pattern":"^PERF-OBS-"},
+    "athlete_id":{"type":"string"},
+    "session_type":{"type":"string"},
+    "workload":{"type":"object","required":["duration_minutes","repetitions"]},
+    "quality_score":{"type":"number","minimum":0,"maximum":1},
+    "context":{"type":"object","required":["season_phase","position"]},
+    "source":{"type":"object","required":["kind","ref"]},
+    "status":{"enum":["draft","valid","rejected"]}
+  }
+}

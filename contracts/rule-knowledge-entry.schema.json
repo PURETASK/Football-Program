@@ -1,0 +1,7 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Rule Knowledge Entry",
+  "type":"object",
+  "required":["id","topic","fact","applies_when","exceptions","not_applies_when","source","effective_date"],
+  "properties":{"id":{"type":"string","pattern":"^RULE-KB-"},"topic":{"type":"string"},"fact":{"type":"string"},"source":{"type":"object","required":["kind","ref","retrieved_at"]},"effective_date":{"type":"string"}}
+}

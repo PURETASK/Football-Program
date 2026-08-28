@@ -1,0 +1,13 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Game Plan Review Thread",
+  "type":"object",
+  "required":["organization_id","thread_id","plan_id","week","topic","comment","evidence_refs"],
+  "properties":{
+    "organization_id":{"type":"string","pattern":"^ORG-"},
+    "thread_id":{"type":"string","pattern":"^GAMEPLAN-THREAD-"},
+    "plan_id":{"type":"string","pattern":"^GAMEPLAN-"},
+    "week":{"type":"string","minLength":1},"topic":{"type":"string","minLength":1},"comment":{"type":"string","minLength":1},"evidence_refs":{"type":"array","minItems":1}
+  },
+  "additionalProperties":true
+}

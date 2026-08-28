@@ -1,0 +1,19 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Minimum Play Record",
+  "type":"object",
+  "required":["id","version","team_context","situation","personnel","formation","assignments","source","status"],
+  "properties":{
+    "id":{"type":"string","pattern":"^PLAY-"},
+    "version":{"type":"string"},
+    "team_context":{"type":"string","minLength":1},
+    "situation":{"type":"object","required":["down","distance","field_zone"],"properties":{"down":{"type":"integer","minimum":1,"maximum":4},"distance":{"type":"integer","minimum":1},"field_zone":{"type":"string"}}},
+    "unit":{"enum":["offense","defense","special_teams"]},
+    "personnel":{"type":"string","minLength":1},
+    "formation":{"type":"string","minLength":1},
+    "motion":{"type":["string","null"]},
+    "assignments":{"type":"array","minItems":1,"items":{"type":"object","required":["role","assignment"],"properties":{"role":{"type":"string"},"assignment":{"type":"string"}}}},
+    "source":{"type":"object","required":["kind","ref"],"properties":{"kind":{"type":"string"},"ref":{"type":"string"}}},
+    "status":{"enum":["draft","validated","locked","rejected"]}
+  }
+}

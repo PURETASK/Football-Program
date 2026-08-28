@@ -1,0 +1,10 @@
+{
+  "registry_id": "NFL-RULE-SOURCES-001",
+  "version": "0.1.0",
+  "jurisdiction": "NFL",
+  "status": "current",
+  "sources": [
+    {"id":"NFL-RULEBOOK-VERSIONED","title":"2026 NFL Rulebook","authority":"official_nfl","kind":"official_rulebook","version":"2026","uri":"https://operations.nfl.com/rules-officiating/2026-nfl-rulebook","allowed_domain":"operations.nfl.com","retrieved_at":"2026-08-23","effective_date":"2026-01-01","status":"current"},
+    {"id":"NFL-VIDEO-RULEBOOK","title":"NFL Video Rulebook","authority":"official_nfl","kind":"official_interpretation","version":"current","uri":"https://operations.nfl.com/the-rules/nfl-video-rulebook","allowed_domain":"operations.nfl.com","retrieved_at":"2026-08-23","effective_date":"2026-01-01","status":"current"}
+  ]
+}

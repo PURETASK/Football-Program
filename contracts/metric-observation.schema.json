@@ -1,0 +1,14 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Metric Observation",
+  "type":"object",
+  "required":["id","metric_id","numerator","denominator","context","source"],
+  "properties":{
+    "id":{"type":"string","pattern":"^METRIC-"},
+    "metric_id":{"type":"string","pattern":"^METRIC-DEF-"},
+    "numerator":{"type":"number","minimum":0},
+    "denominator":{"type":"number","exclusiveMinimum":0},
+    "context":{"type":"object","required":["team","season","situations"]},
+    "source":{"type":"object","required":["kind","ref"]}
+  }
+}

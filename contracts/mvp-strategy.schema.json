@@ -1,0 +1,7 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS MVP Strategy",
+  "type":"object",
+  "required":["strategy_id","mvp_outcome","pilot_users","waves","priority_matrix","risk_register","rollout_controls"],
+  "properties":{"strategy_id":{"type":"string","pattern":"^MVP-STRATEGY-"},"waves":{"type":"array","minItems":1},"pilot_users":{"type":"array","minItems":1},"risk_register":{"type":"array","minItems":1}}
+}

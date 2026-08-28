@@ -1,0 +1,6 @@
+{
+  "baseline_id": "PD-VISUAL-BASELINE-LOCAL-001",
+  "renderer": "nfl-fidos-export-svg",
+  "status": "approved_local_reference",
+  "svg_sha256": "92a77c4b7352ba3162c1f9fe845abaf215b1a8898a605034bb8213d01bfbe7fe"
+}

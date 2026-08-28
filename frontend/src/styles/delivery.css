@@ -1,0 +1,11 @@
+.delivery-packet-grid { display: grid; gap: .7rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.delivery-packet-card { display: grid; gap: .55rem; padding: .85rem; border: 1px solid var(--line); border-radius: .75rem; background: linear-gradient(135deg, var(--ink-50), #fff); }
+.delivery-packet-card__header { align-items: start; display: flex; gap: .55rem; justify-content: space-between; }
+.delivery-packet-card h4 { margin: 0; }
+.delivery-packet-card p { color: var(--ink-500); font-size: .73rem; line-height: 1.45; margin: 0; }
+.delivery-packet-status { border-radius: 999px; display: inline-flex; font-size: .63rem; font-weight: 800; letter-spacing: .04em; padding: .25rem .45rem; text-transform: uppercase; white-space: nowrap; }
+.delivery-packet-status--ready_for_assembly { background: rgba(27, 143, 94, .1); color: #147347; }
+.delivery-packet-status--blocked { background: rgba(188, 65, 65, .1); color: #943333; }
+.delivery-packet-card__links { color: var(--ink-600); font-size: .68rem; }
+.delivery-packet-card details { color: var(--ink-500); font-size: .68rem; }
+.delivery-packet-card details ul { margin: .35rem 0 0; padding-left: 1rem; }

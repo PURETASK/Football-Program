@@ -1,0 +1,16 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Access Decision",
+  "type":"object",
+  "required":["id","requester_role","action","resource","allowed","status","reasons","human_approval_required"],
+  "properties":{
+    "id":{"type":"string","pattern":"^ACCESS-"},
+    "requester_role":{"type":"string"},
+    "action":{"type":"string"},
+    "resource":{"type":"string"},
+    "allowed":{"type":"boolean"},
+    "status":{"enum":["allowed","denied","pending_human_approval"]},
+    "reasons":{"type":"array"},
+    "human_approval_required":{"type":"boolean"}
+  }
+}

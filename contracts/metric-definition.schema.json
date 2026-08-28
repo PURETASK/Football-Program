@@ -1,0 +1,7 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Metric Definition",
+  "type":"object",
+  "required":["id","name","unit","definition","required_data","formula","context_dimensions","caveats","validation_method","consumers"],
+  "properties":{"id":{"type":"string","pattern":"^METRIC-DEF-"},"name":{"type":"string"},"formula":{"type":"string"},"required_data":{"type":"array","minItems":1},"context_dimensions":{"type":"array","minItems":1},"caveats":{"type":"array","minItems":1},"consumers":{"type":"array","minItems":1}}
+}

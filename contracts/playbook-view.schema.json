@@ -1,0 +1,13 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Role-Based Playbook View",
+  "type":"object",
+  "required":["id","play_id","role","elements","source_play_version"],
+  "properties":{
+    "id":{"type":"string","pattern":"^VIEW-"},
+    "play_id":{"type":"string","pattern":"^PLAY-"},
+    "role":{"type":"string"},
+    "elements":{"type":"array","minItems":1},
+    "source_play_version":{"type":"string"}
+  }
+}

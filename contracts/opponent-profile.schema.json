@@ -1,0 +1,7 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Opponent Profile",
+  "type":"object",
+  "required":["id","opponent","season","schedule_context","roster_context","offense","defense","special_teams","sources"],
+  "properties":{"id":{"type":"string","pattern":"^OPP-PROFILE-"},"opponent":{"type":"string"},"season":{"type":"string"},"sources":{"type":"array","minItems":1}}
+}

@@ -1,0 +1,14 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Release Candidate",
+  "type":"object",
+  "required":["id","wave_id","eval_status","feature_gate_ids","status","approval_required"],
+  "properties":{
+    "id":{"type":"string","pattern":"^RC-"},
+    "wave_id":{"type":"string","pattern":"^WAVE-"},
+    "eval_status":{"enum":["passed","failed","not_run"]},
+    "feature_gate_ids":{"type":"array"},
+    "status":{"enum":["blocked","ready_for_approval","approved"]},
+    "approval_required":{"type":"boolean"}
+  }
+}

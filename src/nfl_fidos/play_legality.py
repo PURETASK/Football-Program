@@ -1,0 +1,231 @@
+"""Explainable, profile-driven legality linting for play-design artifacts.
+
+This is a coach-facing authoring linter, not an officiating decision.  Each
+finding carries its profile, source basis, observed value, and whether a
+program-owner-approved override may be attached.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+
+RULE_PROFILE_CATALOG: dict[str, dict[str, Any]] = {
+    "nfl": {"label": "NFL tackle football", "players_on_field": 11, "minimum_line_players": 7, "max_motion_at_snap": 1, "allow_blocking": True, "min_rush_distance_yards": None, "no_contact": False, "qb_direct_run_allowed": True, "source": {"title": "NFL Football Operations Rulebook hub", "uri": "https://operations.nfl.com/the-rules/nfl-rulebook", "rule_refs": ["Rule 5-1-1", "Rule 7-4-7", "Rule 7-4-8", "Rule 7-5-1"]}},
+    "ncaa": {"label": "NCAA college football", "players_on_field": 11, "minimum_line_players": 7, "max_motion_at_snap": 1, "allow_blocking": True, "min_rush_distance_yards": None, "no_contact": False, "qb_direct_run_allowed": True, "source": {"title": "2025 NCAA Football Rules and Interpretations", "uri": "https://ncaaorg.s3.amazonaws.com/championships/sports/football/rules/PRMFB_RulesBook.pdf", "rule_refs": ["Rule 7-1", "Rule 7-1-5", "Rule 7-3"]}},
+    "high_school": {"label": "NFHS high-school tackle football", "players_on_field": 11, "minimum_line_players": 7, "max_motion_at_snap": 1, "allow_blocking": True, "min_rush_distance_yards": None, "no_contact": False, "qb_direct_run_allowed": True, "source": {"title": "NFHS Football Rules and Rules Changes", "uri": "https://www.nfhs.org/sports/football/rules", "rule_refs": ["NFHS current rulebook and state adoption"]}},
+    "youth": {"label": "Youth tackle football - local rules required", "players_on_field": 11, "minimum_line_players": 7, "max_motion_at_snap": 1, "allow_blocking": True, "min_rush_distance_yards": None, "no_contact": False, "qb_direct_run_allowed": True, "requires_local_rules": True, "source": {"title": "Organization-defined youth rules profile", "uri": None, "rule_refs": ["Local league rulebook required"]}},
+    "flag": {"label": "NFL FLAG 5-on-5 baseline", "players_on_field": 5, "minimum_line_players": 0, "max_motion_at_snap": 1, "allow_blocking": False, "min_rush_distance_yards": 7, "no_contact": True, "qb_direct_run_allowed": False, "source": {"title": "NFL FLAG Football Rules", "uri": "https://nflflag.com/coaches/flag-football-rules", "rule_refs": ["Illegal motion", "Illegal rush", "No contact", "Forward-pass and quarterback restrictions"]}},
+}
+
+
+def profile_metadata(profile: str) -> dict[str, Any]:
+    if profile not in RULE_PROFILE_CATALOG:
+        raise KeyError(f"Unknown rule profile: {profile}")
+    return {"id": profile, **RULE_PROFILE_CATALOG[profile]}
+
+
+def _finding(code: str, message: str, path: str, *, profile: str, source: dict[str, Any], severity: str = "warning", observed: Any = None, expected: Any = None, overrideable: bool = True) -> dict[str, Any]:
+    return {"code": code, "message": message, "path": path, "severity": severity, "rule_profile": profile, "rule_basis": source.get("rule_refs", []), "source": source, "observed": observed, "expected": expected, "overrideable": overrideable, "explanation": f"Observed {observed!r}; expected {expected!r} under the {profile} profile." if expected is not None else message}
+
+
+def _point(value: Any) -> tuple[float, float] | None:
+    if not isinstance(value, dict):
+        return None
+    try:
+        return float(value.get("x")), float(value.get("y"))
+    except (TypeError, ValueError):
+        return None
+
+
+def _number(value: Any, default: float) -> float:
+    """Convert timeline/rule inputs without allowing malformed authoring data to crash linting."""
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _orientation(a: tuple[float, float], b: tuple[float, float], c: tuple[float, float]) -> float:
+    return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+
+
+def _on_segment(a: tuple[float, float], b: tuple[float, float], c: tuple[float, float]) -> bool:
+    return min(a[0], c[0]) - 1e-6 <= b[0] <= max(a[0], c[0]) + 1e-6 and min(a[1], c[1]) - 1e-6 <= b[1] <= max(a[1], c[1]) + 1e-6
+
+
+def _segments_intersect(a: tuple[float, float], b: tuple[float, float], c: tuple[float, float], d: tuple[float, float]) -> bool:
+    first = _orientation(a, b, c)
+    second = _orientation(a, b, d)
+    third = _orientation(c, d, a)
+    fourth = _orientation(c, d, b)
+    if ((first > 0 and second < 0) or (first < 0 and second > 0)) and ((third > 0 and fourth < 0) or (third < 0 and fourth > 0)):
+        return True
+    return (abs(first) < 1e-6 and _on_segment(a, c, b)) or (abs(second) < 1e-6 and _on_segment(a, d, b)) or (abs(third) < 1e-6 and _on_segment(c, a, d)) or (abs(fourth) < 1e-6 and _on_segment(c, b, d))
+
+
+def _path_intersects(first: list[dict[str, Any]], second: list[dict[str, Any]]) -> bool:
+    first_points = [_point(item) for item in first]
+    second_points = [_point(item) for item in second]
+    if any(item is None for item in first_points + second_points):
+        return False
+    for first_index in range(1, len(first_points)):
+        for second_index in range(1, len(second_points)):
+            if _segments_intersect(first_points[first_index - 1], first_points[first_index], second_points[second_index - 1], second_points[second_index]):
+                return True
+    return False
+
+
+def _timing_overlap(first: dict[str, Any], second: dict[str, Any]) -> bool:
+    first_timing = first.get("timing", {}) if isinstance(first.get("timing"), dict) else {}
+    second_timing = second.get("timing", {}) if isinstance(second.get("timing"), dict) else {}
+    first_start, first_end = _number(first_timing.get("start_ms", first.get("start_ms", 0)), 0), _number(first_timing.get("end_ms", first.get("end_ms", 999999)), 999999)
+    second_start, second_end = _number(second_timing.get("start_ms", second.get("start_ms", 0)), 0), _number(second_timing.get("end_ms", second.get("end_ms", 999999)), 999999)
+    return max(first_start, second_start) <= min(first_end, second_end)
+
+
+def validate_advanced_legality(design: dict[str, Any], *, rule_profile: str | None = None) -> list[dict[str, Any]]:
+    profile = rule_profile or design.get("rule_profile", "nfl")
+    if profile not in RULE_PROFILE_CATALOG:
+        source = {"title": "Unknown profile", "uri": None, "rule_refs": []}
+        return [_finding("LEGALITY-PROFILE-UNKNOWN", "Rule profile is not in the controlled profile catalog.", "rule_profile", profile=profile, source=source, severity="error", expected=sorted(RULE_PROFILE_CATALOG), observed=profile, overrideable=False)]
+    configuration = RULE_PROFILE_CATALOG[profile]
+    source = configuration["source"]
+    issues: list[dict[str, Any]] = []
+    players = [item for item in design.get("players", []) if isinstance(item, dict)]
+    elements = [item for item in design.get("elements", []) if isinstance(item, dict)]
+    explicit_field_count = design.get("players_on_field")
+    if explicit_field_count is None and profile == "flag":
+        issues.append(_finding("LEGALITY-FLAG-FIELD-COUNT-UNDECLARED", "Flag profile needs an explicit players_on_field value before final validation.", "players_on_field", profile=profile, source=source, severity="warning", expected=5, observed=None))
+    elif explicit_field_count is not None and explicit_field_count != configuration["players_on_field"]:
+        issues.append(_finding("LEGALITY-FIELD-COUNT", "Declared on-field count does not match the selected rule profile.", "players_on_field", profile=profile, source=source, severity="error", expected=configuration["players_on_field"], observed=explicit_field_count, overrideable=False))
+    if profile != "flag" and len(players) != configuration["players_on_field"]:
+        issues.append(_finding("LEGALITY-PLAYER-COUNT", "Tackle profile requires the configured number of players in the formation.", "players", profile=profile, source=source, severity="error", expected=configuration["players_on_field"], observed=len(players), overrideable=False))
+    if profile == "flag" and len(players) != configuration["players_on_field"]:
+        issues.append(_finding("LEGALITY-FLAG-PLAYER-COUNT", "The selected flag profile requires the configured number of players in the formation.", "players", profile=profile, source=source, severity="error", expected=configuration["players_on_field"], observed=len(players), overrideable=False))
+    if configuration.get("requires_local_rules") and not design.get("local_rule_source_ref"):
+        issues.append(_finding("LEGALITY-LOCAL-RULE-SOURCE", "Youth validation requires the adopting league or state rulebook reference.", "local_rule_source_ref", profile=profile, source=source, severity="warning", expected="approved local rule source", observed=None))
+
+    alignments = [item.get("alignment", {}) for item in players if isinstance(item.get("alignment"), dict)]
+    explicit_line = [item for item in alignments if item.get("on_line") is True]
+    if explicit_line and len(explicit_line) < configuration["minimum_line_players"]:
+        issues.append(_finding("LEGALITY-FORMATION-LINE", "Formation declares too few players on the line of scrimmage.", "players[].alignment.on_line", profile=profile, source=source, severity="error", expected=f">={configuration['minimum_line_players']}", observed=len(explicit_line)))
+    if explicit_line:
+        line_eligible = [item for item in explicit_line if item.get("eligible") is True]
+        if len(line_eligible) < 2 and profile != "flag":
+            issues.append(_finding("LEGALITY-FORMATION-ELIGIBILITY", "Explicit tackle formation needs eligible ends represented on the line.", "players[].alignment.eligible", profile=profile, source=source, severity="error", expected=">=2 eligible ends", observed=len(line_eligible)))
+        numbers = [item.get("number") for item in alignments if item.get("number") is not None]
+        if len(numbers) != len(set(numbers)):
+            issues.append(_finding("LEGALITY-NUMBER-CONFLICT", "Two explicitly numbered players share a jersey number in the formation model.", "players[].alignment.number", profile=profile, source=source, severity="error", observed=numbers, expected="unique numbers", overrideable=False))
+    declared_alignment = design.get("formation_constraints")
+    if isinstance(declared_alignment, dict) and alignments:
+        alignment_counts = {
+            "on_line_count": sum(1 for item in alignments if item.get("on_line") is True),
+            "eligible_count": sum(1 for item in alignments if item.get("eligible") is True),
+            "backfield_count": sum(1 for item in alignments if item.get("backfield") is True or item.get("on_line") is False),
+        }
+        for field, observed in alignment_counts.items():
+            expected = declared_alignment.get(field)
+            if isinstance(expected, int) and observed != expected:
+                issues.append(_finding("LEGALITY-FORMATION-DECLARATION", "Declared formation alignment counts do not match the player alignment model.", f"formation_constraints.{field}", profile=profile, source=source, severity="error", observed=observed, expected=expected, overrideable=False))
+    starts: dict[tuple[int, int], list[str]] = {}
+    for player in players:
+        start = _point(player.get("start"))
+        if start is None:
+            continue
+        key = (round(start[0] * 4), round(start[1] * 4))
+        starts.setdefault(key, []).append(str(player.get("id") or player.get("position")))
+    for key, ids in starts.items():
+        if len(ids) > 1:
+            issues.append(_finding("LEGALITY-ALIGNMENT-COLLISION", "Two players occupy the same starting landmark.", "players[].start", profile=profile, source=source, severity="error", observed=ids, expected="one player per landmark"))
+
+    motions = [item for item in elements if item.get("kind") == "motion"]
+    snap_motions = [item for item in motions if item.get("at_snap", item.get("active_at_snap", True)) is True]
+    if len(snap_motions) > configuration["max_motion_at_snap"]:
+        issues.append(_finding("LEGALITY-MOTION-COUNT", "Too many players are declared in motion at the snap.", "elements[kind=motion]", profile=profile, source=source, severity="error", expected=f"<={configuration['max_motion_at_snap']}", observed=len(snap_motions)))
+    for index, motion in enumerate(motions):
+        if motion.get("player_id") and not any(player.get("id") == motion.get("player_id") for player in players):
+            issues.append(_finding("LEGALITY-MOTION-PLAYER-REF", "Motion references a player who is not present in the formation.", f"elements[{index}].player_id", profile=profile, source=source, severity="error", observed=motion.get("player_id"), expected="player id present in players", overrideable=False))
+        if motion.get("snap_direction") in {"toward_los", "forward"}:
+            issues.append(_finding("LEGALITY-MOTION-FORWARD", "Motion path is declared moving toward the line at the snap.", f"elements[{index}].snap_direction", profile=profile, source=source, severity="error", observed=motion.get("snap_direction"), expected="lateral or away from line"))
+        if motion.get("requires_reset") is True and motion.get("reset_complete") is not True:
+            issues.append(_finding("LEGALITY-MOTION-RESET", "Motion requires a completed reset before the snap but reset_complete is false.", f"elements[{index}].reset_complete", profile=profile, source=source, severity="error", observed=motion.get("reset_complete"), expected=True))
+        if motion.get("snap_ms") is None:
+            issues.append(_finding("LEGALITY-MOTION-SNAP-TIME", "Motion is missing an explicit snap-relative time.", f"elements[{index}].snap_ms", profile=profile, source=source, severity="warning", expected="integer milliseconds", observed=None))
+        motion_timing = motion.get("timing", {}) if isinstance(motion.get("timing"), dict) else {}
+        motion_start = _number(motion_timing.get("start_ms", motion.get("start_ms", 0)), 0)
+        motion_end = _number(motion_timing.get("end_ms", motion.get("end_ms", motion_start)), motion_start)
+        if motion_end < motion_start:
+            issues.append(_finding("LEGALITY-MOTION-TIMING", "Motion end timing occurs before its start timing.", f"elements[{index}].timing", profile=profile, source=source, severity="error", observed={"start_ms": motion_start, "end_ms": motion_end}, expected="end_ms >= start_ms"))
+
+    if not configuration["allow_blocking"]:
+        for index, element in enumerate(elements):
+            if element.get("kind") in {"block", "stunt", "fit"} or element.get("assignment_type") in {"block", "screen"}:
+                issues.append(_finding("LEGALITY-FLAG-CONTACT", "Blocking, stunts, and contact assignments are not legal in the selected flag profile.", f"elements[{index}]", profile=profile, source=source, severity="error", observed=element.get("kind"), expected="non-contact assignment", overrideable=False))
+            if element.get("kind") == "rush" and element.get("rush_distance_yards") is not None:
+                rush_distance = _number(element.get("rush_distance_yards"), -1)
+                if rush_distance < float(configuration["min_rush_distance_yards"]):
+                    issues.append(_finding("LEGALITY-FLAG-RUSH-DISTANCE", "Declared flag rusher is inside the minimum rush distance or has a malformed distance value.", f"elements[{index}].rush_distance_yards", profile=profile, source=source, severity="error", observed=element.get("rush_distance_yards"), expected=f">={configuration['min_rush_distance_yards']} yards", overrideable=False))
+            if element.get("kind") == "run" and any(player.get("id") == element.get("player_id") and str(player.get("position", "")).upper() in {"QB", "QUARTERBACK"} for player in players):
+                issues.append(_finding("LEGALITY-FLAG-QB-RUN", "The snap receiver is declared running across the line in the flag profile.", f"elements[{index}].player_id", profile=profile, source=source, severity="error", observed=element.get("player_id"), expected="handoff, pitch, or forward pass", overrideable=False))
+
+    for index, first in enumerate(elements):
+        for second_index in range(index + 1, len(elements)):
+            second = elements[second_index]
+            if first.get("player_id") and first.get("player_id") == second.get("player_id") and _timing_overlap(first, second) and first.get("exclusive_assignment") and second.get("exclusive_assignment"):
+                issues.append(_finding("LEGALITY-ASSIGNMENT-CONFLICT", "One player has overlapping exclusive assignments.", f"elements[{index}].player_id", profile=profile, source=source, severity="error", observed=[first.get("id"), second.get("id")], expected="non-overlapping exclusive assignments"))
+            if design.get("route_collision_policy") == "error" and first.get("kind") == second.get("kind") == "route" and _timing_overlap(first, second) and _path_intersects(first.get("points", []), second.get("points", [])):
+                issues.append(_finding("LEGALITY-ROUTE-COLLISION", "Two route paths intersect during overlapping timing windows.", f"elements[{index}].points", profile=profile, source=source, severity="error", observed=[first.get("id"), second.get("id")], expected="separated route corridors"))
+            elif first.get("kind") == second.get("kind") == "route" and _timing_overlap(first, second) and _path_intersects(first.get("points", []), second.get("points", [])):
+                issues.append(_finding("LEGALITY-ROUTE-COLLISION", "Two route paths intersect during overlapping timing windows; confirm whether the crossing is intentional.", f"elements[{index}].points", profile=profile, source=source, severity="warning", observed=[first.get("id"), second.get("id")], expected="separated route corridors"))
+
+    protections = [item for item in elements if item.get("kind") == "block" or item.get("assignment_type") in {"block", "protection", "combo"}]
+    protection_keys: dict[str, list[str]] = {}
+    for item in protections:
+        key = item.get("gap") or item.get("landmark") or item.get("protection_target")
+        if key:
+            protection_keys.setdefault(str(key), []).append(str(item.get("id") or item.get("player_id")))
+    for key, ids in protection_keys.items():
+        if len(ids) > 1 and not any(item.get("combo_with") for item in protections if str(item.get("gap") or item.get("landmark") or item.get("protection_target")) == key):
+            issues.append(_finding("LEGALITY-PROTECTION-CONFLICT", "Multiple blockers claim the same protection landmark without a declared combination.", "elements[].gap", profile=profile, source=source, severity="error", observed={key: ids}, expected="one owner or explicit combo assignment"))
+
+    coverage = [item for item in elements if item.get("kind") == "coverage"]
+    declared_zones = design.get("coverage_zones") if isinstance(design.get("coverage_zones"), list) else []
+    assigned_zones = {str(item.get("zone") or item.get("responsibility") or item.get("coverage_zone")) for item in coverage if item.get("zone") or item.get("responsibility") or item.get("coverage_zone")}
+    missing_zones = [str(zone) for zone in declared_zones if str(zone) not in assigned_zones]
+    if missing_zones:
+        issues.append(_finding("LEGALITY-COVERAGE-GAP", "Declared coverage zones have no assignment owner.", "coverage_zones", profile=profile, source=source, severity="error", observed=missing_zones, expected="every declared zone assigned"))
+    fits = [item for item in elements if item.get("kind") in {"fit", "coverage"} and (item.get("gap") or item.get("fit_gap"))]
+    fit_keys: dict[str, list[str]] = {}
+    for item in fits:
+        key = str(item.get("gap") or item.get("fit_gap"))
+        fit_keys.setdefault(key, []).append(str(item.get("id") or item.get("player_id")))
+    for key, ids in fit_keys.items():
+        responsibilities = {str(item.get("responsibility")) for item in fits if str(item.get("gap") or item.get("fit_gap")) == key and item.get("responsibility")}
+        if len(ids) > 1 and len(responsibilities) > 1:
+            issues.append(_finding("LEGALITY-FIT-CONFLICT", "Multiple defensive assignments claim one fit gap with conflicting responsibilities.", "elements[].gap", profile=profile, source=source, severity="error", observed={key: ids}, expected="one coordinated fit responsibility"))
+
+    # Semantic authoring lint keeps the defensive call teachable even when the
+    # geometry itself is valid. These are warnings by design: team terminology
+    # and exchange conventions vary, while the server still owns hard rule
+    # enforcement and owner-approved overrides.
+    if design.get("unit") == "defense":
+        for index, element in enumerate(elements):
+            kind = str(element.get("kind") or "")
+            path = f"elements[{index}]"
+            if kind == "fit" and (element.get("gap") or element.get("fit_gap")) and not element.get("fit_rule"):
+                issues.append(_finding("LEGALITY-FIT-RULE-UNDECLARED", "A defensive fit declares a gap but does not declare its spill, box, force, or cutback rule.", f"{path}.fit_rule", profile=profile, source=source, severity="warning", observed=None, expected="declared fit rule"))
+            if kind == "coverage" and not (element.get("zone") or element.get("coverage_zone") or element.get("responsibility")):
+                issues.append(_finding("LEGALITY-COVERAGE-RESPONSIBILITY-UNDECLARED", "A coverage assignment has no zone or responsibility for the teaching and coverage audit views.", f"{path}.zone", profile=profile, source=source, severity="warning", observed=None, expected="zone, coverage_zone, or responsibility"))
+            if kind in {"rush", "stunt"} and not (element.get("rush_lane") or element.get("gap") or element.get("landmark")):
+                issues.append(_finding("LEGALITY-RUSH-LANE-UNDECLARED", "A rush assignment has no declared rush lane, gap, or landmark.", f"{path}.rush_lane", profile=profile, source=source, severity="warning", observed=None, expected="rush lane, gap, or landmark"))
+            if kind == "stunt" and not (element.get("exchange_with") or element.get("target_element_id") or element.get("stunt")):
+                issues.append(_finding("LEGALITY-STUNT-EXCHANGE-UNDECLARED", "A stunt is drawn without a partner exchange or named stunt family.", f"{path}.exchange_with", profile=profile, source=source, severity="warning", observed=None, expected="exchange_with, target_element_id, or stunt family"))
+            if kind == "rotation" and not (element.get("zone") or element.get("rotation") or element.get("responsibility")):
+                issues.append(_finding("LEGALITY-ROTATION-TARGET-UNDECLARED", "A rotation assignment has no destination zone or rotation responsibility.", f"{path}.zone", profile=profile, source=source, severity="warning", observed=None, expected="zone, rotation, or responsibility"))
+    if design.get("personnel_constraints") and isinstance(design["personnel_constraints"], dict):
+        for field, expected in design["personnel_constraints"].items():
+            observed = sum(1 for player in players if player.get("position") == field or player.get("role") == field)
+            if isinstance(expected, int) and observed != expected:
+                issues.append(_finding("LEGALITY-PERSONNEL-CONSTRAINT", "Declared personnel count does not match the formation players.", f"personnel_constraints.{field}", profile=profile, source=source, severity="error", observed=observed, expected=expected))
+    return issues

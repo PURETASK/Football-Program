@@ -1,0 +1,14 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Analytics Provider Integration Request",
+  "type":"object",
+  "required":["organization_id","provider","batch_id","records","source_manifest"],
+  "properties":{
+    "organization_id":{"type":"string","pattern":"^ORG-"},
+    "provider":{"type":"object","required":["kind","mode","source_ref"],"properties":{"kind":{"enum":["play_charting","tracking_export","analytics_platform","approved_export"]},"mode":{"const":"read_only"},"source_ref":{"type":"string"}}},
+    "batch_id":{"type":"string","pattern":"^ANALYTICS-BATCH-"},
+    "records":{"type":"array","maxItems":1000},
+    "source_manifest":{"type":"object","required":["kind","ref"]}
+  },
+  "additionalProperties":true
+}

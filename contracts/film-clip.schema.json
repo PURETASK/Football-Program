@@ -1,0 +1,14 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Film Clip",
+  "type":"object",
+  "required":["id","asset_id","start_seconds","end_seconds","context","status"],
+  "properties":{
+    "id":{"type":"string","pattern":"^CLIP-"},
+    "asset_id":{"type":"string","pattern":"^FILM-"},
+    "start_seconds":{"type":"number","minimum":0},
+    "end_seconds":{"type":"number","exclusiveMinimum":0},
+    "context":{"type":"object","required":["team","opponent","situation"]},
+    "status":{"enum":["ready","rejected"]}
+  }
+}

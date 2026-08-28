@@ -1,0 +1,15 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Evaluation Result",
+  "type":"object",
+  "required":["suite_id","version","status","families","passed","failed","coverage"],
+  "properties":{
+    "suite_id":{"type":"string","pattern":"^EVAL-"},
+    "version":{"type":"string"},
+    "status":{"enum":["passed","failed"]},
+    "families":{"type":"array","minItems":1},
+    "passed":{"type":"integer","minimum":0},
+    "failed":{"type":"integer","minimum":0},
+    "coverage":{"type":"array"}
+  }
+}

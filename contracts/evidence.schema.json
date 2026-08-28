@@ -1,0 +1,16 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Evidence Item",
+  "type":"object",
+  "required":["id","claim","classification","source","context","sample_size","confidence"],
+  "properties":{
+    "id":{"type":"string","pattern":"^EVD-"},
+    "claim":{"type":"string","minLength":1},
+    "classification":{"enum":["fact","rule","team_rule","observed_tendency","coaching_preference","contextual_principle","hypothesis"]},
+    "source":{"type":"object","required":["kind","ref","captured_at"],"properties":{"kind":{"type":"string"},"ref":{"type":"string"},"captured_at":{"type":"string"}}},
+    "context":{"type":"object","required":["team","opponent","situations"],"properties":{"team":{"type":"string"},"opponent":{"type":"string"},"situations":{"type":"array"}}},
+    "sample_size":{"type":"integer","minimum":1},
+    "confidence":{"enum":["low","moderate","high"]},
+    "limitations":{"type":"array"}
+  }
+}

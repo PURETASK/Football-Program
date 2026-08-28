@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NFL FIDOS Stage 0 Exit Gate Result",
+  "type": "object",
+  "required": ["gate_id", "stage", "work_package", "next_stage", "status", "eligible_to_advance", "checks", "blockers", "counts"],
+  "properties": {
+    "gate_id": {"const": "STAGE0-EXIT-001"},
+    "stage": {"const": "STAGE-0"},
+    "work_package": {"const": "STAGE-0A"},
+    "next_stage": {"const": "STAGE-1"},
+    "status": {"enum": ["blocked", "ready_for_approval", "approved"]},
+    "eligible_to_advance": {"type": "boolean"},
+    "checks": {"type": "array"},
+    "blockers": {"type": "array", "items": {"type": "string"}},
+    "counts": {"type": "object"}
+  }
+}

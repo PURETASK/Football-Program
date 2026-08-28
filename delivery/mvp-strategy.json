@@ -1,0 +1,25 @@
+{
+  "strategy_id":"MVP-STRATEGY-NFL-001",
+  "version":"0.1.0",
+  "scope":"NFL FIDOS safe vertical-slice delivery",
+  "mvp_outcome":"A coach can compile and review a source-linked play, generate a role-specific teaching view, connect it to a measurable practice drill, and retain an auditable approval history.",
+  "pilot_users":["one program owner","one coach staff group","one analyst","selected players in one organization context"],
+  "waves":[
+    {"id":"WAVE-001","number":1,"name":"Canonical football foundation","classification":"foundational","capabilities":["CAP-004","CAP-009","CAP-010","CAP-011","CAP-012","CAP-013","CAP-021","CAP-022"],"dependencies":["STAGE-0","STAGE-1","STAGE-9","STAGE-20","STAGE-21"],"pilot_outcome":"Compile, validate, store, teach, and audit one play end to end","acceptance_criteria":["valid play compiles","invalid play is rejected","role view renders","practice drill has measurable evaluation","revision and audit event exist"],"eval_checkpoint":"EVAL-SUITE-001","feature_flags":["production_recommendations"],"rollback":"disable wave flag and retain historical records"},
+    {"id":"WAVE-002","number":2,"name":"Film and evidence intelligence","classification":"core","capabilities":["CAP-015","CAP-016","CAP-017","CAP-020"],"dependencies":["WAVE-001","STAGE-14","STAGE-15","STAGE-16","STAGE-19"],"pilot_outcome":"Analyst and coach can build a contextual, source-linked scouting output","acceptance_criteria":["film observation links to clip","low-confidence inference is reviewable","metric retains denominator and uncertainty","scouting claim retains sample and context","conflict is not silently canonicalized"],"eval_checkpoint":"EVAL-SUITE-001","feature_flags":["film_ingestion","team_locked_terminology"],"rollback":"disable ingestion/recommendation flags and preserve source records"},
+    {"id":"WAVE-003","number":3,"name":"Weekly planning and controlled delivery","classification":"core","capabilities":["CAP-018","CAP-019","CAP-023","CAP-024","CAP-025"],"dependencies":["WAVE-001","WAVE-002","STAGE-17","STAGE-18","STAGE-22","STAGE-23"],"pilot_outcome":"Staff can review a weekly game plan through role-appropriate interfaces and release gates","acceptance_criteria":["plan includes counters and triggers","rule facts are cited separately","role permissions are enforced","governance audit blocks unsafe release","release candidate requires approval"],"eval_checkpoint":"EVAL-SUITE-001","feature_flags":["what_if_simulation","cross_organization_scope"],"rollback":"revoke release candidate and disable affected flags"}
+  ],
+  "priority_matrix":[
+    {"capability_id":"CAP-010","priority":"critical","value":"invalid play prevention","technical_risk":"medium","data_risk":"low","wave":"WAVE-001"},
+    {"capability_id":"CAP-015","priority":"critical","value":"source-linked film intelligence","technical_risk":"high","data_risk":"high","wave":"WAVE-002"},
+    {"capability_id":"CAP-018","priority":"critical","value":"weekly game-plan outcome","technical_risk":"high","data_risk":"high","wave":"WAVE-003"},
+    {"capability_id":"CAP-023","priority":"high","value":"role-appropriate use","technical_risk":"medium","data_risk":"high","wave":"WAVE-003"}
+  ],
+  "risk_register":[
+    {"id":"MVP-RISK-001","risk":"premature production recommendation","severity":"critical","mitigation":"feature flag, human approval, governance audit","owner":"program_owner"},
+    {"id":"MVP-RISK-002","risk":"missing or unauthorized source data","severity":"critical","mitigation":"source authorization and provenance gate","owner":"knowledge"},
+    {"id":"MVP-RISK-003","risk":"cross-organization data exposure","severity":"critical","mitigation":"tenant check and deny by default","owner":"security"},
+    {"id":"MVP-RISK-004","risk":"migration regression","severity":"high","mitigation":"snapshot, compatibility check, eval suite, rollback","owner":"engineering"}
+  ],
+  "rollout_controls":["pilot organization only","feature flags default off","wave acceptance evidence required","governance audit required","rollback path tested","scope changes require change request"]
+}

@@ -1,0 +1,14 @@
+{
+  "model_id":"RULES-MODEL-NFL-001",
+  "version":"0.1.0",
+  "jurisdiction":"NFL",
+  "status":"foundation",
+  "source_registry":"rules/authoritative-source-registry.json",
+  "entries":[
+    {"id":"RULE-KB-001","topic":"formation_and_eligibility","fact":"Use the current authoritative NFL rule source to determine formation and eligibility requirements.","applies_when":["snap and formation are at issue"],"exceptions":["specific rule exceptions and approved interpretations must be checked in the current source"],"not_applies_when":["team preference alone is being discussed"],"source":{"kind":"official_rulebook","ref":"NFL-RULEBOOK-VERSIONED","retrieved_at":"2026-08-23"},"effective_date":"2026-01-01","supersedes":null},
+    {"id":"RULE-KB-002","topic":"timing_and_two_minute","fact":"Clock and two-minute interactions require the current authoritative rule basis and the exact game situation.","applies_when":["clock, timeout, end-of-half, or end-of-game decision"],"exceptions":["specific timing exceptions must be cited from the current source"],"not_applies_when":["generic pace preference without a rule question"],"source":{"kind":"official_rulebook","ref":"NFL-RULEBOOK-VERSIONED","retrieved_at":"2026-08-23"},"effective_date":"2026-01-01","supersedes":null},
+    {"id":"RULE-KB-003","topic":"penalty_enforcement","fact":"Penalty acceptance, decline, and enforcement depend on the applicable rule, play result, and game situation.","applies_when":["penalty decision or enforcement question"],"exceptions":["special enforcement cases require source review"],"not_applies_when":["strategy-only recommendation with no rule assertion"],"source":{"kind":"official_rulebook","ref":"NFL-RULEBOOK-VERSIONED","retrieved_at":"2026-08-23"},"effective_date":"2026-01-01","supersedes":null},
+    {"id":"RULE-KB-004","topic":"kicking_and_possession","fact":"Kicking, possession, recovery, and scoring decisions require source-linked rule analysis.","applies_when":["kick play, recovery, scoring, or possession question"],"exceptions":["play-specific exceptions require current rule text"],"not_applies_when":["technique discussion without a rule claim"],"source":{"kind":"official_rulebook","ref":"NFL-RULEBOOK-VERSIONED","retrieved_at":"2026-08-23"},"effective_date":"2026-01-01","supersedes":null},
+    {"id":"RULE-KB-005","topic":"replay_and_challenges","fact":"Replay and challenge recommendations must distinguish rule eligibility from strategic choice.","applies_when":["replay, challenge, or review decision"],"exceptions":["reviewable play types and timing are source-dependent"],"not_applies_when":["coach preference without replay-rule assertion"],"source":{"kind":"official_rulebook","ref":"NFL-RULEBOOK-VERSIONED","retrieved_at":"2026-08-23"},"effective_date":"2026-01-01","supersedes":null}
+  ]
+}

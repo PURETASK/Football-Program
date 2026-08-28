@@ -1,0 +1,22 @@
+.pd-versioning-card{margin-top:.85rem;border:1px solid #c9d8ed;border-radius:14px;background:#fff;padding:1rem;box-shadow:0 8px 22px rgba(16,33,61,.06)}
+.pd-versioning-card h4,.pd-versioning-card h5{margin:.1rem 0 .45rem;color:#10213d}
+.pd-versioning-help{color:#667085;font-size:.84rem;margin:.25rem 0 .7rem;max-width:88ch}
+.pd-versioning-toolbar{display:flex;align-items:center;gap:.55rem;flex-wrap:wrap}
+.pd-versioning-toolbar button{width:auto}
+.pd-versioning-badge{display:inline-flex;align-items:center;min-height:2.25rem;padding:.35rem .65rem;border-radius:999px;background:#eef4ff;color:#1d4ed8;font-size:.78rem;font-weight:750;overflow-wrap:anywhere}
+.pd-versioning-status{margin:.65rem 0;color:#667085;font-size:.86rem;min-height:1.3rem}
+.pd-versioning-status.good{color:#087443}.pd-versioning-status.warn{color:#8a5500}.pd-versioning-status.bad{color:#a51d2d}
+.pd-versioning-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:.7rem}
+.pd-versioning-panel{min-width:0;border:1px solid #d9e1ec;border-radius:11px;background:#f8fafc;padding:.75rem}
+.pd-versioning-panel label{display:grid;gap:.3rem;margin:.45rem 0;color:#334155;font-size:.8rem;font-weight:650}
+.pd-versioning-panel button{margin-top:.35rem}
+.pd-versioning-diff{display:grid;gap:.35rem;margin-top:.65rem;font-size:.78rem;max-height:22rem;overflow:auto}
+.pd-diff-block{border-top:1px solid #d9e1ec;padding-top:.4rem;margin-top:.25rem}
+.pd-diff-row{display:grid;grid-template-columns:minmax(5.5rem,auto) 1fr;gap:.45rem;align-items:start;padding:.2rem 0}
+.pd-diff-row strong{color:#475569}.pd-diff-row span{color:#172033;overflow-wrap:anywhere}
+.pd-versioning-releases,.pd-versioning-snapshots{display:grid;gap:.35rem;margin-top:.65rem;max-height:14rem;overflow:auto}
+.pd-versioning-release,.pd-versioning-snapshot{display:grid;gap:.1rem;padding:.45rem .55rem;border:1px solid #d9e1ec;border-radius:8px;background:#fff;font-size:.76rem;overflow-wrap:anywhere}
+.pd-versioning-release span,.pd-versioning-snapshot span{color:#667085}
+.pd-versioning-snapshot-list{margin-top:.7rem}
+@media(max-width:700px){.pd-versioning-toolbar button{width:100%}.pd-versioning-badge{width:100%;justify-content:center}.pd-diff-row{grid-template-columns:1fr}.pd-versioning-panel button{min-height:2.85rem}}
+@media(prefers-reduced-motion:reduce){.pd-versioning-card *{scroll-behavior:auto}}

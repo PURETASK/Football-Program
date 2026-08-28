@@ -1,0 +1,22 @@
+{
+  "graph_id": "NFL-RELATIONSHIPS-001",
+  "version": "0.1.0",
+  "scope": "NFL",
+  "status": "foundation",
+  "node_source": "ontology/football-terms.json",
+  "relationship_types": ["is_a", "part_of", "pairs_with", "stresses", "counters", "occurs_in", "requires_read", "alias_of"],
+  "edges": [
+    {"from":"TERM-FORMATION-SHOTGUN","type":"pairs_with","to":"TERM-PERSONNEL-11"},
+    {"from":"TERM-RUN-ZONE","type":"pairs_with","to":"TERM-FORMATION-SHOTGUN"},
+    {"from":"TERM-RUN-OUTSIDE-ZONE","type":"pairs_with","to":"TERM-FORMATION-UNDER-CENTER"},
+    {"from":"TERM-CONCEPT-BOOT","type":"pairs_with","to":"TERM-RUN-OUTSIDE-ZONE"},
+    {"from":"TERM-CONCEPT-MESH","type":"stresses","to":"TERM-COVERAGE-COVER-1"},
+    {"from":"TERM-CONCEPT-FOUR-VERTICALS","type":"stresses","to":"TERM-COVERAGE-QUARTERS"},
+    {"from":"TERM-PRESSURE-ALL-OUT","type":"counters","to":"TERM-COVERAGE-COVER-1"},
+    {"from":"TERM-COVERAGE-COVER-3","type":"counters","to":"TERM-CONCEPT-FOUR-VERTICALS"},
+    {"from":"TERM-SITUATION-RED-ZONE","type":"occurs_in","to":"TERM-SITUATION-THIRD-DOWN"},
+    {"from":"TERM-SPECIAL-PUNT","type":"occurs_in","to":"TERM-SITUATION-SHORT-YARDAGE"},
+    {"from":"TERM-ROLE-QB","type":"requires_read","to":"TERM-COVERAGE-COVER-3"},
+    {"from":"TERM-ROLE-LINEBACKER","type":"requires_read","to":"TERM-RUN-ZONE"}
+  ]
+}

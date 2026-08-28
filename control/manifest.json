@@ -1,0 +1,47 @@
+{
+  "program_id": "NFL-FIDOS",
+  "document_id": "NFL-FIDOS-MASTER-PLAN-001",
+  "plan_version": "1.0",
+  "scope": "NFL only",
+  "status": "stage_0_discovery",
+  "current_stage": "STAGE-0",
+  "current_work_package": "STAGE-0A",
+  "next_deliverable": "Master Capability Registry v1.0",
+  "production_implementation_allowed": false,
+  "source_artifacts": [
+    {
+      "kind": "markdown",
+      "path": "C:\\Users\\onlyw\\Downloads\\NFL_Football_Intelligence_OS_Master_Codex_Plan_v1.0 (1).md",
+      "authority": "parent_specification"
+    },
+    {
+      "kind": "docx",
+      "path": "C:\\Users\\onlyw\\Downloads\\NFL_Football_Intelligence_OS_Master_Codex_Plan_v1.0 (1).docx",
+      "authority": "formatted_representation"
+    }
+  ],
+  "identifier_prefixes": {
+    "capability": "CAP-",
+    "agent": "AGT-",
+    "object": "OBJ-",
+    "workflow": "WF-",
+    "decision": "DEC-",
+    "question": "Q-",
+    "change_request": "CR-"
+  },
+  "stage_sequence": [
+    "STAGE-0", "STAGE-1", "STAGE-2", "STAGE-3", "STAGE-4", "STAGE-5",
+    "STAGE-6", "STAGE-7", "STAGE-8", "STAGE-9", "STAGE-10", "STAGE-11",
+    "STAGE-12", "STAGE-13", "STAGE-14", "STAGE-15", "STAGE-16", "STAGE-17",
+    "STAGE-18", "STAGE-19", "STAGE-20", "STAGE-21", "STAGE-22", "STAGE-23",
+    "STAGE-24", "STAGE-25"
+  ],
+  "governing_principles": [
+    "Model football compositionally rather than treating labels as complete schemes.",
+    "Preserve context, sample size, assumptions, evidence, uncertainty, and alternatives.",
+    "Separate facts, rules, team rules, tendencies, preferences, principles, and hypotheses.",
+    "Use callable specialist roles with explicit handoffs and tool boundaries.",
+    "Require human authority for locked rules, playbook assignments, permissions, and escalations.",
+    "Trace implementation to capabilities, stage requirements, acceptance criteria, and evals."
+  ]
+}

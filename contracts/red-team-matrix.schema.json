@@ -1,0 +1,12 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Play Red-Team Matrix",
+  "type":"object",
+  "required":["id","scheme_id","rows","status"],
+  "properties":{
+    "id":{"type":"string","pattern":"^REDTEAM-"},
+    "scheme_id":{"type":"string","pattern":"^SCHEME-"},
+    "rows":{"type":"array","minItems":1},
+    "status":{"enum":["draft","reviewed"]}
+  }
+}

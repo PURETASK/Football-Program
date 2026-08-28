@@ -1,0 +1,19 @@
+{
+  "corpus_id":"NFL-TEAM-TERMINOLOGY-VALIDATION-001",
+  "version":"0.1.0",
+  "purpose":"Synthetic, source-linked validation fixtures for checking team terminology resolution before organization-specific aliases are approved; not a claim about any NFL team's private playbook language.",
+  "scope":"NFL",
+  "records":[
+    {"id":"TERM-USAGE-001","team_id":"TEAM-VALIDATION-A","phrase":"gun","expected_term_id":"TERM-FORMATION-SHOTGUN","source_ref":"VALIDATION-SOURCE-001"},
+    {"id":"TERM-USAGE-002","team_id":"TEAM-VALIDATION-A","phrase":"verts","expected_term_id":"TERM-CONCEPT-FOUR-VERTICALS","source_ref":"VALIDATION-SOURCE-002"},
+    {"id":"TERM-USAGE-003","team_id":"TEAM-VALIDATION-A","phrase":"3-deep","expected_term_id":"TERM-COVERAGE-COVER-3","source_ref":"VALIDATION-SOURCE-003"},
+    {"id":"TERM-USAGE-004","team_id":"TEAM-VALIDATION-B","phrase":"IZ","expected_term_id":"TERM-RUN-ZONE","source_ref":"VALIDATION-SOURCE-004"},
+    {"id":"TERM-USAGE-005","team_id":"TEAM-VALIDATION-B","phrase":"OZ","expected_term_id":"TERM-RUN-OUTSIDE-ZONE","source_ref":"VALIDATION-SOURCE-005"},
+    {"id":"TERM-USAGE-006","team_id":"TEAM-VALIDATION-B","phrase":"man free","expected_term_id":"TERM-COVERAGE-COVER-1","source_ref":"VALIDATION-SOURCE-006"},
+    {"id":"TERM-USAGE-007","team_id":"TEAM-VALIDATION-B","phrase":"Cover 4","expected_term_id":"TERM-COVERAGE-QUARTERS","source_ref":"VALIDATION-SOURCE-007"},
+    {"id":"TERM-USAGE-008","team_id":"TEAM-VALIDATION-C","phrase":"sim pressure","expected_term_id":"TERM-PRESSURE-SIMULATED","source_ref":"VALIDATION-SOURCE-008"},
+    {"id":"TERM-USAGE-009","team_id":"TEAM-VALIDATION-C","phrase":"zero pressure","expected_term_id":"TERM-PRESSURE-ALL-OUT","source_ref":"VALIDATION-SOURCE-009"},
+    {"id":"TERM-USAGE-010","team_id":"TEAM-VALIDATION-C","phrase":"FG","expected_term_id":"TERM-SPECIAL-FIELD-GOAL","source_ref":"VALIDATION-SOURCE-010"},
+    {"id":"TERM-USAGE-011","team_id":"TEAM-VALIDATION-C","phrase":"two minute","expected_term_id":"TERM-SITUATION-TWO-MINUTE","source_ref":"VALIDATION-SOURCE-011"}
+  ]
+}

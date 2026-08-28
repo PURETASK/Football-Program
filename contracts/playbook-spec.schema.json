@@ -1,0 +1,16 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Extended Play Specification",
+  "type":"object",
+  "required":["play_family_id","checks","situational_variants","opponent_notes","coaching_notes","install_level","dependencies","approval"],
+  "properties":{
+    "play_family_id":{"type":"string","pattern":"^PLAY-FAM-"},
+    "checks":{"type":"array"},
+    "situational_variants":{"type":"array"},
+    "opponent_notes":{"type":"array"},
+    "coaching_notes":{"type":"array"},
+    "install_level":{"enum":["install","review","game_ready","situational"]},
+    "dependencies":{"type":"array"},
+    "approval":{"type":"object","required":["state"],"properties":{"state":{"enum":["draft","pending_approval","approved","rejected","superseded"]}}}
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "bible_id":"COACHING-STAFF-BIBLE-NFL-001",
+  "version":"0.1.0",
+  "scope":"NFL coaching and football staff development",
+  "status":"foundation",
+  "mastery_levels":["exposed","developing","functional","proficient","mastery"],
+  "role_trees":[
+    {"role":"head_coach","dimensions":["leadership","culture","decision_quality","staff_alignment","program_evaluation"],"outputs":["program identity","weekly decision process","staff review"],"collaborators":["offensive_coordinator","defensive_coordinator","special_teams_coordinator","game_management"],"review_owner":"program_owner"},
+    {"role":"offensive_coordinator","dimensions":["offensive_scheme","installation","play_calling","adjustments","staff_alignment"],"outputs":["offensive plan","installation sequence","call sheet","adjustment report"],"collaborators":["position_coach","quality_control","analyst","head_coach"],"review_owner":"head_coach"},
+    {"role":"defensive_coordinator","dimensions":["defensive_scheme","installation","play_calling","adjustments","staff_alignment"],"outputs":["defensive plan","pressure menu","coverage checks","adjustment report"],"collaborators":["position_coach","quality_control","analyst","head_coach"],"review_owner":"head_coach"},
+    {"role":"special_teams_coordinator","dimensions":["special_teams_scheme","phase_installation","situational_management","unit_development","staff_alignment"],"outputs":["unit plan","operation checklist","coverage/return plan","special-teams review"],"collaborators":["position_coach","quality_control","head_coach"],"review_owner":"head_coach"},
+    {"role":"position_coach","dimensions":["technique_teaching","assignment_teaching","film_diagnosis","practice_design","player_evaluation"],"outputs":["individual correction","position period","player grade","development recommendation"],"collaborators":["coordinator","player","performance_staff","film_analyst"],"review_owner":"coordinator"},
+    {"role":"quality_control","dimensions":["film_process","data_quality","scouting_support","documentation","communication"],"outputs":["cutup","tendency packet","quality report","source register"],"collaborators":["analyst","coordinator","scout"],"review_owner":"coordinator"},
+    {"role":"analyst","dimensions":["metric_definition","evidence_quality","contextual_interpretation","visualization","communication"],"outputs":["metric report","uncertainty note","visual evidence","research packet"],"collaborators":["quality_control","scout","game_management"],"review_owner":"coordinator"},
+    {"role":"game_management","dimensions":["clock_management","rules_application","decision_process","contingency_planning","communication"],"outputs":["situational card","rule fact packet","contingency recommendation","decision log"],"collaborators":["head_coach","rules_authority","analyst"],"review_owner":"head_coach"}
+  ],
+  "development_pathway":["observe","teach","practice","diagnose","adapt","review"],
+  "observable_evaluation":["teaching objective is explicit","coach uses source-linked evidence","correction is specific and actionable","practice design maps to the objective","communication preserves team terminology","adjustment states assumptions and uncertainty","evaluation retains human reviewer"],
+  "collaboration_model":[
+    {"from":"head_coach","to":"coordinator","interface":"program identity, weekly priorities, decision ownership"},
+    {"from":"coordinator","to":"position_coach","interface":"installation, correction priorities, player teaching"},
+    {"from":"quality_control","to":"coordinator","interface":"authorized film, data quality, scouting packet"},
+    {"from":"analyst","to":"game_management","interface":"context-aware metrics and uncertainty"},
+    {"from":"position_coach","to":"performance_staff","interface":"observable workload or readiness signal escalation"}
+  ],
+  "boundaries":["Coach evaluations measure observable work, not personality or medical status.","Health and clearance decisions remain with qualified professionals.","Locked staff doctrine and role assignments require human approval.","Staff outputs preserve evidence, context, disagreement, and review ownership."]
+}

@@ -1,0 +1,7 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Engineering Architecture",
+  "type":"object",
+  "required":["architecture_id","repo_map","runtime_boundaries","api_contracts","agent_runtime","data_access","testing_strategy","observability","environments","ci_cd","migrations","feature_flags","operational_runbooks","security_controls"],
+  "properties":{"architecture_id":{"type":"string","pattern":"^ENG-ARCH-"},"repo_map":{"type":"array","minItems":1},"runtime_boundaries":{"type":"array","minItems":1},"ci_cd":{"type":"array","minItems":1}}
+}

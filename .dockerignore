@@ -1,0 +1,14 @@
+.git
+.github
+.runtime
+.env
+.env.*
+**/__pycache__
+**/*.pyc
+**/*.pyo
+frontend/node_modules
+frontend/dist
+frontend/coverage
+frontend/playwright-report
+frontend/test-results
+tmp

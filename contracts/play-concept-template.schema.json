@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nfl-fidos.local/contracts/play-concept-template.schema.json",
+  "title": "NFL FIDOS Play Concept Template Registry",
+  "type": "object",
+  "required": ["schema_version", "registry_id", "templates"],
+  "properties": {
+    "schema_version": {"type": "string"},
+    "registry_id": {"type": "string", "minLength": 1},
+    "coordinate_contract": {"type": "string"},
+    "templates": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/template"}
+    }
+  },
+  "$defs": {
+    "offset": {
+      "type": "object",
+      "required": ["dx", "dy"],
+      "properties": {"dx": {"type": "number"}, "dy": {"type": "number"}},
+      "additionalProperties": false
+    },
+    "assignment": {
+      "type": "object",
+      "required": ["key", "slot", "kind"],
+      "properties": {
+        "key": {"type": "string", "minLength": 1},
+        "slot": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["route", "motion", "run", "block", "read", "coverage", "rush", "fit", "stunt", "rotation", "annotation"]},
+        "points": {"type": "array", "items": {"$ref": "#/$defs/offset"}},
+        "depends_on": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "exchange_with": {"type": "string"},
+        "target_element_key": {"type": "string"},
+        "timing": {
+          "type": "object",
+          "required": ["start_ms", "end_ms"],
+          "properties": {"start_ms": {"type": "integer", "minimum": -5000}, "end_ms": {"type": "integer", "minimum": -4999}},
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "template": {
+      "type": "object",
+      "required": ["id", "name", "unit", "template_kind", "layer", "version", "status", "assignments"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "name": {"type": "string", "minLength": 1},
+        "unit": {"enum": ["offense", "defense", "special_teams"]},
+        "template_kind": {"enum": ["complete_call", "concept_layer", "protection_layer", "coverage_layer", "pressure_layer", "custom"]},
+        "layer": {"type": "string", "minLength": 1},
+        "formation": {"type": "string"},
+        "front": {"type": "string"},
+        "coverage": {"type": "string"},
+        "personnel": {"type": "string"},
+        "concept": {"type": "string"},
+        "version": {"type": "string"},
+        "status": {"enum": ["draft", "reviewed", "approved", "active", "deprecated", "retired"]},
+        "scope": {"enum": ["system", "organization"]},
+        "description": {"type": "string"},
+        "tags": {"type": "array", "items": {"type": "string"}},
+        "situations": {"type": "array", "items": {"type": "string"}},
+        "expected_companion_layers": {"type": "array", "items": {"type": "string"}},
+        "coaching_points": {"type": "array", "items": {"type": "string"}},
+        "timeline": {"type": "object"},
+        "assignments": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/assignment"}},
+        "alignment": {"type": "object"}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nfl-fidos.local/contracts/play-alignment-presets.schema.json",
+  "title": "NFL FIDOS Play Alignment Preset Registry",
+  "type": "object",
+  "required": ["schema_version", "registry_id", "coordinate_system", "presets"],
+  "properties": {
+    "schema_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "registry_id": {"type": "string", "minLength": 1},
+    "coordinate_system": {
+      "type": "object",
+      "required": ["width", "height", "line_of_scrimmage_y"],
+      "properties": {
+        "width": {"const": 100},
+        "height": {"const": 53},
+        "line_of_scrimmage_y": {"type": "number", "minimum": 0, "maximum": 53}
+      },
+      "additionalProperties": false
+    },
+    "presets": {
+      "type": "array",
+      "minItems": 13,
+      "items": {
+        "type": "object",
+        "required": ["term", "unit", "category", "ball", "slots"],
+        "properties": {
+          "term": {"type": "string", "minLength": 1},
+          "unit": {"enum": ["offense", "defense"]},
+          "category": {"enum": ["formation", "front"]},
+          "ball": {
+            "type": "object",
+            "required": ["x", "y"],
+            "properties": {
+              "hash": {"enum": ["left", "middle", "right"]},
+              "x": {"type": "number", "minimum": 0, "maximum": 100},
+              "y": {"type": "number", "minimum": 0, "maximum": 53}
+            },
+            "additionalProperties": false
+          },
+          "slots": {
+            "type": "array",
+            "minItems": 11,
+            "maxItems": 11,
+            "items": {
+              "type": "object",
+              "required": ["key", "position", "role", "x", "y"],
+              "properties": {
+                "key": {"type": "string", "minLength": 1},
+                "position": {"type": "string", "minLength": 1},
+                "role": {"type": "string", "minLength": 1},
+                "x": {"type": "number", "minimum": 0, "maximum": 100},
+                "y": {"type": "number", "minimum": 0, "maximum": 53}
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

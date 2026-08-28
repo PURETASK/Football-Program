@@ -1,0 +1,72 @@
+{
+  "audit_id": "AUDIT-STAGE-0-GAP-001",
+  "stage": "STAGE-0",
+  "status": "complete",
+  "methodology": [
+    "Compared the Markdown and DOCX source plans for structural parity and content coverage.",
+    "Mapped registered capabilities, agents, objects, workflows, nuance classes, risks, and questions to controlled artifacts and tests.",
+    "Reviewed implementation status for duplicated foundations, unrepresented production concerns, and unresolved approval dependencies."
+  ],
+  "coverage_summary": {
+    "registered_capabilities": 25,
+    "registered_agents": 16,
+    "registered_objects": 22,
+    "registered_workflows": 8,
+    "registered_nuance_classes": 6,
+    "registered_risks": 15,
+    "registered_questions": 3,
+    "implemented_stage_specifications": 26,
+    "regression_tests_passing": 546,
+    "eval_families_passing": 97
+  },
+  "gaps": [
+    {"id":"GAP-001","area":"production data","description":"Foundational schemas and SQLite adapters exist; production database operations, migrations, backups, and tenant isolation still require deployment validation.","severity":"high","owner_stage":"STAGE-21"},
+    {"id":"GAP-002","area":"production media","description":"Film intelligence contracts and logic exist; production video ingestion, storage, annotation UI, and media QA remain to be integrated.","severity":"high","owner_stage":"STAGE-14"},
+    {"id":"GAP-003","area":"production interfaces","description":"Legacy Play Designer assets are restored and regression-tested. A separate React and TypeScript shell, Today command center, visual Playbook library, and dedicated full-screen Play Designer authoring slice are implemented and locally validated while the Python API remains authoritative. The designer now includes an eight-step completion-aware, restartable tutorial and contextual descriptions. Film, Practice, Scouting, Game Plan, Player, Admin, and Reviews now have independent role-aware React routes with page, system, feature, workflow, status, and authority descriptions rather than legacy dashboard anchors. Advanced React parity for SSE cursors/thread resolution, version diff/merge/rollback, legality overrides, complete teaching/player workflows, multi-play export composition, and each workspace's deeper interactive controls remains, followed by full visual/accessibility/performance suites, feature-parity audit, and deployment-environment moderated pilots.","severity":"high","owner_stage":"STAGE-22"},
+    {"id":"GAP-004","area":"deployment and operations","description":"Security, rate limiting, tenant checks, signed exports, encrypted offline storage, redacted audit events, quality gates, threat-model controls, and recovery rehearsals are implemented and locally validated; production provider registration, mounted secrets, monitoring, database deployment, target-environment rollback, and operational runbook execution remain.","severity":"high","owner_stage":"STAGE-23"},
+    {"id":"GAP-005","area":"football knowledge depth","description":"Controlled football bibles, authoritative rule-source registry, team-alias persistence, and synthetic team-usage validation exist; an owner-approved organization terminology bundle, full NFL lineage/team doctrine corpus, and broader real-world eval corpus remain.","severity":"medium","owner_stage":"STAGE-2"}
+  ],
+  "redundancy_findings": [
+    {"id":"RED-001","finding":"Multiple early foundation modules overlap with later architecture modules.","resolution":"Retain early modules as compatibility foundations; treat architecture modules and controlled JSON artifacts as the authoritative expansion path."},
+    {"id":"RED-002","finding":"Several contract and status artifacts describe the same governance boundaries at different layers.","resolution":"Keep layer-specific contracts, require shared stable IDs and eval coverage, and prohibit silent semantic divergence."}
+  ],
+  "approval_dependencies": [
+    "Program owner reviews this audit and the Stage 0A registry.",
+    "Program owner approves the final stage manifest and Stage 0 exit gate.",
+    "Engineering and football stakeholders validate production-scope priorities before deployment work begins."
+  ],
+  "evidence": [
+    "NFL_FIDOS_SOURCE_AUDIT.md",
+    "NFL_FIDOS_IMPLEMENTATION_STATUS.md",
+    "control/stage-0a-registry.json",
+    "control/master-codex-build-spec.json",
+    "control/eval-manifest.json",
+    "tests/",
+    "scripts/run_evals.py",
+    "src/nfl_fidos/master_plan_audit.py",
+    "scripts/audit_master_plan.py",
+    "tests/test_master_plan_audit.py",
+    "scripts/dashboard_smoke.py",
+    "runbooks/dashboard-smoke.md",
+    "scripts/validate_control_plane.py",
+    "scripts/incident_rehearsal.py",
+    "monitoring/observability-contract.json",
+    "src/nfl_fidos/play_design_service.py",
+    "src/nfl_fidos/play_legality.py",
+    "src/nfl_fidos/play_design_exports.py",
+    "src/nfl_fidos/play_design_versioning.py",
+    "src/nfl_fidos/play_design_collaboration.py",
+    "src/nfl_fidos/play_designer_quality.py",
+    "src/nfl_fidos/security_controls.py",
+    "src/nfl_fidos/pilot_verification.py",
+    "control/security-threat-model.json",
+    "control/play-designer-visual-baseline.json",
+    "tests/test_play_designer_quality.py",
+    "tests/test_pilot_verification.py",
+    "output/pdf/NFL-FIDOS-export-qa-play-card.pdf",
+    "frontend/",
+    "tests/test_http_server.py",
+    "runbooks/frontend-migration.md",
+    "runbooks/play-designer-tutorial.md"
+  ]
+}

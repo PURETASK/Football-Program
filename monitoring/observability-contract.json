@@ -1,0 +1,17 @@
+{
+  "contract_id":"OBS-CONTRACT-NFL-FIDOS-001",
+  "version":"0.1.0",
+  "scope":"NFL only",
+  "status":"design_only",
+  "provider_neutral":true,
+  "event_fields":["event_id","request_id","actor","organization_id","operation","status","duration_ms","error_code","source_refs"],
+  "sinks":[{"id":"SINK-STRUCTURED-JSONL","kind":"structured_jsonl","path_env":"NFL_FIDOS_OBSERVABILITY_PATH","registration":"deployment_owner_required"}],
+  "alerts":[
+    {"id":"ALERT-ERROR-RATE","condition":"error events exceed approved threshold","severity":"high","response":"pause promotion and open incident"},
+    {"id":"ALERT-READINESS-BLOCKER","condition":"readiness check reports blocker","severity":"high","response":"do not deploy; remediate and rerun readiness"},
+    {"id":"ALERT-AUTH-FAILURE","condition":"authentication failures exceed approved threshold","severity":"high","response":"review identity boundary and preserve audit evidence"},
+    {"id":"ALERT-BACKUP-MISMATCH","condition":"backup or restore content_match is false","severity":"critical","response":"stop promotion and quarantine artifact"}
+  ],
+  "retention":{"event_days":90,"incident_days":365,"deletion_requires_approval":true},
+  "non_goals":["no provider credentials in repository","no automatic production activation","no unbounded event export"]
+}

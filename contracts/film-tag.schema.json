@@ -1,0 +1,14 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Film Tag",
+  "type":"object",
+  "required":["id","film_asset_id","tag","context","source","confidence"],
+  "properties":{
+    "id":{"type":"string","pattern":"^FILM-TAG-"},
+    "film_asset_id":{"type":"string","pattern":"^FILM-"},
+    "tag":{"type":"string","minLength":1},
+    "context":{"type":"object","required":["team","opponent","situation"]},
+    "source":{"type":"object","required":["kind","ref"]},
+    "confidence":{"enum":["low","moderate","high"]}
+  }
+}

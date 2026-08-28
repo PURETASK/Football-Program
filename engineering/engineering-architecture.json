@@ -1,0 +1,32 @@
+{
+  "architecture_id":"ENG-ARCH-NFL-001",
+  "version":"0.1.0",
+  "scope":"NFL FIDOS Codex implementation and operations",
+  "repo_map":[
+    {"path":"src/nfl_fidos","kind":"domain_package","owner":"engineering","responsibility":"NFL domain contracts and deterministic services"},
+    {"path":"contracts","kind":"schema_package","owner":"governance","responsibility":"machine-readable data/API contracts"},
+    {"path":"control","kind":"control_plane","owner":"program_owner","responsibility":"scope, registry, stages, eval manifest, gates"},
+    {"path":"tests","kind":"test_package","owner":"quality_governance","responsibility":"regression and contract tests"},
+    {"path":"scripts","kind":"operator_tools","owner":"engineering","responsibility":"validation, eval, and run commands"},
+    {"path":"architecture|analytics|data|governance|knowledge|performance|rules|scheme|special_teams|ux|visual","kind":"controlled_artifacts","owner":"domain_owners","responsibility":"stage-specific bibles and architecture artifacts"}
+  ],
+  "runtime_boundaries":[
+    {"id":"RUNTIME-API","name":"API boundary","responsibility":"JSON request/response and explicit errors","depends_on":["domain_package","governance"]},
+    {"id":"RUNTIME-DOMAIN","name":"Domain services","responsibility":"deterministic football validation and workflow composition","depends_on":["contracts","data_access"]},
+    {"id":"RUNTIME-AGENTS","name":"Agent runtime","responsibility":"callable specialist routing, handoffs, permissions, and review","depends_on":["domain_package","governance"]},
+    {"id":"RUNTIME-DATA","name":"Data access","responsibility":"versioned canonical records, history, audit events, tenancy","depends_on":["database"]},
+    {"id":"RUNTIME-MEDIA","name":"Media/storage","responsibility":"authorized film assets and bounded clips","depends_on":["storage","governance"]},
+    {"id":"RUNTIME-OBS","name":"Observability","responsibility":"structured logs, traces, eval results, and audit events","depends_on":["governance"]}
+  ],
+  "api_contracts":["/health","/v1/control","/v1/evals","/v1/ontology/resolve","/v1/plays/compile"],
+  "agent_runtime":["agent registry","declared capabilities","permission check","handoff contract","human review boundary","audit event"],
+  "data_access":["JsonRepository for local deterministic development","SqliteRepository for versioned local persistence","migration scripts must preserve revision and audit semantics","production adapter must preserve repository contract"],
+  "testing_strategy":["unit tests for domain validators","contract tests for JSON schemas and API errors","workflow composition tests","permission and safety tests","named eval suite","compile and control-plane validation","promotion audit before release"],
+  "observability":{"required_fields":["event_id","request_id","actor","organization_id","operation","status","duration_ms","error_code","source_refs"],"signals":["structured_logs","audit_events","eval_results","validation_failures","permission_denials","latency"],"retention":"retain audit and eval evidence according to organization policy"},
+  "environments":[{"name":"local","purpose":"deterministic development and tests","data":"synthetic or authorized fixtures"},{"name":"validation","purpose":"integration and eval gates","data":"controlled fixtures"},{"name":"production","purpose":"approved NFL operating context","data":"authorized organization data only"}],
+  "ci_cd":["install dependencies","run unit and contract tests","run compileall","run control-plane validator","run named eval suite","build release candidate","require governance audit and approval","publish immutable artifact"],
+  "migrations":["version schema","dry-run and compatibility check","backup or snapshot","apply forward migration","run regression/evals","record audit event","rollback to previous version if gate fails"],
+  "feature_flags":["production_recommendations","team_locked_terminology","film_ingestion","what_if_simulation","cross_organization_scope"],
+  "operational_runbooks":["failed eval triage","permission denial review","source freshness update","schema migration rollback","media ingestion failure","audit trail inspection","incident escalation"],
+  "security_controls":["organization tenancy","least privilege","no secrets in source","authorized media only","human approval for locked artifacts","append-only audit events"]
+}

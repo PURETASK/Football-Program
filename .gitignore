@@ -1,0 +1,33 @@
+# Local runtime state, synthetic demo databases, media, and logs.
+.runtime/
+
+# Local secrets and environment overrides.
+.env
+.env.*
+!.env.example
+
+# Python caches and local environments.
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Local database sidecars if one is created outside .runtime.
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+
+# OS/editor noise.
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# React frontend build and test outputs.
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/

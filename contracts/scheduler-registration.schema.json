@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nfl-fidos.local/contracts/scheduler-registration.schema.json",
+  "title": "NFL FIDOS Scheduler Registration Contract",
+  "type": "object",
+  "required": ["registration_id", "scope", "provider_neutral", "jobs", "bounds", "dry_run_default", "external_registration_required"],
+  "properties": {
+    "registration_id": {"type": "string", "pattern": "^SCHEDULER-REG-"},
+    "scope": {"const": "NFL only"},
+    "provider_neutral": {"const": true},
+    "jobs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "operation", "schedule", "entrypoint"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^SCHEDULER-JOB-"},
+          "operation": {"enum": ["source_refresh", "media_retention_scan", "media_transform_batch"]},
+          "schedule": {"type": "string", "minLength": 1},
+          "entrypoint": {"type": "string", "const": "scripts/scheduled_operations.py"}
+        },
+        "additionalProperties": true
+      }
+    },
+    "bounds": {
+      "type": "object",
+      "required": ["max_sources", "max_transforms", "retention_days"],
+      "properties": {
+        "max_sources": {"type": "integer", "minimum": 1},
+        "max_transforms": {"type": "integer", "minimum": 1},
+        "retention_days": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": true
+    },
+    "dry_run_default": {"const": true},
+    "external_registration_required": {"const": true}
+  },
+  "additionalProperties": true
+}

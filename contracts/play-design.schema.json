@@ -1,0 +1,215 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nfl-fidos.local/contracts/play-design.schema.json",
+  "title": "NFL FIDOS Professional Play Design",
+  "type": "object",
+  "required": ["id", "version", "unit", "personnel", "formation", "players", "elements", "timeline"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^DESIGN-|^PD-"},
+    "version": {"type": "string"},
+    "unit": {"enum": ["offense", "defense", "special_teams"]},
+    "personnel": {"type": "string"},
+    "formation": {"type": "string"},
+    "concept": {"type": "string"},
+    "front": {"type": "string"},
+    "coverage": {"type": "string"},
+    "assignment_model_version": {"type": "string"},
+    "players": {
+      "type": "array",
+      "minItems": 11,
+      "maxItems": 11,
+      "items": {"$ref": "#/$defs/player"}
+    },
+    "elements": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/element"}
+    },
+    "timeline": {"$ref": "#/$defs/timeline"},
+    "field_context": {
+      "type": "object",
+      "properties": {
+        "hash": {"enum": ["left", "middle", "right"]},
+        "ball_x": {"type": "number", "minimum": 0, "maximum": 100},
+        "ball_y": {"type": "number", "minimum": 0, "maximum": 53.33},
+        "line_of_scrimmage_y": {"type": "number", "minimum": 0, "maximum": 53.33},
+        "strength": {"enum": ["left", "right", "balanced"]},
+        "direction": {"enum": ["left", "right"]},
+        "field_zone": {"type": "string"}
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "point": {
+      "type": "object",
+      "required": ["x", "y"],
+      "properties": {
+        "x": {"type": "number", "minimum": 0, "maximum": 100},
+        "y": {"type": "number", "minimum": 0, "maximum": 53.33}
+      },
+      "additionalProperties": false
+    },
+    "player": {
+      "type": "object",
+      "required": ["id", "position", "start"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "alignment_key": {"type": "string"},
+        "defensive_technique": {"type": "string"},
+        "defensive_alignment": {"type": "string"},
+        "position": {"type": "string", "minLength": 1},
+        "role": {"type": "string"},
+        "label": {"type": "string"},
+        "start": {"$ref": "#/$defs/point"},
+        "locked": {"type": "boolean"},
+        "hidden": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "phase": {
+      "type": "object",
+      "required": ["id", "start_ms", "end_ms"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "label": {"type": "string"},
+        "start_ms": {"type": "integer", "minimum": -5000},
+        "end_ms": {"type": "integer", "minimum": -4999}
+      },
+      "additionalProperties": true
+    },
+    "timing": {
+      "type": "object",
+      "required": ["start_ms", "end_ms"],
+      "properties": {
+        "start_ms": {"type": "integer", "minimum": -5000},
+        "end_ms": {"type": "integer", "minimum": -4999},
+        "phases": {"type": "array", "items": {"$ref": "#/$defs/phase"}}
+      },
+      "additionalProperties": true
+    },
+    "element": {
+      "type": "object",
+      "required": ["id", "kind"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["route", "motion", "run", "block", "read", "coverage", "rush", "fit", "stunt", "rotation", "annotation"]},
+        "player_id": {"type": ["string", "null"]},
+        "type": {"type": "string"},
+        "points": {"type": "array", "items": {"$ref": "#/$defs/point"}},
+        "arrow_style": {"type": "string"},
+        "assignment": {"type": "string"},
+        "objective": {"type": "string"},
+        "technique": {"type": "string"},
+        "landmark": {"type": "string"},
+        "depth_yards": {"type": "number", "minimum": 0, "maximum": 60},
+        "leverage": {"enum": ["inside", "outside", "head_up", "top_down", "trail", "stack", "free"]},
+        "gap": {"type": "string"},
+        "fit_gap": {"type": "string"},
+        "gap_owner": {"type": "string"},
+        "gap_owner_label": {"type": "string"},
+        "collision_intent": {"type": "string"},
+        "collision_note": {"type": "string"},
+        "fit_rule": {"type": "string"},
+        "coverage": {"type": "string"},
+        "rush_lane": {"type": "string"},
+        "blitz_path": {"type": "string"},
+        "stunt": {"type": "string"},
+        "rotation": {"type": "string"},
+        "rotation_trigger": {"type": "string"},
+        "rotation_from_zone": {"type": "string"},
+        "rotation_to_zone": {"type": "string"},
+        "rotation_replacement_player_id": {"type": "string"},
+        "rotation_vacated_zone": {"type": "string"},
+        "rotation_sequence": {"type": "integer", "minimum": 1},
+        "rotation_communication": {"type": "string"},
+        "blocking_primitive": {"type": "string"},
+        "block_target_element_id": {"type": "string"},
+        "block_partner_element_id": {"type": "string"},
+        "protection_mode": {"type": "string"},
+        "release_after_ms": {"type": "integer", "minimum": 0},
+        "route_family": {"type": "string"},
+        "stem_depth_yards": {"type": "number", "minimum": 0, "maximum": 60},
+        "break_type": {"type": "string"},
+        "break_depth_yards": {"type": "number", "minimum": 0, "maximum": 60},
+        "finish_direction": {"type": "string"},
+        "option_rule": {"type": "string"},
+        "option_condition": {"type": "string"},
+        "branches": {"type": "array", "items": {"type": "object", "required": ["id", "label", "condition", "points"], "properties": {"id": {"type": "string"}, "label": {"type": "string"}, "condition": {"type": "string"}, "points": {"type": "array", "items": {"$ref": "#/$defs/point"}}, "start_ms": {"type": "integer", "minimum": -5000}, "end_ms": {"type": "integer", "minimum": -4999}, "timing": {"type": "object", "additionalProperties": true}}, "additionalProperties": true}},
+        "zone": {"type": "string"},
+        "phase": {"type": "string"},
+        "read_key": {"type": "string"},
+        "read_prompt": {"type": "string"},
+        "target_player_id": {"type": "string"},
+        "target_element_id": {"type": "string"},
+        "depends_on": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "exchange_with": {"type": "string"},
+        "exchange_role": {"type": "string"},
+        "exclusive_assignment": {"type": "boolean"},
+        "start_ms": {"type": "integer", "minimum": -5000},
+        "end_ms": {"type": "integer", "minimum": -4999},
+        "timing": {"$ref": "#/$defs/timing"},
+        "visibility": {"type": "string"},
+        "locked": {"type": "boolean"},
+        "hidden": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "timeline": {
+      "type": "object",
+      "required": ["snap_ms"],
+      "properties": {
+        "snap_ms": {"type": "integer", "minimum": 0},
+        "duration_ms": {"type": "integer", "minimum": 1},
+        "markers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "ms"],
+            "properties": {
+              "id": {"type": "string"},
+              "label": {"type": "string"},
+              "ms": {"type": "integer", "minimum": -5000},
+              "kind": {"enum": ["snap", "cue", "pause", "read", "rotation", "exchange", "ball", "handoff"]}
+            },
+            "additionalProperties": true
+          }
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "kind", "start_ms"],
+            "properties": {
+              "id": {"type": "string", "minLength": 1},
+              "kind": {"enum": ["ball", "handoff", "exchange", "read", "rotation", "throw", "catch", "contact", "cue"]},
+              "label": {"type": "string"},
+              "start_ms": {"type": "integer", "minimum": -5000},
+              "end_ms": {"type": "integer", "minimum": -4999},
+              "element_id": {"type": "string"},
+              "player_id": {"type": "string"},
+              "target_player_id": {"type": "string"}
+            },
+            "additionalProperties": true
+          }
+        },
+        "narration": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "text", "start_ms", "end_ms"],
+            "properties": {
+              "id": {"type": "string"},
+              "role": {"type": "string"},
+              "text": {"type": "string", "minLength": 1},
+              "start_ms": {"type": "integer", "minimum": -5000},
+              "end_ms": {"type": "integer", "minimum": -4999}
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

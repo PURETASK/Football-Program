@@ -1,0 +1,33 @@
+{
+  "architecture_id":"DATA-ARCH-NFL-001",
+  "version":"0.1.0",
+  "scope":"NFL FIDOS canonical data, history, relationships, and tenancy",
+  "identifier_strategy":{"prefixes":["ORG-","PERSON-","TEAM-","SEASON-","PLAY-","SCHEME-","DRILL-","PRACTICE-","GAME-","FILM-","CLIP-","CLAIM-","METRIC-","GAMEPLAN-","AGT-","RUN-","EVENT-"],"stable_key":"domain prefix plus immutable local identifier","no_reuse":true},
+  "entities":[
+    {"id":"ENTITY-ORG","name":"OrganizationContext","collection":"organization_context","authoritative_for":["organization","team","season","roster","staff"],"versioned":true,"audit_required":true,"tenant_key":"organization_id"},
+    {"id":"ENTITY-PERSON","name":"Person","collection":"people","authoritative_for":["person","role","position"],"versioned":true,"audit_required":true,"tenant_key":"organization_id"},
+    {"id":"ENTITY-ONTOLOGY","name":"OntologyTerm","collection":"ontology_terms","authoritative_for":["canonical football terminology"],"versioned":true,"audit_required":true,"tenant_key":"organization_id"},
+    {"id":"ENTITY-SCHEME","name":"Scheme","collection":"schemes","authoritative_for":["compositional scheme"],"versioned":true,"audit_required":true,"tenant_key":"organization_id"},
+    {"id":"ENTITY-PLAY","name":"Play","collection":"plays","authoritative_for":["canonical play and assignments"],"versioned":true,"audit_required":true,"tenant_key":"organization_id"},
+    {"id":"ENTITY-DRILL","name":"Drill","collection":"drills","authoritative_for":["drill and competency link"],"versioned":true,"audit_required":true,"tenant_key":"organization_id"},
+    {"id":"ENTITY-PRACTICE","name":"PracticePlan","collection":"practices","authoritative_for":["practice periods and load"],"versioned":true,"audit_required":true,"tenant_key":"organization_id"},
+    {"id":"ENTITY-GAME","name":"Game","collection":"games","authoritative_for":["game and situation context"],"versioned":true,"audit_required":true,"tenant_key":"organization_id"},
+    {"id":"ENTITY-FILM","name":"FilmAsset","collection":"film_assets","authoritative_for":["authorized film metadata"],"versioned":true,"audit_required":true,"tenant_key":"organization_id"},
+    {"id":"ENTITY-CLIP","name":"FilmClip","collection":"film_clips","authoritative_for":["bounded film segment"],"versioned":true,"audit_required":true,"tenant_key":"organization_id"},
+    {"id":"ENTITY-OBS","name":"FilmObservation","collection":"film_observations","authoritative_for":["clip-linked film observation"],"versioned":true,"audit_required":true,"tenant_key":"organization_id"},
+    {"id":"ENTITY-SCOUT","name":"ScoutingReport","collection":"scouting_reports","authoritative_for":["contextual opponent intelligence"],"versioned":true,"audit_required":true,"tenant_key":"organization_id"},
+    {"id":"ENTITY-METRIC","name":"MetricObservation","collection":"metric_observations","authoritative_for":["metric observation and lineage"],"versioned":true,"audit_required":true,"tenant_key":"organization_id"},
+    {"id":"ENTITY-GAMEPLAN","name":"GamePlan","collection":"game_plans","authoritative_for":["weekly plan under review or approved"],"versioned":true,"audit_required":true,"tenant_key":"organization_id"},
+    {"id":"ENTITY-PERF","name":"PerformanceRecord","collection":"performance_records","authoritative_for":["non-diagnostic performance support"],"versioned":true,"audit_required":true,"tenant_key":"organization_id"},
+    {"id":"ENTITY-KNOWLEDGE","name":"KnowledgeItem","collection":"knowledge_items","authoritative_for":["provenance-bearing claim"],"versioned":true,"audit_required":true,"tenant_key":"organization_id"},
+    {"id":"ENTITY-AGENT","name":"AgentRun","collection":"agent_runs","authoritative_for":["callable agent execution and handoff"],"versioned":true,"audit_required":true,"tenant_key":"organization_id"},
+    {"id":"ENTITY-DECISION","name":"DecisionRecord","collection":"decisions","authoritative_for":["human decision and approval"],"versioned":true,"audit_required":true,"tenant_key":"organization_id"}
+  ],
+  "relationships":[
+    {"from":"ENTITY-ORG","to":"ENTITY-PERSON","cardinality":"1_to_many","name":"roster_and_staff"},{"from":"ENTITY-ORG","to":"ENTITY-PLAY","cardinality":"1_to_many","name":"team_playbook"},{"from":"ENTITY-SCHEME","to":"ENTITY-PLAY","cardinality":"1_to_many","name":"scheme_compatibility"},{"from":"ENTITY-FILM","to":"ENTITY-CLIP","cardinality":"1_to_many","name":"bounded_clips"},{"from":"ENTITY-CLIP","to":"ENTITY-OBS","cardinality":"1_to_many","name":"observations"},{"from":"ENTITY-OBS","to":"ENTITY-SCOUT","cardinality":"many_to_many","name":"scouting_evidence"},{"from":"ENTITY-PLAY","to":"ENTITY-DRILL","cardinality":"many_to_many","name":"teaching_drills"},{"from":"ENTITY-PRACTICE","to":"ENTITY-DRILL","cardinality":"many_to_many","name":"practice_periods"},{"from":"ENTITY-GAMEPLAN","to":"ENTITY-SCOUT","cardinality":"many_to_many","name":"plan_evidence"},{"from":"ENTITY-GAMEPLAN","to":"ENTITY-METRIC","cardinality":"many_to_many","name":"plan_metrics"},{"from":"ENTITY-KNOWLEDGE","to":"ENTITY-DECISION","cardinality":"many_to_many","name":"review_and_approval"}
+  ],
+  "history_model":{"current_record":"latest revision in canonical_records","historical_record":"append-only revision/audit event","supersession":"new revision references prior record; prior version is retained","deletion":"logical revocation only for canonical records"},
+  "migration_strategy":["version schema and contracts","forward migration with explicit compatibility check","backfill provenance and tenant key before activation","run regression/eval suite","record migration audit event","support rollback to prior schema version"],
+  "security_and_tenancy":["Every tenant-scoped record carries organization_id","Authorization is checked before read/write","Audit events retain actor, reason, revision, and time","Cross-organization reads require explicit approved scope"],
+  "audit_event_fields":["event_id","event_type","collection","record_id","revision","actor","reason","occurred_at"]
+}

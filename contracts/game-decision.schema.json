@@ -1,0 +1,15 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Game Decision",
+  "type":"object",
+  "required":["id","situation_id","options","rule_refs","evidence_refs","human_review_required","status"],
+  "properties":{
+    "id":{"type":"string","pattern":"^DECISION-"},
+    "situation_id":{"type":"string","pattern":"^SITUATION-"},
+    "options":{"type":"array","minItems":1},
+    "rule_refs":{"type":"array","minItems":1},
+    "evidence_refs":{"type":"array"},
+    "human_review_required":{"type":"boolean"},
+    "status":{"enum":["draft","approved","rejected"]}
+  }
+}

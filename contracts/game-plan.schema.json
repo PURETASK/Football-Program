@@ -1,0 +1,7 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Weekly Game Plan",
+  "type":"object",
+  "required":["id","team_context","week_context","identity","assumptions","evidence_refs","offense","defense","special_teams","situational_plans","contingencies","ownership","teaching_outputs"],
+  "properties":{"id":{"type":"string","pattern":"^GAMEPLAN-"},"evidence_refs":{"type":"array","minItems":1},"situational_plans":{"type":"array"},"contingencies":{"type":"array"},"teaching_outputs":{"type":"array","minItems":1}}
+}

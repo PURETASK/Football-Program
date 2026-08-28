@@ -1,0 +1,30 @@
+{
+  "evidence_id": "UX-UI-AUDIT-LOCAL-001",
+  "stage": "STAGE-22",
+  "status": "passed",
+  "scope": "local operator dashboard",
+  "findings": {
+    "functional_surface_exists": true,
+    "responsive_layout_pass": true,
+    "keyboard_skip_navigation": true,
+    "visible_focus_states": true,
+    "reduced_motion_support": true,
+    "semantic_safety_notice": true,
+    "consistent_control_tokens": true,
+    "brand_mark_added": true,
+    "runtime_state_verified": true,
+    "browser_console_errors": 0
+  },
+  "runtime_evidence": {
+    "service": "Operational",
+    "stage": "STAGE-0 · STAGE-0A",
+    "evaluations": "97/97 passed",
+    "production_implementation_allowed": false,
+    "external_state_changed": false
+  },
+  "limitations": [
+    "Local reference-service visual audit only",
+    "Production deployment browser validation remains pending",
+    "Pilot-user usability validation remains pending"
+  ]
+}

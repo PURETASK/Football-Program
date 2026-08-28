@@ -1,0 +1,12 @@
+.release-diff-panel { display: grid; gap: .7rem; margin-top: 1rem; padding: .9rem; border: 1px solid var(--line); border-radius: .75rem; background: linear-gradient(135deg, var(--ink-50), #fff); }
+.release-diff-panel .workbench-pane__header { margin-bottom: 0; }
+.release-diff-summary { display: flex; flex-wrap: wrap; gap: .35rem .8rem; align-items: baseline; }
+.release-diff-summary strong { color: var(--ink-900); font-size: 1.05rem; }
+.release-diff-summary span { color: var(--ink-500); font-size: .72rem; }
+.release-diff-list { display: grid; gap: .35rem; margin: 0; padding: 0; list-style: none; }
+.release-diff { display: grid; grid-template-columns: minmax(150px, .55fr) 1fr; gap: .8rem; padding: .55rem .65rem; border-left: 3px solid var(--line-strong); border-radius: .35rem; background: #fff; font-size: .75rem; }
+.release-diff strong { color: var(--ink-800); overflow-wrap: anywhere; }
+.release-diff span { color: var(--ink-600); overflow-wrap: anywhere; }
+.release-diff--added { border-left-color: #2d9b69; background: rgba(45, 155, 105, .08); }
+.release-diff--removed { border-left-color: #c04e4e; background: rgba(192, 78, 78, .08); }
+.release-diff--changed { border-left-color: #c18428; background: rgba(193, 132, 40, .08); }

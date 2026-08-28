@@ -1,0 +1,22 @@
+{
+  "architecture_id":"SCHEME-ARCH-NFL-001",
+  "version":"0.1.0",
+  "scope":"NFL offensive and defensive compositional scheme architecture",
+  "offense":{
+    "philosophies":["space and conflict","gap and leverage","tempo and sequencing","situational efficiency"],
+    "taxonomies":{"personnel":["10","11","12","21"],"formations":["shotgun","pistol","under_center","empty","condensed"],"motions":["jet","orbit","short","trade","shift"],"run_families":["inside_zone","outside_zone","duo","power","counter","draw","QB_run"],"pass_families":["quick_game","dropback","play_action","screen","RPO","option"],"protections":["man","slide","half_slide","scat","max"],"situations":["normal","third_down","red_zone","short_yardage","two_minute","backed_up"]},
+    "concept_graph":[{"from":"outside_zone","to":"boot","relationship":"constraint"},{"from":"inside_zone","to":"RPO","relationship":"conflict_read"},{"from":"play_action","to":"over_route","relationship":"layered_answer"},{"from":"pressure","to":"screen","relationship":"counter"},{"from":"man_protection","to":"hot_route","relationship":"pressure_answer"}],
+    "fit_criteria":["quarterback decision profile","offensive-line communication and movement profile","skill-player spacing and blocking profile","teaching bandwidth","practice time and installation burden","rule and personnel constraints"],
+    "counter_library":[{"threat":"edge crash","primary":"boot","opponent_counter":"force exchange","counter_counter":"keep or screen","trigger":"edge closes pull path","evidence_required":["front film","practice result"]},{"threat":"pressure","primary":"hot answer","opponent_counter":"drop replacement","counter_counter":"screen or draw","trigger":"pressure declaration","evidence_required":["pressure sample","protection check"]}],
+    "installation_requirements":["concept vocabulary","assignment graph","protection communication","read-key progression","practice period","film correction","situational checks"]
+  },
+  "defense":{
+    "philosophies":["fit first","leverage and disguise","pressure with coverage integrity","situational field control"],
+    "taxonomies":{"personnel":["base","nickel","dime","big"],"fronts":["even","odd","over","under","mint","bear"],"techniques":["shade","one_gap","two_gap","spill","box","wrong_arm"],"coverages":["Cover 0","Cover 1","Cover 2","Cover 3","quarters","match","split_field"],"pressures":["four_man","five_man","six_man","simulated","creeper","stunt"],"checks":["motion","formation","empty","condensed","tempo"],"situations":["normal","third_down","red_zone","goal_line","two_minute","backed_up"]},
+    "concept_graph":[{"from":"even_front","to":"Cover 3","relationship":"base_structure"},{"from":"odd_front","to":"simulated_pressure","relationship":"launch_point_variation"},{"from":"quarters","to":"motion_check","relationship":"pattern_distribution"},{"from":"man_pressure","to":"screen_alert","relationship":"counter"},{"from":"two_gap","to":"spill_fit","relationship":"gap_control"}],
+    "fit_criteria":["front-player technique and gap profile","linebacker key and fit speed","secondary communication and pattern-match ability","rush/coverage disguise capacity","motion and formation check bandwidth","practice communication load"],
+    "counter_library":[{"threat":"formation stress","primary":"coverage check","opponent_counter":"motion and stack","counter_counter":"banjo or lock adjustment","trigger":"route distribution changes","evidence_required":["formation sample","communication grade"]},{"threat":"protection slide","primary":"simulated pressure","opponent_counter":"screen or tempo","counter_counter":"fit replacement and rush alert","trigger":"protection indicator","evidence_required":["pressure film","run-fit film"]}],
+    "installation_requirements":["front/fit taxonomy","coverage rules","pressure family tree","motion checks","disguise/rotation calls","situational alerts","film-based communication grading"]
+  },
+  "shared_controls":["Labels never substitute for personnel, structure, technique, fit, coverage, pressure, checks, and situation.","Every counter retains a trigger, evidence refs, owner, and counter-counter.","Scheme fit remains a recommendation until coach review.","Team terminology may be locked only through approved change control."]
+}

@@ -1,0 +1,3 @@
+[console_scripts]
+nfl-fidos = nfl_fidos.cli:main
+nfl-fidos-server = nfl_fidos.server:main

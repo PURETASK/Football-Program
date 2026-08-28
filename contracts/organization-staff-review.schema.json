@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nfl-fidos.local/contracts/organization-staff-review.schema.json",
+  "title": "NFL FIDOS Organization Staff Review Package",
+  "type": "object",
+  "required": ["id", "organization_id", "team_context", "season", "staff", "evaluations", "status", "human_review_required"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^ORG-STAFF-"},
+    "organization_id": {"type": "string", "pattern": "^ORG-"},
+    "team_context": {"type": "string", "minLength": 1},
+    "season": {"type": "string", "minLength": 1},
+    "staff": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+    "evaluations": {"type": "array", "items": {"type": "object"}},
+    "status": {"enum": ["under_review", "validated", "rejected"]},
+    "human_review_required": {"type": "boolean"},
+    "approved_by": {"type": ["string", "null"]},
+    "owner_decision_ref": {"type": ["string", "null"]}
+  },
+  "additionalProperties": true
+}

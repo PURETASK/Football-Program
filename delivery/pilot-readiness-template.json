@@ -1,0 +1,15 @@
+{
+  "organization_id":"ORG-REPLACE",
+  "wave_id":"WAVE-001",
+  "pilot_users":[
+    {"id":"OWNER-REPLACE","role":"program_owner"},
+    {"id":"COACH-GROUP-REPLACE","role":"coach_staff"},
+    {"id":"ANALYST-REPLACE","role":"analyst"},
+    {"id":"PLAYER-GROUP-REPLACE","role":"player"}
+  ],
+  "acceptance_evidence":["TEST-REPLACE","AUDIT-REPLACE"],
+  "feature_flags":{"production_recommendations":false},
+  "rollback_tested":false,
+  "owner_approval":null,
+  "status":"draft"
+}

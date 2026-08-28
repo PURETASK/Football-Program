@@ -1,0 +1,16 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Decision Record",
+  "type":"object",
+  "required":["id","title","decision","owner","rationale","alternatives","affected_ids","status"],
+  "properties":{
+    "id":{"type":"string","pattern":"^DEC-"},
+    "title":{"type":"string"},
+    "decision":{"type":"string"},
+    "owner":{"type":"string"},
+    "rationale":{"type":"string"},
+    "alternatives":{"type":"array"},
+    "affected_ids":{"type":"array"},
+    "status":{"enum":["proposed","approved","superseded"]}
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Special Teams Plan",
+  "type":"object",
+  "required":["id","unit","phase","operation","roles","situations","constraints","source","status"],
+  "properties":{
+    "id":{"type":"string","pattern":"^ST-"},
+    "unit":{"enum":["kickoff","kick_return","punt","punt_return","field_goal","extra_point"]},
+    "phase":{"type":"string"},
+    "operation":{"type":"string"},
+    "roles":{"type":"array","minItems":1},
+    "situations":{"type":"array","minItems":1},
+    "constraints":{"type":"array"},
+    "source":{"type":"object","required":["kind","ref"]},
+    "status":{"enum":["draft","validated","rejected"]}
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nfl-fidos.local/contracts/organization-performance-package.schema.json",
+  "title": "NFL FIDOS Organization Performance Review Package",
+  "type": "object",
+  "required": ["id", "organization_id", "season", "source_manifest", "observations", "readiness_summaries", "status", "human_review_required"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^ORG-PERFORMANCE-"},
+    "organization_id": {"type": "string", "pattern": "^ORG-"},
+    "season": {"type": "string", "minLength": 1},
+    "source_manifest": {"type": "object", "required": ["kind", "ref", "captured_at"]},
+    "observations": {"type": "array", "items": {"type": "object"}},
+    "readiness_summaries": {"type": "array", "items": {"type": "object"}},
+    "status": {"enum": ["under_review", "validated", "rejected"]},
+    "human_review_required": {"type": "boolean"},
+    "approved_by": {"type": ["string", "null"]},
+    "owner_decision_ref": {"type": ["string", "null"]}
+  },
+  "additionalProperties": true
+}

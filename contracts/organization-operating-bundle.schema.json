@@ -1,0 +1,18 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Organization Operating Bundle",
+  "type":"object",
+  "required":["id","organization_id","season","component_refs","required_components","status","production_implementation_allowed","activation_performed","external_state_changed"],
+  "properties":{
+    "id":{"type":"string","pattern":"^ORG-BUNDLE-"},
+    "organization_id":{"type":"string","pattern":"^ORG-"},
+    "season":{"type":"string","minLength":1},
+    "component_refs":{"type":"object","minProperties":13},
+    "required_components":{"type":"array","minItems":13},
+    "status":{"enum":["blocked","ready_for_owner_review","approved_for_non_production","rejected"]},
+    "production_implementation_allowed":{"const":false},
+    "activation_performed":{"const":false},
+    "external_state_changed":{"const":false}
+  },
+  "additionalProperties":true
+}

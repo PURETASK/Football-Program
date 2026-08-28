@@ -1,0 +1,14 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Scheme Compatibility Result",
+  "type":"object",
+  "required":["id","play_id","scheme_id","compatible","issues","review_required"],
+  "properties":{
+    "id":{"type":"string","pattern":"^COMPAT-"},
+    "play_id":{"type":"string","pattern":"^PLAY-"},
+    "scheme_id":{"type":"string","pattern":"^SCHEME-"},
+    "compatible":{"type":"boolean"},
+    "issues":{"type":"array"},
+    "review_required":{"type":"boolean"}
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Pilot Organization Selection",
+  "type":"object",
+  "required":["id","organization_id","wave_id","pilot_users","pilot_roles","selected_by","decision_ref","status","live_pilot","production_implementation_allowed"],
+  "properties":{
+    "id":{"type":"string","pattern":"^PILOT-SEL-"},
+    "organization_id":{"type":"string","pattern":"^ORG-"},
+    "wave_id":{"type":"string","pattern":"^WAVE-"},
+    "pilot_users":{"type":"array","minItems":1},
+    "pilot_roles":{"type":"array","minItems":4},
+    "selected_by":{"type":"string","minLength":1},
+    "decision_ref":{"type":"string","pattern":"^DEC-"},
+    "status":{"const":"selected"},
+    "live_pilot":{"const":false},
+    "production_implementation_allowed":{"const":false},
+    "external_state_changed":{"const":false}
+  },
+  "additionalProperties":true
+}

@@ -1,0 +1,17 @@
+{
+  "document_id": "NFL-FIDOS-SECURITY-THREAT-MODEL-001",
+  "version": "1.0",
+  "scope": "NFL FIDOS local and validation foundations",
+  "production_implementation_allowed": false,
+  "owner_approval_required": true,
+  "threats": [
+    {"id":"TENANT-ISOLATION","risk":"A record from one organization is read or written through another organization scope.","controls":["TenantRepository deny-by-default visibility","organization_id write invariant","cross-organization API tests"],"evidence":["tests/test_tenant_repository.py","tests/test_play_design_api.py"]},
+    {"id":"AUTH-BYPASS","risk":"An expired, forged, malformed, or under-permissioned token reaches a protected route.","controls":["HMAC token verification","role/action authorization","Bearer requirement","HTTP rate limiting"],"evidence":["src/nfl_fidos/auth.py","src/nfl_fidos/http_server.py"]},
+    {"id":"EXPORT-TAMPERING","risk":"A call sheet, wristband, or diagram is modified after generation and presented as canonical.","controls":["SHA-256 content hash","HMAC-SHA256 artifact signature","immutable release checksums"],"evidence":["src/nfl_fidos/play_design_exports.py","src/nfl_fidos/security_controls.py"]},
+    {"id":"OFFLINE-DATA","risk":"A lost tablet exposes queued play design or teaching data.","controls":["AES-GCM IndexedDB queue and draft encryption","no credentials in offline records","explicit compatibility warning when Web Crypto is unavailable"],"evidence":["ui/play-designer-sync.js"]},
+    {"id":"AUDIT-LEAK","risk":"Bearer tokens, credentials, or secret material are written to logs or observability sinks.","controls":["recursive sensitive-field redaction","value-free secret-manager evidence","structured observability contract"],"evidence":["src/nfl_fidos/security_controls.py","src/nfl_fidos/observability.py"]},
+    {"id":"AVAILABILITY","risk":"Unbounded body size or repeated requests exhaust the local service.","controls":["2 MB JSON body ceiling","sliding-window per-client/path limiter","bounded export and event sinks","backup and recovery rehearsal"],"evidence":["src/nfl_fidos/http_server.py","src/nfl_fidos/observability_sink.py","control/incident-rehearsal-evidence.json"]}
+  ],
+  "required_verifications":["tenant-isolation tests","authorization matrix tests","signed export verification","offline encrypted-storage browser test","redaction test","rate-limit test","backup restore test","moderated pilot security review"],
+  "limitations":["Production WAF/KMS/identity-provider registration and live monitoring activation remain human-controlled."]
+}

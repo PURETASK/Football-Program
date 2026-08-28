@@ -1,0 +1,16 @@
+{
+  "evidence_id":"INCIDENT-REHEARSAL-LOCAL-001",
+  "stage":"STAGE-23",
+  "environment":"local_temporary_workspace",
+  "executed_at":"2026-08-23T00:00:00Z",
+  "status":"passed",
+  "simulated_failure_recorded":true,
+  "recovery_recorded":true,
+  "events_exported":2,
+  "export_failures":0,
+  "rollback_contract_valid":true,
+  "events_are_temporary":true,
+  "production_implementation_allowed":false,
+  "external_state_changed":false,
+  "limitations":["This is a local synthetic incident rehearsal","Production stakeholder rehearsal, provider monitoring registration, and live incident coordination remain pending"]
+}

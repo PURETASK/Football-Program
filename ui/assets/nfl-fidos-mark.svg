@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-labelledby="title desc">
+  <title id="title">NFL FIDOS mark</title>
+  <desc id="desc">A football-shaped intelligence and development mark.</desc>
+  <path d="M24 3C13 3 5 12 5 24s8 21 19 21 19-9 19-21S35 3 24 3Z" fill="#dbeafe"/>
+  <path d="M16 14c5 2 11 2 16 0M14 21c6 2 14 2 20 0M16 29c5 2 11 2 16 0M20 36c3 1 5 1 8 0" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+  <path d="M24 9v30" stroke="#10213d" stroke-width="2" stroke-linecap="round"/>
+</svg>

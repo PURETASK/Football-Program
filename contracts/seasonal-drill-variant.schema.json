@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nfl-fidos.local/contracts/seasonal-drill-variant.schema.json",
+  "title": "NFL FIDOS Seasonal Position Drill Variant",
+  "type": "object",
+  "required": ["variant_id", "base_drill_id", "position", "season", "role_context", "adaptation"],
+  "properties": {
+    "variant_id": {"type": "string", "pattern": "^VARIANT-DRILL-"},
+    "base_drill_id": {"type": "string", "pattern": "^DRILL-"},
+    "position": {"type": "string", "minLength": 1},
+    "season": {"enum": ["offseason", "preseason", "regular_season", "postseason"]},
+    "role_context": {"type": "string", "minLength": 1},
+    "adaptation": {
+      "type": "object",
+      "required": ["objective", "load_change", "safety_controls", "evaluation_focus"],
+      "properties": {
+        "objective": {"type": "string", "minLength": 1},
+        "load_change": {"type": "string", "minLength": 1},
+        "safety_controls": {"type": "array", "minItems": 1},
+        "evaluation_focus": {"type": "array", "minItems": 1}
+      }
+    },
+    "overrides": {"type": "object"}
+  },
+  "additionalProperties": true
+}

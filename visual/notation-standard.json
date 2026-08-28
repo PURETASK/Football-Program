@@ -1,0 +1,9 @@
+{
+  "standard_id":"VISUAL-NFL-FIDOS-001",
+  "version":"0.1.0",
+  "coordinate_system":{"origin":"offense_left_hash","x_axis":"line_of_scrimmage_to_end_zone","y_axis":"sideline_to_sideline","field_length_yards":120,"field_width_yards":53.333},
+  "symbols":{"player":"circle_with_role_label","ball":"filled_football","route":"solid_arrow","block":"solid_bar","coverage":"dashed_arc","pressure":"red_dashed_arrow","read":"numbered_marker","check":"diamond_marker"},
+  "views":["coach","quarterback","position","individual_assignment","print","tablet","mobile"],
+  "accessibility":["role labels do not rely on color alone","all motion and reads have text equivalents","focus order follows snap-to-read progression","contrast and line-style differences remain visible in grayscale"],
+  "interaction_contracts":["select player to isolate assignment","select read to advance progression","toggle offense/defense overlay","apply controlled what-if adjustment","reset to canonical version"]
+}

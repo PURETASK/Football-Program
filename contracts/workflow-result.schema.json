@@ -1,0 +1,14 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Workflow Result",
+  "type":"object",
+  "required":["id","workflow_id","status","inputs","outputs","review_required"],
+  "properties":{
+    "id":{"type":"string","pattern":"^RUN-"},
+    "workflow_id":{"type":"string","pattern":"^WF-"},
+    "status":{"enum":["draft","ready_for_review","blocked","rejected"]},
+    "inputs":{"type":"array"},
+    "outputs":{"type":"array"},
+    "review_required":{"type":"boolean"}
+  }
+}

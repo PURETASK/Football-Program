@@ -1,0 +1,15 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Read-only Resource Integration Request",
+  "type":"object",
+  "required":["organization_id","integration_id","provider","practice_id","schedule","availability"],
+  "properties":{
+    "organization_id":{"type":"string","pattern":"^ORG-"},
+    "integration_id":{"type":"string","pattern":"^RESOURCE-INTEGRATION-"},
+    "practice_id":{"type":"string","pattern":"^PRACTICE-"},
+    "provider":{"type":"object","required":["kind","mode","source_ref"],"properties":{"kind":{"enum":["calendar","facility_system"]},"mode":{"const":"read_only"},"source_ref":{"type":"string"}}},
+    "schedule":{"$ref":"practice-resource-schedule.schema.json"},
+    "availability":{"type":"array","maxItems":500}
+  },
+  "additionalProperties":true
+}

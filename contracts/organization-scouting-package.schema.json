@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nfl-fidos.local/contracts/organization-scouting-package.schema.json",
+  "title": "NFL FIDOS Organization Scouting Package",
+  "type": "object",
+  "required": ["id", "organization_id", "season", "opponent", "source_refs", "profile", "reports", "matchups", "evolutions", "status", "human_review_required"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^ORG-SCOUT-"},
+    "organization_id": {"type": "string", "pattern": "^ORG-"},
+    "season": {"type": "string", "minLength": 1},
+    "opponent": {"type": "string", "minLength": 1},
+    "source_refs": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "profile": {"type": ["object", "null"]},
+    "reports": {"type": "array", "items": {"type": "object"}},
+    "matchups": {"type": "array", "items": {"type": "object"}},
+    "evolutions": {"type": "array", "items": {"type": "object"}},
+    "status": {"enum": ["under_review", "validated", "rejected"]},
+    "human_review_required": {"type": "boolean"},
+    "approved_by": {"type": ["string", "null"]},
+    "owner_decision_ref": {"type": ["string", "null"]}
+  },
+  "additionalProperties": true
+}

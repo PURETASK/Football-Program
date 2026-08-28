@@ -1,0 +1,7 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Data Architecture",
+  "type":"object",
+  "required":["architecture_id","identifier_strategy","entities","relationships","history_model","migration_strategy","security_and_tenancy","audit_event_fields"],
+  "properties":{"architecture_id":{"type":"string","pattern":"^DATA-ARCH-"},"entities":{"type":"array","minItems":1},"relationships":{"type":"array"},"audit_event_fields":{"type":"array","minItems":8}}
+}

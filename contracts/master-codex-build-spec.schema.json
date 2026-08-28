@@ -1,0 +1,7 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Master Codex Build Specification",
+  "type":"object",
+  "required":["spec_id","purpose","scope","locked_principles","upstream_artifacts","stage_sequence","domain_contracts","workflow_contracts","permission_rules","quality_commands","coding_standards","change_control","acceptance_criteria","allowed_changes","prohibited_changes","traceability_requirements"],
+  "properties":{"spec_id":{"type":"string","pattern":"^MASTER-CODEX-BUILD-SPEC-"},"stage_sequence":{"type":"array","minItems":26},"acceptance_criteria":{"type":"array","minItems":1}}
+}

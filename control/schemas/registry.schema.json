@@ -1,0 +1,20 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Stage 0A Registry",
+  "type":"object",
+  "required":["registry_id","version","status","owner","source_of_truth","capabilities","agents","objects","workflows","nuance_classes","risks","questions"],
+  "properties":{
+    "registry_id":{"type":"string","pattern":"^REG-"},
+    "version":{"type":"string"},
+    "status":{"type":"string"},
+    "owner":{"type":"string"},
+    "source_of_truth":{"type":"string"},
+    "capabilities":{"type":"array"},
+    "agents":{"type":"array"},
+    "objects":{"type":"array"},
+    "workflows":{"type":"array"},
+    "nuance_classes":{"type":"array"},
+    "risks":{"type":"array"},
+    "questions":{"type":"array"}
+  }
+}

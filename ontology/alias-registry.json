@@ -1,0 +1,20 @@
+{
+  "registry_id": "NFL-ALIAS-001",
+  "version": "0.1.0",
+  "scope": "NFL",
+  "status": "foundation",
+  "resolution_policy": "A team alias may point to one canonical term; an unresolved or conflicting alias requires human review.",
+  "entries": [
+    {"alias":"gun","canonical_term_id":"TERM-FORMATION-SHOTGUN","scope":"global","status":"locked"},
+    {"alias":"verts","canonical_term_id":"TERM-CONCEPT-FOUR-VERTICALS","scope":"global","status":"locked"},
+    {"alias":"3-deep","canonical_term_id":"TERM-COVERAGE-COVER-3","scope":"global","status":"locked"},
+    {"alias":"IZ","canonical_term_id":"TERM-RUN-ZONE","scope":"global","status":"locked"},
+    {"alias":"OZ","canonical_term_id":"TERM-RUN-OUTSIDE-ZONE","scope":"global","status":"locked"},
+    {"alias":"man free","canonical_term_id":"TERM-COVERAGE-COVER-1","scope":"global","status":"locked"},
+    {"alias":"Cover 4","canonical_term_id":"TERM-COVERAGE-QUARTERS","scope":"global","status":"locked"},
+    {"alias":"sim pressure","canonical_term_id":"TERM-PRESSURE-SIMULATED","scope":"global","status":"locked"},
+    {"alias":"zero pressure","canonical_term_id":"TERM-PRESSURE-ALL-OUT","scope":"global","status":"locked"},
+    {"alias":"FG","canonical_term_id":"TERM-SPECIAL-FIELD-GOAL","scope":"global","status":"locked"},
+    {"alias":"two minute","canonical_term_id":"TERM-SITUATION-TWO-MINUTE","scope":"global","status":"locked"}
+  ]
+}

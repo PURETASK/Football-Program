@@ -1,0 +1,12 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Practice Resource Schedule",
+  "type":"object",
+  "required":["schedule_id","periods"],
+  "properties":{
+    "schedule_id":{"type":"string","pattern":"^PRACTICE-SCHEDULE-"},
+    "periods":{"type":"array","minItems":1,"items":{"type":"object","required":["period_id","start","end","resource_ids"]}},
+    "timezone":{"type":"string"}
+  },
+  "additionalProperties":true
+}

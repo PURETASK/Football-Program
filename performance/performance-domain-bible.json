@@ -1,0 +1,16 @@
+{
+  "bible_id":"BIBLE-PERFORMANCE-NFL-001",
+  "version":"0.1.0",
+  "scope":"NFL athlete performance support; not medical diagnosis or treatment",
+  "domains":["strength","power","acceleration","max_velocity","change_of_direction","conditioning","mobility","workload","recovery","sleep","hydration","nutrition_support"],
+  "position_demand_profiles":[
+    {"position":"QB","demands":["throwing exposure","lower-body power","movement under pressure","decision fatigue"],"measures":["throwing volume","high-intensity movement","quality score","practice exposure"],"cautions":["shoulder or arm health signals escalate to qualified staff"]},
+    {"position":"RB","demands":["acceleration","change of direction","contact exposure","ball security under fatigue"],"measures":["high-speed efforts","cut count","contact reps","quality score"],"cautions":["contact and lower-limb signals require qualified staff review"]},
+    {"position":"WR_TE","demands":["max velocity","route change of direction","release/contact exposure","jump and catch power"],"measures":["sprint exposures","route reps","release reps","quality score"],"cautions":["soft-tissue or contact signals escalate; system does not diagnose"]},
+    {"position":"OL","demands":["force production","repeat-effort power","pass-set exposure","contact volume"],"measures":["sets","contact reps","pass sets","quality score"],"cautions":["back, neck, or limb signals require qualified staff review"]},
+    {"position":"DL_LB","demands":["explosive get-off","acceleration","contact and pursuit","repeat-effort conditioning"],"measures":["get-offs","rush reps","pursuit reps","contact reps"],"cautions":["contact and fatigue signals require qualified staff review"]},
+    {"position":"DB","demands":["max velocity","change of direction","backpedal/transition","repeated coverage efforts"],"measures":["sprint exposures","transition reps","coverage reps","quality score"],"cautions":["soft-tissue signals escalate; no treatment advice"]},
+    {"position":"SPECIALIST","demands":["repeatable operation","power and mobility","timing under pressure","special-teams exposure"],"measures":["operation reps","power outputs","mobility observations","quality score"],"cautions":["health-related issues remain with qualified staff"]}
+  ],
+  "support_boundaries":["No diagnosis, injury determination, treatment, medication, or return-to-play decision", "Qualified performance and medical staff own health-related decisions", "Hydration and nutrition content is general support and defers individualized plans to qualified professionals", "Every recommendation retains source, season context, load rationale, and reviewer", "Health signals produce escalation rather than automated intervention"]
+}

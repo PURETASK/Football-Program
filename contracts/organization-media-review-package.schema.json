@@ -1,0 +1,22 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://nfl-fidos.local/contracts/organization-media-review-package.schema.json",
+  "title":"NFL FIDOS Organization Media Review Package",
+  "type":"object",
+  "required":["id","organization_id","season","assets","clips","playlists","qa","status","human_review_required","production_implementation_allowed"],
+  "properties":{
+    "id":{"type":"string","pattern":"^ORG-MEDIA-REVIEW-"},
+    "organization_id":{"type":"string","pattern":"^ORG-"},
+    "season":{"type":"string","minLength":1},
+    "assets":{"type":"array","items":{"type":"object"}},
+    "clips":{"type":"array","items":{"type":"object"}},
+    "playlists":{"type":"array","items":{"type":"object"}},
+    "observations":{"type":"array","items":{"type":"object"}},
+    "qa":{"type":"object"},
+    "status":{"enum":["under_review","validated","rejected"]},
+    "human_review_required":{"type":"boolean"},
+    "production_implementation_allowed":{"const":false},
+    "stage_advance_authorized":{"const":false}
+  },
+  "additionalProperties":true
+}

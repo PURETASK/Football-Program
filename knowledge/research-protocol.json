@@ -1,0 +1,10 @@
+{
+  "protocol_id":"RESEARCH-PROTOCOL-NFL-001",
+  "version":"0.1.0",
+  "scope":"NFL football knowledge acquisition, normalization, citation, and controlled update",
+  "steps":["define_question","identify_authoritative_or_team_locked_sources","ingest_source_metadata","extract_claims","normalize_terms","attach_context_and_sample","classify_claim","check_freshness","detect_conflicts","human_review","publish_or_reject"],
+  "source_priority":["tier_1_authoritative","tier_2_team_locked","tier_3_primary_observation","tier_4_analytical_research","tier_5_secondary_commentary"],
+  "required_provenance":["source_id","source_ref","captured_at","effective_date_or_period","citation_location","extractor"],
+  "conflict_policy":["Prefer authoritative current sources for rules and facts.","Prefer team-locked documents for team terminology and team rules within their declared scope.","Do not merge contradictory claims into one fact; retain both claims and their contexts.","Same-tier unresolved conflicts require human review.","Hypotheses and inferred claims cannot become canonical without review and supporting evidence."],
+  "freshness_policy":["Rule claims require effective date and retrieval timestamp.","Team documents require season and version context.","Historical claims remain labeled historical and are not silently presented as current."]
+}

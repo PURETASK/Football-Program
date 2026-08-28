@@ -1,0 +1,14 @@
+{
+  "id":"TERM-BUNDLE-ORG-TEAM-SEASON",
+  "organization_id":"ORG-REPLACE",
+  "team_id":"TEAM-REPLACE",
+  "season":"2026",
+  "version":"TERM-0.1.0",
+  "owner":"PROGRAM-OWNER-REPLACE",
+  "source_refs":["APPROVED-TEAM-SOURCE-REPLACE"],
+  "approval_ref":"APPROVAL-REPLACE",
+  "aliases":[
+    {"alias":"team phrase","term_id":"TERM-FORMATION-SHOTGUN","source_refs":["APPROVED-TEAM-SOURCE-REPLACE"],"approval_ref":"APPROVAL-REPLACE","status":"review_required"}
+  ],
+  "status":"draft"
+}

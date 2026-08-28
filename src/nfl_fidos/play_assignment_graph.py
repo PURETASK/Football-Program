@@ -1,0 +1,219 @@
+"""Structured football-assignment graph primitives for professional play designs.
+
+Diagram geometry answers where an object moves.  The assignment graph answers
+why it moves, what it keys, what it depends on, and which player or assignment
+it exchanges with.  Keeping those relationships explicit lets validation,
+animation, teaching views, and exports use the same football intent.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+
+GRAPH_FIELDS = {
+    "objective",
+    "technique",
+    "landmark",
+    "depth_yards",
+    "leverage",
+    "gap",
+    "fit_gap",
+    "zone",
+    "read_key",
+    "read_prompt",
+    "target_player_id",
+    "target_element_id",
+    "depends_on",
+    "exchange_with",
+    "exclusive_assignment",
+}
+
+LEVERAGE_VALUES = {"inside", "outside", "head_up", "top_down", "trail", "stack", "free"}
+
+
+def _issue(code: str, message: str, path: str, severity: str = "error", *, suggestion: str | None = None) -> dict[str, Any]:
+    issue: dict[str, Any] = {
+        "code": code,
+        "message": message,
+        "explanation": message,
+        "path": path,
+        "severity": severity,
+        "overrideable": severity != "error",
+    }
+    if suggestion:
+        issue["suggestion"] = suggestion
+    return issue
+
+
+def _timing(element: dict[str, Any]) -> tuple[int | None, int | None]:
+    timing = element.get("timing") if isinstance(element.get("timing"), dict) else {}
+    start = timing.get("start_ms", element.get("start_ms"))
+    end = timing.get("end_ms", element.get("end_ms"))
+    return (start if isinstance(start, int) and not isinstance(start, bool) else None, end if isinstance(end, int) and not isinstance(end, bool) else None)
+
+
+def _graph_enabled(design: dict[str, Any], elements: list[dict[str, Any]]) -> bool:
+    return bool(design.get("assignment_model_version")) or any(any(field in element for field in GRAPH_FIELDS) for element in elements)
+
+
+def validate_assignment_graph(design: dict[str, Any]) -> list[dict[str, Any]]:
+    """Validate references, dependencies, timing, and exclusive responsibilities."""
+    raw_elements = design.get("elements")
+    if not isinstance(raw_elements, list):
+        return []
+    elements = [element for element in raw_elements if isinstance(element, dict)]
+    if not _graph_enabled(design, elements):
+        return []
+
+    issues: list[dict[str, Any]] = []
+    players = design.get("players") if isinstance(design.get("players"), list) else []
+    player_ids = {player.get("id") for player in players if isinstance(player, dict) and isinstance(player.get("id"), str)}
+    element_by_id = {element.get("id"): element for element in elements if isinstance(element.get("id"), str) and element.get("id")}
+
+    for index, element in enumerate(elements):
+        path = f"elements[{index}]"
+        element_id = element.get("id")
+        if not isinstance(element_id, str) or not element_id:
+            issues.append(_issue("ASSIGNMENT-ID", "Structured assignments require a stable element id", f"{path}.id", suggestion="Assign a stable organization-scoped ID before linking this assignment."))
+            continue
+        target_player = element.get("target_player_id")
+        if target_player is not None and target_player not in player_ids:
+            issues.append(_issue("ASSIGNMENT-TARGET-PLAYER", "Assignment target_player_id does not reference a player in this design", f"{path}.target_player_id", suggestion="Choose one of the current offensive or defensive players, or clear the target."))
+        target_element = element.get("target_element_id")
+        if target_element is not None and target_element not in element_by_id:
+            issues.append(_issue("ASSIGNMENT-TARGET-ELEMENT", "Assignment target_element_id does not reference another assignment", f"{path}.target_element_id", suggestion="Relink the read or progression to an existing assignment."))
+        if target_element == element_id:
+            issues.append(_issue("ASSIGNMENT-SELF-TARGET", "An assignment cannot target itself", f"{path}.target_element_id"))
+
+        dependencies = element.get("depends_on", [])
+        if dependencies is not None and not isinstance(dependencies, list):
+            issues.append(_issue("ASSIGNMENT-DEPENDENCY-SHAPE", "depends_on must be a list of assignment IDs", f"{path}.depends_on"))
+            dependencies = []
+        seen_dependencies: set[str] = set()
+        for dependency_index, dependency_id in enumerate(dependencies):
+            dependency_path = f"{path}.depends_on[{dependency_index}]"
+            if not isinstance(dependency_id, str) or not dependency_id:
+                issues.append(_issue("ASSIGNMENT-DEPENDENCY-ID", "Dependency references must be non-empty assignment IDs", dependency_path))
+                continue
+            if dependency_id == element_id:
+                issues.append(_issue("ASSIGNMENT-SELF-DEPENDENCY", "An assignment cannot depend on itself", dependency_path))
+            elif dependency_id not in element_by_id:
+                issues.append(_issue("ASSIGNMENT-DEPENDENCY-REF", "Dependency does not reference an assignment in this design", dependency_path, suggestion="Choose an existing assignment or remove the stale dependency."))
+            if dependency_id in seen_dependencies:
+                issues.append(_issue("ASSIGNMENT-DUPLICATE-DEPENDENCY", "The same dependency is listed more than once", dependency_path, "warning"))
+            seen_dependencies.add(dependency_id)
+
+        exchange_id = element.get("exchange_with")
+        if exchange_id is not None:
+            if exchange_id == element_id:
+                issues.append(_issue("ASSIGNMENT-SELF-EXCHANGE", "An assignment cannot exchange with itself", f"{path}.exchange_with"))
+            elif exchange_id not in element_by_id:
+                issues.append(_issue("ASSIGNMENT-EXCHANGE-REF", "Exchange target does not reference an assignment in this design", f"{path}.exchange_with", suggestion="Link the paired block, rush, stunt, fit, motion, or read assignment."))
+            elif element_by_id[exchange_id].get("exchange_with") not in {None, element_id}:
+                issues.append(_issue("ASSIGNMENT-EXCHANGE-CONFLICT", "Exchange target is already paired with a different assignment", f"{path}.exchange_with", "warning", suggestion="Make the exchange reciprocal or choose a different partner."))
+
+        leverage = element.get("leverage")
+        if leverage is not None and leverage not in LEVERAGE_VALUES:
+            issues.append(_issue("ASSIGNMENT-LEVERAGE", "Leverage must use a supported normalized value", f"{path}.leverage", suggestion=f"Use one of: {', '.join(sorted(LEVERAGE_VALUES))}."))
+        depth = element.get("depth_yards")
+        if depth is not None and (isinstance(depth, bool) or not isinstance(depth, (int, float)) or depth < 0 or depth > 60):
+            issues.append(_issue("ASSIGNMENT-DEPTH", "depth_yards must be a number from 0 through 60", f"{path}.depth_yards"))
+
+    adjacency: dict[str, list[str]] = {}
+    for element_id, element in element_by_id.items():
+        adjacency[element_id] = [value for value in element.get("depends_on", []) if isinstance(value, str) and value in element_by_id]
+    visiting: set[str] = set()
+    visited: set[str] = set()
+    cycle_paths: set[tuple[str, ...]] = set()
+
+    def visit(node: str, chain: list[str]) -> None:
+        if node in visiting:
+            start = chain.index(node) if node in chain else 0
+            cycle_paths.add(tuple(chain[start:] + [node]))
+            return
+        if node in visited:
+            return
+        visiting.add(node)
+        for dependency in adjacency.get(node, []):
+            visit(dependency, [*chain, node])
+        visiting.remove(node)
+        visited.add(node)
+
+    for element_id in adjacency:
+        visit(element_id, [])
+    for cycle in sorted(cycle_paths):
+        issues.append(_issue("ASSIGNMENT-DEPENDENCY-CYCLE", f"Assignment dependency cycle detected: {' -> '.join(cycle)}", "elements", suggestion="Remove or redirect one dependency so the teaching progression has a clear order."))
+
+    exclusives: dict[tuple[str, str], list[str]] = {}
+    player_windows: dict[str, list[tuple[str, int, int]]] = {}
+    for element_id, element in element_by_id.items():
+        if element.get("exclusive_assignment") is not True:
+            continue
+        target = element.get("target_player_id") or element.get("target_element_id") or element.get("fit_gap") or element.get("gap") or element.get("zone") or element.get("landmark")
+        phase = str(element.get("phase") or element.get("kind") or "assignment")
+        if target:
+            exclusives.setdefault((phase, str(target)), []).append(element_id)
+        player_id = element.get("player_id")
+        start, end = _timing(element)
+        if isinstance(player_id, str) and start is not None and end is not None:
+            player_windows.setdefault(player_id, []).append((element_id, start, end))
+    for (phase, target), ids in sorted(exclusives.items()):
+        if len(ids) > 1:
+            issues.append(_issue("ASSIGNMENT-EXCLUSIVE-CONFLICT", f"Exclusive {phase} responsibility {target} is assigned to multiple elements: {', '.join(ids)}", "elements", suggestion="Change the target, phase, or exclusivity rule for one assignment."))
+    for player_id, windows in player_windows.items():
+        for left_index, (left_id, left_start, left_end) in enumerate(windows):
+            for right_id, right_start, right_end in windows[left_index + 1:]:
+                if max(left_start, right_start) < min(left_end, right_end):
+                    issues.append(_issue("ASSIGNMENT-PLAYER-OVERLAP", f"Player {player_id} has overlapping exclusive assignments {left_id} and {right_id}", "elements", suggestion="Separate their timing windows or mark the compatible responsibility as non-exclusive."))
+
+    for element_id, element in element_by_id.items():
+        start, _ = _timing(element)
+        if start is None:
+            continue
+        for dependency_id in adjacency.get(element_id, []):
+            _, dependency_end = _timing(element_by_id[dependency_id])
+            if dependency_end is not None and start < dependency_end:
+                issues.append(_issue("ASSIGNMENT-DEPENDENCY-TIMING", f"{element_id} begins before prerequisite {dependency_id} finishes", f"elements[{elements.index(element)}].depends_on", "warning", suggestion="Move the dependent timing window later or clarify that the actions intentionally overlap."))
+    return issues
+
+
+def build_assignment_graph(design: dict[str, Any]) -> dict[str, Any]:
+    """Build a renderer-safe graph summary from structured play elements."""
+    raw_elements = design.get("elements") if isinstance(design.get("elements"), list) else []
+    elements = [element for element in raw_elements if isinstance(element, dict) and isinstance(element.get("id"), str) and element.get("id")]
+    nodes: list[dict[str, Any]] = []
+    edges: list[dict[str, Any]] = []
+    for element in elements:
+        start, end = _timing(element)
+        nodes.append({
+            "id": element["id"],
+            "kind": element.get("kind"),
+            "label": element.get("type") or element.get("assignment") or element.get("kind"),
+            "player_id": element.get("player_id"),
+            "objective": element.get("objective"),
+            "start_ms": start,
+            "end_ms": end,
+        })
+        for dependency_id in element.get("depends_on", []) if isinstance(element.get("depends_on"), list) else []:
+            if isinstance(dependency_id, str):
+                edges.append({"source": dependency_id, "target": element["id"], "relation": "precedes"})
+        if isinstance(element.get("exchange_with"), str):
+            edges.append({"source": element["id"], "target": element["exchange_with"], "relation": "exchange"})
+        if isinstance(element.get("target_element_id"), str):
+            edges.append({"source": element["id"], "target": element["target_element_id"], "relation": "targets_assignment"})
+        if isinstance(element.get("target_player_id"), str):
+            edges.append({"source": element["id"], "target": element["target_player_id"], "relation": "targets_player"})
+    findings = validate_assignment_graph(design)
+    return {
+        "version": str(design.get("assignment_model_version") or "1.0"),
+        "nodes": nodes,
+        "edges": edges,
+        "findings": findings,
+        "summary": {
+            "node_count": len(nodes),
+            "edge_count": len(edges),
+            "blocking_count": sum(1 for issue in findings if issue.get("severity", "error") == "error"),
+            "warning_count": sum(1 for issue in findings if issue.get("severity") == "warning"),
+        },
+    }

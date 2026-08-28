@@ -1,0 +1,17 @@
+{
+  "deployment_id":"DEPLOY-NFL-FIDOS-001",
+  "version":"0.1.0",
+  "status":"design_only",
+  "scope":"NFL only",
+  "production_implementation_allowed":false,
+  "services":[
+    {"id":"SERVICE-API","name":"nfl-fidos-api","image":"nfl-fidos:0.1.0","command":["nfl-fidos-server"],"port":8080,"health_path":"/health","replicas":1},
+    {"id":"SERVICE-MEDIA-WORKER","name":"nfl-fidos-media-worker","image":"nfl-fidos:0.1.0","command":["python","scripts/scheduled_operations.py","--execute"],"bounded":true,"replicas":0},
+    {"id":"SERVICE-SCHEDULER","name":"nfl-fidos-scheduler","image":"nfl-fidos:0.1.0","command":["python","scripts/scheduled_operations.py"],"dry_run_default":true,"replicas":0}
+  ],
+  "storage":[{"name":"nfl-fidos-data","mount":"/var/lib/nfl-fidos","purpose":"SQLite database, observability, managed media"}],
+  "secrets":[{"name":"NFL_FIDOS_AUTH_SECRET_FILE","source":"approved_secret_manager_mount","required":true}],
+  "environment_contract":{"NFL_FIDOS_ENV":"production","NFL_FIDOS_HOST":"0.0.0.0","NFL_FIDOS_PORT":8080,"NFL_FIDOS_DATABASE":"/var/lib/nfl-fidos/nfl_fidos.sqlite3","NFL_FIDOS_OBSERVABILITY_PATH":"/var/lib/nfl-fidos/observability.jsonl","NFL_FIDOS_FFMPEG":"ffmpeg","NFL_FIDOS_FFPROBE":"ffprobe"},
+  "rollout":{"approval_required":"STAGE-0 owner approval","feature_flags_default_off":true,"rollback":"stop new workers, disable scheduler, preserve database and audit evidence"},
+  "non_goals":["no automatic production activation","no cross-organization scope","no secret values in repository"]
+}

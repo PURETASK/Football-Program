@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nfl-fidos.local/contracts/organization-player-development.schema.json",
+  "title": "NFL FIDOS Organization Player Development Package",
+  "type": "object",
+  "required": ["id", "organization_id", "team_context", "season", "players", "status", "human_review_required"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^ORG-PLAYER-DEV-"},
+    "organization_id": {"type": "string", "pattern": "^ORG-"},
+    "team_context": {"type": "string", "minLength": 1},
+    "season": {"type": "string", "minLength": 1},
+    "players": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+    "status": {"enum": ["under_review", "validated", "rejected"]},
+    "human_review_required": {"type": "boolean"},
+    "approved_by": {"type": ["string", "null"]},
+    "owner_decision_ref": {"type": ["string", "null"]}
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,75 @@
+import tempfile
+import unittest
+from pathlib import Path
+
+from nfl_fidos.media_jobs import MediaProcessingJobService
+from nfl_fidos.media_worker import index_media_file, process_media_job, probe_media_file
+from nfl_fidos.repository import JsonRepository
+from nfl_fidos.tenant_repository import TenantRepository
+
+
+class MediaWorkerTests(unittest.TestCase):
+    def test_probe_uses_bounded_arguments_and_records_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            media = Path(directory) / "game.mp4"
+            media.write_bytes(b"authorized fixture")
+            calls = []
+            def runner(arguments):
+                calls.append(arguments)
+                return 0, '{"format":{"duration":"12.5","format_name":"mov,mp4"}}', ""
+            result = probe_media_file(file_path=media, allowed_roots=[directory], runner=runner)
+            self.assertEqual(result["status"], "probed")
+            self.assertEqual(result["duration_seconds"], 12.5)
+            self.assertEqual(calls[0][0], "ffprobe")
+            self.assertNotIn("shell", calls[0])
+
+            repository = TenantRepository(JsonRepository(Path(directory) / "state.json"), organization_id="ORG-MEDIA", actor="ANALYST")
+            jobs = MediaProcessingJobService(repository)
+            jobs.create_job(job_id="MEDIA-JOB-WORKER-001", asset_id="FILM-ASSET-001", operation="probe", payload={"file_path":str(media), "allowed_roots":[directory]}, requested_by="ANALYST")
+            completed = process_media_job(repository=repository, job_id="MEDIA-JOB-WORKER-001", worker_id="WORKER-1", runner=runner)
+            self.assertEqual(completed["status"], "completed")
+            self.assertEqual(len(repository.list("media_processing_outputs")), 1)
+
+    def test_missing_ffprobe_has_safe_metadata_only_fallback(self):
+        with tempfile.TemporaryDirectory() as directory:
+            media = Path(directory) / "game.webm"
+            media.write_bytes(b"fixture")
+            result = probe_media_file(file_path=media, allowed_roots=[directory], runner=lambda arguments: (127, "", "not found"))
+            self.assertEqual(result["status"], "metadata_only")
+            self.assertFalse(result["tool_available"])
+
+    def test_index_job_records_searchable_stream_metadata(self):
+        with tempfile.TemporaryDirectory() as directory:
+            media = Path(directory) / "game.mp4"
+            media.write_bytes(b"authorized fixture")
+            calls = []
+
+            def runner(arguments):
+                calls.append(arguments)
+                return 0, '{"format":{"duration":"12.5","format_name":"mov,mp4"},"streams":[{"index":0,"codec_type":"video","codec_name":"h264","width":1920,"height":1080},{"index":1,"codec_type":"audio","codec_name":"aac","channels":2}]}', ""
+
+            result = index_media_file(file_path=media, allowed_roots=[directory], runner=runner)
+            self.assertEqual(result["status"], "indexed")
+            self.assertEqual(result["stream_count"], 2)
+            self.assertIn("codec_name", result["searchable_fields"])
+            self.assertEqual(calls[0][0], "ffprobe")
+            self.assertNotIn("shell", calls[0])
+
+            repository = TenantRepository(JsonRepository(Path(directory) / "state.json"), organization_id="ORG-MEDIA", actor="ANALYST")
+            jobs = MediaProcessingJobService(repository)
+            jobs.create_job(job_id="MEDIA-JOB-INDEX-001", asset_id="FILM-ASSET-INDEX-001", operation="index", payload={"file_path":str(media), "allowed_roots":[directory]}, requested_by="ANALYST")
+            completed = process_media_job(repository=repository, job_id="MEDIA-JOB-INDEX-001", worker_id="WORKER-1", runner=runner)
+            self.assertEqual(completed["status"], "completed")
+            output = repository.get("media_processing_outputs", "MEDIA-OUTPUT-INDEX-001")
+            self.assertEqual(output["result"]["status"], "indexed")
+
+    def test_unapproved_path_is_rejected_before_runner(self):
+        with tempfile.TemporaryDirectory() as directory:
+            media = Path(directory) / "game.mkv"
+            media.write_bytes(b"fixture")
+            result = probe_media_file(file_path=media, allowed_roots=[Path(directory) / "other"], runner=lambda arguments: (_ for _ in ()).throw(AssertionError("runner must not execute")))
+            self.assertEqual(result["status"], "rejected")
+
+
+if __name__ == "__main__":
+    unittest.main()

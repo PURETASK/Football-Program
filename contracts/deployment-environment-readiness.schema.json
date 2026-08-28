@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nfl-fidos.local/contracts/deployment-environment-readiness.schema.json",
+  "title": "NFL FIDOS Deployment Environment Readiness Report",
+  "type": "object",
+  "required": ["status", "environment", "deployment_preflight", "operational_readiness", "scheduler_registration", "monitoring_registration", "blockers", "activation_performed", "external_state_changed"],
+  "properties": {
+    "status": {"enum": ["ready", "blocked"]},
+    "environment": {"enum": ["local", "validation", "production"]},
+    "deployment_preflight": {"type": "object"},
+    "operational_readiness": {"type": "object"},
+    "scheduler_registration": {"type": "object"},
+    "monitoring_registration": {"type": "object"},
+    "blockers": {"type": "array", "items": {"type": "string"}},
+    "activation_performed": {"const": false},
+    "external_state_changed": {"const": false}
+  },
+  "additionalProperties": true
+}

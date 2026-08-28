@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nfl-fidos"
+version = "0.1.0"
+description = "NFL Football Intelligence and Development OS"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+nfl-fidos = "nfl_fidos.cli:main"
+nfl-fidos-server = "nfl_fidos.server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

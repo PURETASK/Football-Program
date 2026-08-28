@@ -1,0 +1,20 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://nfl-fidos.local/contracts/deployment-contract.schema.json",
+  "title":"NFL FIDOS Deployment Contract",
+  "type":"object",
+  "required":["deployment_id","version","status","scope","production_implementation_allowed","services","storage","secrets","environment_contract","rollout"],
+  "properties":{
+    "deployment_id":{"type":"string","pattern":"^DEPLOY-"},
+    "version":{"type":"string"},
+    "status":{"enum":["design_only","approved"]},
+    "scope":{"const":"NFL only"},
+    "production_implementation_allowed":{"type":"boolean"},
+    "services":{"type":"array","minItems":3},
+    "storage":{"type":"array","minItems":1},
+    "secrets":{"type":"array","minItems":1},
+    "environment_contract":{"type":"object"},
+    "rollout":{"type":"object"}
+  },
+  "additionalProperties":true
+}

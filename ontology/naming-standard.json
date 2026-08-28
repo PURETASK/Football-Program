@@ -1,0 +1,14 @@
+{
+  "standard_id": "NFL-NAMING-001",
+  "version": "0.1.0",
+  "scope": "NFL",
+  "status": "locked",
+  "rules": [
+    {"id":"RULE-ID-001","name":"stable term identifiers","pattern":"^TERM-[A-Z0-9-]+$","applies_to":"ontology term ids"},
+    {"id":"RULE-ID-002","name":"canonical labels","requirement":"lowercase human-readable labels; preserve official acronyms in aliases"},
+    {"id":"RULE-ID-003","name":"category vocabulary","requirement":"category must be a controlled snake_case value and remain stable across versions"},
+    {"id":"RULE-ID-004","name":"version history","requirement":"renames create a new alias or revision record; never silently repurpose an existing term id"},
+    {"id":"RULE-ID-005","name":"team terminology","requirement":"team aliases are scoped by team and require owner, reason, and lock status"}
+  ],
+  "required_work_packages": ["positions", "archetypes", "personnel", "alignments", "formations", "motions", "blocking", "runs", "routes", "passes", "protections", "play_action", "screens", "rpo_option", "coverages", "match_rules", "pressures", "run_fits", "landmarks", "situations", "reads", "checks"]
+}

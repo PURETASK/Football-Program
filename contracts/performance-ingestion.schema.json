@@ -1,0 +1,13 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Performance Ingestion Batch",
+  "type":"object",
+  "required":["batch_id","organization_id","records","source_manifest"],
+  "properties":{
+    "batch_id":{"type":"string","pattern":"^PERF-BATCH-"},
+    "organization_id":{"type":"string","pattern":"^ORG-"},
+    "records":{"type":"array"},
+    "source_manifest":{"type":"object","required":["kind","ref","captured_at"]}
+  },
+  "additionalProperties":true
+}

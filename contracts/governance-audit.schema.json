@@ -1,0 +1,7 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Governance Audit",
+  "type":"object",
+  "required":["id","eval_suite_status","promotion_blocked","status","issues"],
+  "properties":{"id":{"type":"string","pattern":"^AUDIT-"},"status":{"enum":["blocked","eligible_for_promotion"]},"promotion_blocked":{"type":"boolean"},"issues":{"type":"array"}}
+}

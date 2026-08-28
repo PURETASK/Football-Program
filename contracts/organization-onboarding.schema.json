@@ -1,0 +1,17 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Organization Onboarding Request",
+  "type":"object",
+  "required":["organization_id","name","season","team_id","people","terminology_version","source"],
+  "properties":{
+    "organization_id":{"type":"string","pattern":"^ORG-"},
+    "name":{"type":"string","minLength":1},
+    "season":{"type":"string","minLength":4},
+    "team_id":{"type":"string","pattern":"^TEAM-"},
+    "people":{"type":"array"},
+    "terminology_version":{"type":"string","minLength":1},
+    "source":{"type":"object","required":["kind","ref"]},
+    "terminology_bundle":{"type":"object"}
+  },
+  "additionalProperties":true
+}

@@ -1,0 +1,13 @@
+{
+  "id":"RULE-REFRESH-REPLACE",
+  "jurisdiction":"NFL",
+  "current_registry_id":"NFL-RULE-SOURCES-001",
+  "candidate_registry_id":"NFL-RULE-SOURCES-CANDIDATE-REPLACE",
+  "status":"under_review",
+  "changes":[],
+  "issues":["Replace this template with a candidate registry and run the refresh planner."],
+  "human_review_required":true,
+  "promotion_allowed":false,
+  "decision_ref":null,
+  "promoted_registry":null
+}

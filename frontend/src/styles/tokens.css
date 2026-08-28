@@ -1,0 +1,63 @@
+:root {
+  color-scheme: light;
+  font-family: 'Inter Variable', Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+
+  --font-ui: 'Inter Variable', Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+
+  --ink-950: #07111f;
+  --ink-900: #0d1a2b;
+  --ink-800: #17253a;
+  --ink-700: #2d3c52;
+  --ink-600: #46556b;
+  --ink-500: #66758a;
+  --ink-400: #8996a8;
+  --ink-300: #b6c0cd;
+  --ink-200: #d7dee7;
+  --ink-100: #e9eef4;
+  --ink-50: #f5f8fb;
+
+  --canvas: #eef3f7;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-dark: #0a1727;
+  --surface-dark-soft: #10233a;
+
+  --cyan-500: #15bff0;
+  --cyan-400: #4cd6fa;
+  --cyan-100: #dff8ff;
+  --blue-600: #275ce7;
+  --blue-500: #3a72f4;
+  --blue-100: #e7efff;
+  --green-600: #137753;
+  --green-500: #19a26f;
+  --green-100: #ddf7ea;
+  --amber-600: #a35f00;
+  --amber-500: #f0a126;
+  --amber-100: #fff2d6;
+  --red-600: #b33443;
+  --red-100: #ffe5e8;
+  --violet-600: #7353c9;
+  --violet-100: #eee9ff;
+
+  --line: #dbe3ec;
+  --line-strong: #c3ceda;
+  --focus: #55cffa;
+
+  --shadow-xs: 0 1px 2px rgb(7 17 31 / 0.06);
+  --shadow-sm: 0 6px 18px rgb(7 17 31 / 0.07);
+  --shadow-md: 0 16px 40px rgb(7 17 31 / 0.1);
+  --shadow-lg: 0 30px 80px rgb(7 17 31 / 0.22);
+
+  --radius-sm: 8px;
+  --radius-md: 13px;
+  --radius-lg: 18px;
+  --radius-xl: 26px;
+  --radius-pill: 999px;
+
+  --sidebar-width: 252px;
+  --topbar-height: 72px;
+  --content-max: 1480px;
+}

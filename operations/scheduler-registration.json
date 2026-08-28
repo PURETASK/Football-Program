@@ -1,0 +1,13 @@
+{
+  "registration_id": "SCHEDULER-REG-LOCAL-001",
+  "scope": "NFL only",
+  "provider_neutral": true,
+  "jobs": [
+    {"id": "SCHEDULER-JOB-SOURCE-REFRESH", "operation": "source_refresh", "schedule": "provider-defined", "entrypoint": "scripts/scheduled_operations.py"},
+    {"id": "SCHEDULER-JOB-RETENTION-SCAN", "operation": "media_retention_scan", "schedule": "provider-defined", "entrypoint": "scripts/scheduled_operations.py"},
+    {"id": "SCHEDULER-JOB-TRANSFORM-BATCH", "operation": "media_transform_batch", "schedule": "provider-defined", "entrypoint": "scripts/scheduled_operations.py"}
+  ],
+  "bounds": {"max_sources": 100, "max_transforms": 10, "retention_days": 365},
+  "dry_run_default": true,
+  "external_registration_required": true
+}

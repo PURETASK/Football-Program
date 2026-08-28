@@ -1,0 +1,16 @@
+{
+  "id":"APPROVAL-STAGE0-REPLACE",
+  "stage":"STAGE-0",
+  "work_package":"STAGE-0A",
+  "gate_id":"STAGE0-EXIT-001",
+  "registry_id":"REGISTRY-REPLACE",
+  "decision":"pending_owner_input",
+  "approver":"",
+  "approver_role":"program_owner",
+  "approved_at":null,
+  "rationale":"",
+  "evidence_refs":["control/stage-0a-registry.json","control/stage-0-gap-audit.json","control/stage-0-exit-gate.json"],
+  "production_implementation_allowed":false,
+  "stage_advance_authorized":false,
+  "instructions":"A program owner must replace pending_owner_input with approved, supply approver, timestamp, and rationale after reviewing the Stage 0 exit gate. This template never advances the stage by itself."
+}

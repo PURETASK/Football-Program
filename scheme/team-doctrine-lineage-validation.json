@@ -1,0 +1,17 @@
+{
+  "corpus_id":"NFL-SCHEME-LINEAGE-VALIDATION-001",
+  "version":"0.1.0",
+  "purpose":"Synthetic, source-linked validation fixtures for scheme-family lineage mapping; these records are not claims about any NFL team's private doctrine.",
+  "scope":"NFL",
+  "status":"validation_fixture",
+  "records":[
+    {"id":"LINEAGE-OFF-001","family_id":"SCHEME-FAM-OFF-001","unit":"offense","team_id":"TEAM-VALIDATION-A","source_ref":"VALIDATION-SCHEME-SOURCE-OFF-001","evidence_type":"teaching_film_fixture","lineage_level":"family","confidence":"fixture","review_status":"review_required"},
+    {"id":"LINEAGE-OFF-002","family_id":"SCHEME-FAM-OFF-002","unit":"offense","team_id":"TEAM-VALIDATION-A","source_ref":"VALIDATION-SCHEME-SOURCE-OFF-002","evidence_type":"concept_install_fixture","lineage_level":"family","confidence":"fixture","review_status":"review_required"},
+    {"id":"LINEAGE-OFF-003","family_id":"SCHEME-FAM-OFF-003","unit":"offense","team_id":"TEAM-VALIDATION-B","source_ref":"VALIDATION-SCHEME-SOURCE-OFF-003","evidence_type":"teaching_film_fixture","lineage_level":"family","confidence":"fixture","review_status":"review_required"},
+    {"id":"LINEAGE-OFF-004","family_id":"SCHEME-FAM-OFF-004","unit":"offense","team_id":"TEAM-VALIDATION-B","source_ref":"VALIDATION-SCHEME-SOURCE-OFF-004","evidence_type":"concept_install_fixture","lineage_level":"family","confidence":"fixture","review_status":"review_required"},
+    {"id":"LINEAGE-DEF-001","family_id":"SCHEME-FAM-DEF-001","unit":"defense","team_id":"TEAM-VALIDATION-C","source_ref":"VALIDATION-SCHEME-SOURCE-DEF-001","evidence_type":"front_fit_fixture","lineage_level":"family","confidence":"fixture","review_status":"review_required"},
+    {"id":"LINEAGE-DEF-002","family_id":"SCHEME-FAM-DEF-002","unit":"defense","team_id":"TEAM-VALIDATION-C","source_ref":"VALIDATION-SCHEME-SOURCE-DEF-002","evidence_type":"pressure_fixture","lineage_level":"family","confidence":"fixture","review_status":"review_required"},
+    {"id":"LINEAGE-DEF-003","family_id":"SCHEME-FAM-DEF-003","unit":"defense","team_id":"TEAM-VALIDATION-D","source_ref":"VALIDATION-SCHEME-SOURCE-DEF-003","evidence_type":"coverage_fixture","lineage_level":"family","confidence":"fixture","review_status":"review_required"},
+    {"id":"LINEAGE-DEF-004","family_id":"SCHEME-FAM-DEF-004","unit":"defense","team_id":"TEAM-VALIDATION-D","source_ref":"VALIDATION-SCHEME-SOURCE-DEF-004","evidence_type":"pressure_coverage_fixture","lineage_level":"family","confidence":"fixture","review_status":"review_required"}
+  ]
+}

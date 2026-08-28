@@ -1,0 +1,19 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Deployment Release Preflight",
+  "type":"object",
+  "required":["status","environment","release_validation","deployment_preflight","operational_readiness","eval_result","blockers","activation_performed","production_implementation_allowed"],
+  "properties":{
+    "status":{"enum":["ready_for_validation","blocked"]},
+    "environment":{"type":"string"},
+    "release_validation":{"type":"object"},
+    "deployment_preflight":{"type":"object"},
+    "operational_readiness":{"type":"object"},
+    "eval_result":{"type":"object"},
+    "blockers":{"type":"array"},
+    "activation_performed":{"const":false},
+    "production_implementation_allowed":{"const":false},
+    "external_state_changed":{"const":false}
+  },
+  "additionalProperties":true
+}

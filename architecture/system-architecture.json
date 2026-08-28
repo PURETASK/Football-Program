@@ -1,0 +1,72 @@
+{
+  "architecture_id": "ARCH-NFL-FIDOS-001",
+  "version": "0.1.0",
+  "scope": "NFL football intelligence and development operating system",
+  "stage": "STAGE-1",
+  "status": "foundation",
+  "design_principles": [
+    "NFL-only scope",
+    "Human authority remains above recommendations and locked changes",
+    "Canonical records are versioned and provenance-bearing",
+    "Agents are callable specialists with declared permissions",
+    "Context, uncertainty, and disagreement remain visible"
+  ],
+  "components": [
+    {"id":"SVC-001","name":"Orchestrator","owner":"AGT-001","system_of_record":"workflow_events","responsibilities":["route requests","assemble specialist outputs","request human review"]},
+    {"id":"SVC-002","name":"NFL organization and team context","owner":"CAP-022","system_of_record":"organization_context","responsibilities":["season and roster context","team terminology","staff roles"]},
+    {"id":"SVC-003","name":"Football ontology and terminology","owner":"CAP-020","system_of_record":"ontology_terms","responsibilities":["canonical terms","aliases","ambiguity and conflict handling"]},
+    {"id":"SVC-004","name":"Evidence and knowledge service","owner":"CAP-020","system_of_record":"evidence_claims","responsibilities":["source hierarchy","claim classification","confidence and uncertainty"]},
+    {"id":"SVC-005","name":"Film and media service","owner":"CAP-015","system_of_record":"film_assets_and_clips","responsibilities":["authorized asset metadata","bounded clips","tags and observations"]},
+    {"id":"SVC-006","name":"Football analytics service","owner":"CAP-017","system_of_record":"metric_observations","responsibilities":["definitions","denominators","contextual metrics","calibration"]},
+    {"id":"SVC-007","name":"Playbook and scheme service","owner":"CAP-009","system_of_record":"plays_and_schemes","responsibilities":["compositional schemes","play compilation","compatibility","role views"]},
+    {"id":"SVC-008","name":"Player, coach, and practice development","owner":"CAP-004","system_of_record":"development_records","responsibilities":["mastery","lessons","drills","practice plans","evaluation"]},
+    {"id":"SVC-009","name":"Scouting and game-planning service","owner":"CAP-018","system_of_record":"game_plan_records","responsibilities":["tendencies","options","counters","decision rationale"]},
+    {"id":"SVC-010","name":"Rules and game-management authority","owner":"CAP-019","system_of_record":"rule_sources_and_decisions","responsibilities":["NFL rule source hierarchy","situational decisions","escalation"]},
+    {"id":"SVC-011","name":"Governance, safety, and change control","owner":"CAP-021","system_of_record":"audit_and_decision_ledger","responsibilities":["permissions","evals","safety boundaries","approvals","change impact"]},
+    {"id":"SVC-012","name":"Canonical persistence and audit","owner":"CAP-022","system_of_record":"versioned_records","responsibilities":["revisions","append-only audit events","migration boundaries"]},
+    {"id":"SVC-013","name":"API and operator interface","owner":"CAP-023","system_of_record":"api_requests","responsibilities":["role-aware access","machine-readable contracts","operator actions"]}
+  ],
+  "information_flows": [
+    {"id":"FLOW-001","from":"SVC-013","to":"SVC-001","records":["api_request"],"purpose":"route an authenticated NFL-context request"},
+    {"id":"FLOW-002","from":"SVC-001","to":"SVC-002","records":["organization_context"],"purpose":"resolve team, season, people, and terminology context"},
+    {"id":"FLOW-003","from":"SVC-001","to":"SVC-003","records":["ontology_term"],"purpose":"normalize or escalate football terminology"},
+    {"id":"FLOW-004","from":"SVC-005","to":"SVC-004","records":["film_tag","evidence_item"],"purpose":"turn authorized observations into traceable claims"},
+    {"id":"FLOW-005","from":"SVC-006","to":"SVC-004","records":["metric_observation","evidence_item"],"purpose":"attach definitions, samples, and uncertainty to analytics"},
+    {"id":"FLOW-006","from":"SVC-007","to":"SVC-008","records":["play_record","playbook_view"],"purpose":"teach validated responsibilities and evaluate mastery"},
+    {"id":"FLOW-007","from":"SVC-004","to":"SVC-009","records":["knowledge_claim","tendency_record"],"purpose":"ground scouting and game-plan options in evidence"},
+    {"id":"FLOW-008","from":"SVC-009","to":"SVC-010","records":["game_situation","game_decision","rule_ref"],"purpose":"check rule-dependent game decisions"},
+    {"id":"FLOW-009","from":"SVC-001","to":"SVC-011","records":["agent_handoff","approval_request"],"purpose":"enforce permissions, review, and change control"},
+    {"id":"FLOW-010","from":"SVC-002","to":"SVC-012","records":["organization_context","version_event"],"purpose":"persist canonical context with history"}
+  ],
+  "roles_and_permissions": [
+    {"role":"player","can":["read_assigned_playbook","read_own_development","complete_assigned_practice"],"cannot":["lock_playbook","approve_rule_source","change_team_terminology"]},
+    {"role":"coach_staff","can":["draft_playbook","teach","assess","recommend","request_approval"],"cannot":["bypass_validation","override_authoritative_rule_source"]},
+    {"role":"analyst","can":["compute_metrics","cite_evidence","draft_tendency"],"cannot":["publish_locked_play","approve_health_decision"]},
+    {"role":"performance_staff","can":["review_workload","escalate_health_signal"],"cannot":["receive_diagnostic_authority_from_system"]},
+    {"role":"program_owner","can":["approve_stage_gate","approve_change","manage_scope"],"cannot":["convert_unsupported_claim_into_evidence"]},
+    {"role":"validator","can":["validate","reject","request_review"],"cannot":["silently_repair_locked_input"]}
+  ],
+  "state_model": [
+    {"state":"draft","meaning":"human or agent-created artifact awaiting validation","transitions":["validated","rejected","needs_review"]},
+    {"state":"validated","meaning":"contract and deterministic checks passed","transitions":["approved","superseded"]},
+    {"state":"needs_review","meaning":"ambiguity, safety, authority, or context requires a human","transitions":["approved","rejected"]},
+    {"state":"approved","meaning":"authorized for the declared scope and version","transitions":["superseded","revoked"]},
+    {"state":"rejected","meaning":"not eligible for downstream use","transitions":["draft"]},
+    {"state":"superseded","meaning":"historical version retained but no longer current","transitions":[]},
+    {"state":"revoked","meaning":"previously approved artifact withdrawn","transitions":[]}
+  ],
+  "events": [
+    {"id":"EVT-001","name":"request.received","producer":"SVC-013","consumers":["SVC-001","SVC-011"]},
+    {"id":"EVT-002","name":"artifact.validated","producer":"SVC-011","consumers":["SVC-001","SVC-012"]},
+    {"id":"EVT-003","name":"human.review.requested","producer":"SVC-001","consumers":["SVC-011"]},
+    {"id":"EVT-004","name":"artifact.approved","producer":"SVC-011","consumers":["SVC-001","SVC-012"]},
+    {"id":"EVT-005","name":"evidence.updated","producer":"SVC-004","consumers":["SVC-006","SVC-009","SVC-011"]},
+    {"id":"EVT-006","name":"context.changed","producer":"SVC-002","consumers":["SVC-003","SVC-007","SVC-009","SVC-012"]}
+  ],
+  "feedback_loops": [
+    {"id":"LOOP-001","name":"player development","sequence":["assess","teach","practice","evaluate","adapt"],"outputs":["mastery_record","development_plan"]},
+    {"id":"LOOP-002","name":"weekly team intelligence","sequence":["self_scout","opponent_scout","plan","practice","game","review"],"outputs":["game_plan","practice_plan","post_game_evidence"]},
+    {"id":"LOOP-003","name":"governance quality","sequence":["specify","implement","evaluate","audit","approve_or_change"],"outputs":["eval_result","decision_record","change_request"]}
+  ],
+  "human_authority_points": ["locked terminology", "authoritative rules", "health-related escalation", "playbook lock", "game-plan adoption", "stage advancement", "production release"]
+}

@@ -1,0 +1,19 @@
+{
+  "id": "PLAY-DESIGN-RULE-PROFILES-001",
+  "version": "0.1.0",
+  "status": "authoring-foundation",
+  "scope": "Play-design linting only; not officiating or legal advice.",
+  "profiles": [
+    {"id": "nfl", "label": "NFL tackle football", "players_on_field": 11, "minimum_line_players": 7, "max_motion_at_snap": 1, "blocking_allowed": true, "source": "https://operations.nfl.com/the-rules/nfl-rulebook"},
+    {"id": "ncaa", "label": "NCAA college football", "players_on_field": 11, "minimum_line_players": 7, "max_motion_at_snap": 1, "blocking_allowed": true, "source": "https://ncaaorg.s3.amazonaws.com/championships/sports/football/rules/PRMFB_RulesBook.pdf"},
+    {"id": "high_school", "label": "NFHS high-school tackle football", "players_on_field": 11, "minimum_line_players": 7, "max_motion_at_snap": 1, "blocking_allowed": true, "source": "https://www.nfhs.org/sports/football/rules", "local_adoption_required": true},
+    {"id": "youth", "label": "Youth tackle football", "players_on_field": null, "minimum_line_players": null, "max_motion_at_snap": null, "blocking_allowed": null, "source": "Local league rulebook required", "local_adoption_required": true},
+    {"id": "flag", "label": "NFL FLAG 5-on-5 baseline", "players_on_field": 5, "minimum_line_players": 0, "max_motion_at_snap": 1, "blocking_allowed": false, "minimum_rush_distance_yards": 7, "source": "https://nflflag.com/coaches/flag-football-rules", "local_variants_required": true}
+  ],
+  "override_policy": {
+    "finding_is_never_silently_removed": true,
+    "error_override_requires_program_owner_approval": true,
+    "required_fields": ["issue_code", "rationale", "decision_ref", "evidence_refs", "expires_at"],
+    "override_does_not_change_source_rule": true
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Change Request",
+  "type":"object",
+  "required":["id","title","requester","change_type","description","impact","affected_ids","status","approval_required"],
+  "properties":{
+    "id":{"type":"string","pattern":"^CR-"},
+    "title":{"type":"string"},
+    "requester":{"type":"string"},
+    "change_type":{"enum":["scope","schema","terminology","agent","workflow","doctrine","security","architecture"]},
+    "description":{"type":"string"},
+    "impact":{"type":"object","required":["scope","dependencies","risks","roadmap_effect"]},
+    "affected_ids":{"type":"array"},
+    "status":{"enum":["draft","under_review","approved","rejected","implemented"]},
+    "approval_required":{"type":"boolean"}
+  }
+}

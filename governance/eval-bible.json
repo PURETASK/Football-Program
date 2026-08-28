@@ -1,0 +1,21 @@
+{
+  "bible_id":"EVAL-BIBLE-NFL-001",
+  "version":"0.1.0",
+  "scope":"NFL FIDOS quality, evals, safety, and governance",
+  "risk_domains":[
+    {"id":"EVAL-DOMAIN-001","name":"football_fact_correctness","risk":"high","check_type":"source_and_regression","failure_action":"block_promotion","owner":"quality_governance"},
+    {"id":"EVAL-DOMAIN-002","name":"NFL_rule_authority","risk":"critical","check_type":"authoritative_source_and_escalation","failure_action":"block_promotion","owner":"rules_authority"},
+    {"id":"EVAL-DOMAIN-003","name":"scheme_consistency_and_legality","risk":"critical","check_type":"deterministic_compiler","failure_action":"block_promotion","owner":"validation"},
+    {"id":"EVAL-DOMAIN-004","name":"terminology_consistency","risk":"high","check_type":"ontology_resolution","failure_action":"block_promotion","owner":"ontology"},
+    {"id":"EVAL-DOMAIN-005","name":"evidence_and_citations","risk":"high","check_type":"provenance_and_sample","failure_action":"block_promotion","owner":"knowledge"},
+    {"id":"EVAL-DOMAIN-006","name":"nuance_and_contradiction","risk":"high","check_type":"conflict_and_review","failure_action":"require_review","owner":"governance"},
+    {"id":"EVAL-DOMAIN-007","name":"safety_and_professional_boundaries","risk":"critical","check_type":"boundary_and_escalation","failure_action":"block_promotion","owner":"safety"},
+    {"id":"EVAL-DOMAIN-008","name":"agent_handoffs","risk":"high","check_type":"contract_and_permission","failure_action":"block_promotion","owner":"agent_governance"},
+    {"id":"EVAL-DOMAIN-009","name":"structured_output_and_data_quality","risk":"high","check_type":"schema_and_quality","failure_action":"block_promotion","owner":"data"},
+    {"id":"EVAL-DOMAIN-010","name":"regression_and_calibration","risk":"high","check_type":"named_eval_suite","failure_action":"block_promotion","owner":"quality_governance"},
+    {"id":"EVAL-DOMAIN-011","name":"permissions_and_tenancy","risk":"critical","check_type":"authorization_matrix","failure_action":"block_promotion","owner":"security"},
+    {"id":"EVAL-DOMAIN-012","name":"auditability_and_observability","risk":"high","check_type":"audit_event_and_trace","failure_action":"block_promotion","owner":"engineering"}
+  ],
+  "promotion_requirements":["all critical evals pass","no unresolved critical safety or permission failure","audit event exists","observability evidence exists","required human approval exists"],
+  "failure_policy":["Failures remain visible and traceable.","A failed critical check blocks promotion.","A review-required check cannot be silently converted to pass.","Regression results are versioned with the evaluated artifact."]
+}

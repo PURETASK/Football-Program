@@ -1,0 +1,15 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Individual Development Plan",
+  "type":"object",
+  "required":["id","learner_id","learner_type","objectives","owner","review_cadence","status"],
+  "properties":{
+    "id":{"type":"string","pattern":"^IDP-"},
+    "learner_id":{"type":"string"},
+    "learner_type":{"enum":["player","coach"]},
+    "objectives":{"type":"array","minItems":1},
+    "owner":{"type":"string"},
+    "review_cadence":{"type":"string"},
+    "status":{"enum":["draft","active","under_review"]}
+  }
+}

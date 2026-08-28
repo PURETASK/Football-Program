@@ -1,0 +1,31 @@
+{
+  "architecture_id":"UX-ARCH-NFL-001",
+  "version":"0.1.0",
+  "scope":"NFL FIDOS role-based product UX",
+  "information_architecture":["Today","Player Development","Playbook","Film Room","Practice","Scouting","Analytics","Game Plan","Staff Collaboration","Governance"],
+  "screen_inventory":[
+    {"id":"SCREEN-PLAYER-TODAY","name":"Player Today","primary_roles":["player"],"entry_point":"/today","workflow":"review assigned learning and practice","states":["loading","ready","empty","error","restricted","blocked"],"outputs":["assignments","practice","mastery_next_step"],"responsive":["mobile","tablet","desktop","print"]},
+    {"id":"SCREEN-PLAYER-PLAYBOOK","name":"Role Playbook View","primary_roles":["player","coach_staff"],"entry_point":"/playbook/:play_id","workflow":"learn and query a validated play","states":["loading","ready","renderable","needs_review","superseded","error","restricted","blocked"],"outputs":["role_assignment","visual_view","checks","coaching_notes"],"responsive":["mobile","tablet","desktop","print"]},
+    {"id":"SCREEN-FILM-ROOM","name":"Film Room","primary_roles":["player","coach_staff","analyst"],"entry_point":"/film","workflow":"search, watch, tag, correct, and build cutups","states":["loading","ready","no_results","needs_correction","restricted","blocked","error"],"outputs":["clips","tags","observations","playlist"] ,"responsive":["tablet","desktop"]},
+    {"id":"SCREEN-COACH-DASHBOARD","name":"Coach Dashboard","primary_roles":["coach_staff","program_owner"],"entry_point":"/coach","workflow":"review player, practice, scouting, and game-plan work","states":["loading","ready","needs_approval","blocked","restricted","error"],"outputs":["team_context","development","practice","scouting","game_plan"],"responsive":["tablet","desktop","print"]},
+    {"id":"SCREEN-SCHEME-WORKSPACE","name":"Scheme Workspace","primary_roles":["coach_staff","analyst"],"entry_point":"/schemes","workflow":"compose, compare, red-team, and review schemes","states":["loading","ready","draft","validated","incompatible","needs_review","restricted","blocked","error"],"outputs":["scheme_components","compatibility","counters","red_team"],"responsive":["tablet","desktop"]},
+    {"id":"SCREEN-PRACTICE-BUILDER","name":"Practice Builder","primary_roles":["coach_staff"],"entry_point":"/practice","workflow":"map objectives to periods and load controls","states":["loading","ready","draft","valid","load_exceeded","restricted","blocked","error"],"outputs":["periods","owners","reps","rationale","load_summary"],"responsive":["tablet","desktop","print"]},
+    {"id":"SCREEN-GAMEPLAN","name":"Game-Plan Workspace","primary_roles":["coach_staff","program_owner"],"entry_point":"/game-plan","workflow":"review evidence, calls, contingencies, and teaching outputs","states":["loading","ready","under_review","approved","restricted","blocked","superseded","error"],"outputs":["primary_plan","counters","triggers","ownership","player_teaching"],"responsive":["tablet","desktop","print"]},
+    {"id":"SCREEN-GOVERNANCE","name":"Governance and Approvals","primary_roles":["program_owner","validator"],"entry_point":"/governance","workflow":"review evals, audit events, permissions, and approvals","states":["loading","ready","restricted","blocked","approved","error"],"outputs":["eval_results","audit_history","change_requests","release_status"],"responsive":["desktop","print"]}
+  ],
+  "role_journeys":[
+    {"role":"player","steps":["open_today","review_assignment","open_role_play","watch_or_read_view","complete_drill","submit_evidence","review_mastery"],"do_not_expose":["unassigned_team_data","governance_controls","other_player_private_data"]},
+    {"role":"coach_staff","steps":["review_team_context","inspect_film_and_evidence","build_or_review_practice","review_player_mastery","compose_plan","request_approval"],"do_not_expose":["unapproved_health_decisions","unauthorized_sources"]},
+    {"role":"analyst","steps":["define_metric","inspect_lineage","build_report","compare_situations","cite_evidence","submit_for_review"],"do_not_expose":["locked_playbook_write","medical_clearance"]},
+    {"role":"program_owner","steps":["review_scope","review_audit","approve_change","approve_stage","approve_release"],"do_not_expose":["unsupported_claim_as_fact"]}
+  ],
+  "permissions_to_ui":[
+    {"role":"player","action":"read_assigned_playbook","ui_surfaces":["SCREEN-PLAYER-TODAY","SCREEN-PLAYER-PLAYBOOK"],"state_if_denied":"restricted"},
+    {"role":"coach_staff","action":"draft_playbook","ui_surfaces":["SCREEN-SCHEME-WORKSPACE","SCREEN-GAMEPLAN"],"state_if_denied":"restricted"},
+    {"role":"analyst","action":"compute_metrics","ui_surfaces":["SCREEN-COACH-DASHBOARD","SCREEN-SCHEME-WORKSPACE"],"state_if_denied":"restricted"},
+    {"role":"program_owner","action":"approve_stage_gate","ui_surfaces":["SCREEN-GOVERNANCE"],"state_if_denied":"restricted"}
+  ],
+  "interaction_states":["loading","ready","draft","under_review","needs_approval","approved","blocked","restricted","empty","error","superseded"],
+  "accessibility":["keyboard navigation","screen-reader labels","text alternatives for visual football notation","color-independent status indicators","focus visibility","responsive reflow","print-friendly critical reports"],
+  "notification_rules":["Notify only within role and organization scope","Approval requests retain source and decision context","Safety escalations route to qualified staff","Blocked states explain the exact missing evidence or permission"]
+}

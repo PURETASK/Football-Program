@@ -1,0 +1,14 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Playbook Authoring Request",
+  "type":"object",
+  "required":["organization_id","play","play_family_id","install_level","checks","situational_variants","opponent_notes","coaching_notes","dependencies"],
+  "properties":{
+    "organization_id":{"type":"string","pattern":"^ORG-"},
+    "play":{"type":"object"},
+    "play_family_id":{"type":"string","pattern":"^PLAY-FAM-"},
+    "install_level":{"enum":["install","review","game_ready","situational"]},
+    "checks":{"type":"array"},"situational_variants":{"type":"array"},"opponent_notes":{"type":"array"},"coaching_notes":{"type":"array"},"dependencies":{"type":"array"}
+  },
+  "additionalProperties":true
+}

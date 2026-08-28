@@ -1,0 +1,19 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://nfl-fidos.local/contracts/film-playlist.schema.json",
+  "title":"NFL FIDOS Film Playlist",
+  "type":"object",
+  "required":["id","organization_id","name","purpose","clip_ids","filters","owner","access_roles","status"],
+  "properties":{
+    "id":{"type":"string","pattern":"^PLAYLIST-"},
+    "organization_id":{"type":"string","minLength":1},
+    "name":{"type":"string","minLength":1},
+    "purpose":{"type":"string","minLength":1},
+    "clip_ids":{"type":"array","minItems":1,"items":{"type":"string","pattern":"^CLIP-"}},
+    "filters":{"type":"object"},
+    "owner":{"type":"string","minLength":1},
+    "access_roles":{"type":"array","minItems":1,"items":{"type":"string"}},
+    "status":{"enum":["draft","invalid"]}
+  },
+  "additionalProperties":true
+}

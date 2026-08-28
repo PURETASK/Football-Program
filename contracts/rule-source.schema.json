@@ -1,0 +1,14 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"NFL FIDOS Rule Source",
+  "type":"object",
+  "required":["id","jurisdiction","rule_text","source","effective_date","authority_level"],
+  "properties":{
+    "id":{"type":"string","pattern":"^RULE-"},
+    "jurisdiction":{"enum":["NFL","team","competition_specific"]},
+    "rule_text":{"type":"string","minLength":1},
+    "source":{"type":"object","required":["kind","ref","retrieved_at"]},
+    "effective_date":{"type":"string"},
+    "authority_level":{"enum":["authoritative","team_locked","secondary"]}
+  }
+}

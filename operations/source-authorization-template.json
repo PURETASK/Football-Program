@@ -1,0 +1,13 @@
+{
+  "authorization_id": "AUTH-SOURCE-EXAMPLE-001",
+  "organization_id": "ORG-EXAMPLE",
+  "source_id": "SOURCE-EXAMPLE-001",
+  "uri": "https://approved.example.invalid/source",
+  "license_class": "team_authorized",
+  "authorization_ref": "DEC-SOURCE-EXAMPLE-001",
+  "approved_by": "PROGRAM-OWNER",
+  "approved_at": "2026-08-23T00:00:00Z",
+  "expires_at": null,
+  "allowed_domains": ["approved.example.invalid"],
+  "external_fetch_allowed": true
+}
