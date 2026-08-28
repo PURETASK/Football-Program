@@ -218,6 +218,8 @@ function SelectionInspector({
     if (!player) return null;
     const alignment = player.alignment ?? {};
     const numberBasedEligibility = design.unit === 'offense' && ['nfl', 'ncaa'].includes(String(design.rule_profile ?? 'nfl'));
+    const jerseyNumber = typeof alignment.number === 'number' ? alignment.number : undefined;
+    const numberEligibilityWarning = numberBasedEligibility && alignment.eligible === true && jerseyNumber !== undefined && jerseyNumber >= 50 && jerseyNumber <= 79 && alignment.reported_eligible !== true;
     const patchAlignment = (patch: Partial<NonNullable<PlayPlayer['alignment']>>) => onPlayer(player.id, { alignment: { ...alignment, ...patch } });
     return (
       <InspectorSection title="Player">
@@ -239,6 +241,7 @@ function SelectionInspector({
           {numberBasedEligibility ? <>
             <label className="inspector-check"><input type="checkbox" checked={alignment.reported_eligible === true} onChange={(event) => patchAlignment({ reported_eligible: event.target.checked })} /><span>Reported eligible exception</span></label>
             <small className="inspector-help">NFL/NCAA numbers 50–79 require this explicit exception when the player is declared eligible.</small>
+            {numberEligibilityWarning ? <div className="player-legality-warning" role="alert" aria-label="Eligibility review required"><strong>Eligibility review required</strong><span>#{jerseyNumber} is in the 50–79 range. Mark the player reported eligible or change the eligibility/number before publishing.</span></div> : null}
           </> : null}
         </fieldset>
         {design.unit === 'defense' ? <fieldset className="defensive-alignment-editor">

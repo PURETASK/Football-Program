@@ -102,6 +102,7 @@ describe('DesignerInspector assignment graph controls', () => {
     fireEvent.change(screen.getByLabelText('Jersey number'), { target: { value: '75' } });
     fireEvent.blur(screen.getByLabelText('Jersey number'));
     expect(props.onPlayer).toHaveBeenCalledWith('LT', { alignment: { on_line: true, eligible: true, number: 75 } });
+    expect(screen.getByRole('alert', { name: /Eligibility review required/i })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('checkbox', { name: 'Reported eligible exception' }));
     expect(props.onPlayer).toHaveBeenCalledWith('LT', { alignment: { on_line: true, eligible: true, number: 72, reported_eligible: true } });
   });
