@@ -799,6 +799,25 @@ class PlayDesignService:
         if source_design_id is not None:
             batches = [item for item in batches if item.get("source_design_id") == source_design_id]
         batches.sort(key=lambda item: (str(item.get("_saved_at", item.get("created_at", ""))), str(item.get("id", ""))), reverse=True)
+        for batch in batches:
+            review_items = []
+            for variant_id in batch.get("variant_ids", []):
+                design = self.repository.get("play_designs", variant_id)
+                if design is None:
+                    review_items.append({"design_id": variant_id, "state": "missing", "ready": False, "reasons": ["Draft child design is missing from the organization registry."]})
+                    continue
+                validation = design.get("validation", {}) if isinstance(design.get("validation"), dict) else {}
+                reasons = []
+                if validation.get("status") != "valid":
+                    reasons.append("Design validation is not valid.")
+                if design.get("status") != "draft":
+                    reasons.append(f"Design lifecycle is {design.get('status', 'unknown')}.")
+                if design.get("release_id"):
+                    reasons.append("Design already has a release identity.")
+                ready = not reasons
+                review_items.append({"design_id": variant_id, "state": "ready_for_review" if ready else "blocked", "ready": ready, "validation_status": validation.get("status"), "lifecycle": design.get("status"), "approval_state": (design.get("approval") or {}).get("state"), "reasons": reasons})
+            ready_count = sum(1 for item in review_items if item.get("ready"))
+            batch["review"] = {"ready": bool(review_items) and ready_count == len(review_items), "ready_count": ready_count, "blocked_count": len(review_items) - ready_count, "items": review_items}
         return batches
 
     def role_view(self, design_id: str, *, role: str, mode: str = "player", step: int | None = None, user_id: str | None = None) -> dict[str, Any]:

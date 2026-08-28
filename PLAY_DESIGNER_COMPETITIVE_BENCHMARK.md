@@ -308,3 +308,11 @@ the human-review-required state. The Play Designer workspace payload includes
 the same newest-first batch history, so later UI surfaces can restore review
 sets without relying on a transient browser result. The endpoint is read-only
 and does not approve, publish, or release any generated child.
+
+Variant review readiness addendum — 2026-08-28: the persisted batch response
+now includes a computed, non-mutating review summary for every child look. It
+identifies missing children, invalid validation state, non-draft lifecycle
+state, existing release identity, ready-for-review children, and aggregate
+ready/blocked counts. The Concepts panel surfaces that count beside each saved
+review set. This gives staff an explainable pre-approval gate without turning
+batch generation into an automatic publish operation.

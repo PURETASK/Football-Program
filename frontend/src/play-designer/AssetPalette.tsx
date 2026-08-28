@@ -16,7 +16,7 @@ interface AssetPaletteProps {
   onApplyTemplate?: (template: PlayTemplate, mode: 'replace' | 'layer') => void;
   onSaveTemplate?: (input: { name: string; description: string; tags: string[]; elementIds?: string[]; parentTemplateId?: string }) => Promise<void>;
   onCreateVariants?: (input: { field: 'front' | 'coverage' | 'formation' | 'concept'; labels: string[] }) => Promise<{ variants: PlayDesign[]; count: number }>;
-  variantBatches?: Array<{ id: string; variants: PlayDesign[]; count: number; status: string; human_review_required?: boolean }>;
+  variantBatches?: Array<{ id: string; variants: PlayDesign[]; count: number; status: string; human_review_required?: boolean; review?: { ready: boolean; ready_count: number; blocked_count: number } }>;
   onOpenVariant?: (designId: string) => void;
   selectedElementIds?: string[];
 }

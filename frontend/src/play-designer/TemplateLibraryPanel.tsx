@@ -11,7 +11,7 @@ interface TemplateLibraryPanelProps {
   onApply: (template: PlayTemplate, mode: 'replace' | 'layer') => void;
   onSave?: (input: { name: string; description: string; tags: string[]; elementIds?: string[]; parentTemplateId?: string }) => Promise<void>;
   onCreateVariants?: (input: { field: 'front' | 'coverage' | 'formation' | 'concept'; labels: string[]; assignmentPatches?: Array<{ element_id: string; patch: Record<string, unknown> }> }) => Promise<{ variants: PlayDesign[]; count: number }>;
-  variantBatches?: Array<{ id: string; variants: PlayDesign[]; count: number; status: string; human_review_required?: boolean }>;
+  variantBatches?: Array<{ id: string; variants: PlayDesign[]; count: number; status: string; human_review_required?: boolean; review?: { ready: boolean; ready_count: number; blocked_count: number } }>;
   onOpenVariant?: (designId: string) => void;
   selectedElementIds?: string[];
 }
@@ -193,7 +193,7 @@ export function TemplateLibraryPanel({ templates, design, variantBatches = [], o
       {variantBatches.length ? <section className="template-capture template-variant-history" aria-label="Persisted variant history">
         <div className="template-library__intro"><Layers3 size={15} /><span><strong>Saved review sets</strong><small>Reopen draft looks generated for this source play. These records remain human-review-required until staff approval.</small></span></div>
         <div className="variant-history-list">{variantBatches.map((batch) => <article className="variant-history-card" key={batch.id}>
-          <header><span><strong>{batch.id}</strong><small>{batch.count} draft look{batch.count === 1 ? '' : 's'} · {batch.status}</small></span><span>{batch.human_review_required ? 'Review required' : 'Recorded'}</span></header>
+          <header><span><strong>{batch.id}</strong><small>{batch.count} draft look{batch.count === 1 ? '' : 's'} · {batch.status}</small></span><span>{batch.review ? `${batch.review.ready_count}/${batch.count} ready for review` : batch.human_review_required ? 'Review required' : 'Recorded'}</span></header>
           <div className="variant-history-card__looks">{batch.variants.map((variant) => <button type="button" key={variant.id} onClick={() => onOpenVariant?.(variant.id)} disabled={!onOpenVariant}><span>{variant.variant_look?.label ?? variant.name ?? variant.id}</span><small>{variant.id}</small></button>)}</div>
         </article>)}</div>
       </section> : null}

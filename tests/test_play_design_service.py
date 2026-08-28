@@ -158,6 +158,8 @@ class PlayDesignServiceTests(unittest.TestCase):
         history = service.variant_batches(source_design_id=source["id"])
         self.assertEqual([item["id"] for item in history], [first["id"]])
         self.assertEqual(history[0]["variants"][0]["parent_design_id"], source["id"])
+        self.assertEqual(history[0]["review"]["ready_count"], 1)
+        self.assertTrue(history[0]["review"]["ready"])
         self.assertEqual(service.workspace()["variant_batches"][0]["id"], "VARIANT-BATCH-HISTORY-002")
 
     def test_batch_variants_apply_bounded_assignment_transformations(self):

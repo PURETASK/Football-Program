@@ -100,10 +100,11 @@ describe('TemplateLibraryPanel', () => {
     const user = userEvent.setup();
     const variant: PlayDesign = { ...DESIGN, id: 'PD-SAVED-VARIANT', variant_look: { label: 'Cover 3', patch: { coverage: 'cover_3' } } };
     const onOpenVariant = vi.fn();
-    render(<TemplateLibraryPanel templates={[]} design={DESIGN} variantBatches={[{ id: 'VARIANT-BATCH-SAVED-001', variants: [variant], count: 1, status: 'created', human_review_required: true }]} onApply={vi.fn()} onOpenVariant={onOpenVariant} />);
+    render(<TemplateLibraryPanel templates={[]} design={DESIGN} variantBatches={[{ id: 'VARIANT-BATCH-SAVED-001', variants: [variant], count: 1, status: 'created', human_review_required: true, review: { ready: true, ready_count: 1, blocked_count: 0 } }]} onApply={vi.fn()} onOpenVariant={onOpenVariant} />);
 
     expect(screen.getByText('Saved review sets')).toBeVisible();
     expect(screen.getByText('VARIANT-BATCH-SAVED-001')).toBeVisible();
+    expect(screen.getByText('1/1 ready for review')).toBeVisible();
     await user.click(screen.getByRole('button', { name: /Cover 3/ }));
     expect(onOpenVariant).toHaveBeenCalledWith('PD-SAVED-VARIANT');
   });
