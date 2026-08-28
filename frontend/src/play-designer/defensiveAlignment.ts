@@ -1,4 +1,4 @@
-import type { PlayAlignmentSlot, PlayPlayer } from '../types';
+import type { PlayAlignmentSlot, PlayDesign, PlayPlayer } from '../types';
 
 export const DEFENSIVE_TECHNIQUES = [
   ['0', '0-technique / head up center'], ['1', '1-technique / shaded center'], ['2i', '2i-technique / inside guard'],
@@ -37,4 +37,36 @@ export function defensiveSlotAlignmentPatch(slot: Pick<PlayAlignmentSlot, 'role'
   };
   const match = byRole[role];
   return match ? { defensive_technique: match.technique, defensive_alignment: match.alignment, alignment_key: slot.role } : {};
+}
+
+export interface DefensiveAlignmentIssue {
+  code: 'DUPLICATE_ALIGNMENT_SLOT' | 'TECHNIQUE_MISSING';
+  playerIds: string[];
+  message: string;
+  severity: 'warning' | 'error';
+}
+
+/** Explain front alignment defects before they become a confusing field picture. */
+export function defensiveAlignmentIssues(design: Pick<PlayDesign, 'unit' | 'players'>): DefensiveAlignmentIssue[] {
+  if (design.unit !== 'defense') return [];
+  const players = design.players ?? [];
+  const issues: DefensiveAlignmentIssue[] = [];
+  const bySlot = new Map<string, PlayPlayer[]>();
+  for (const player of players) {
+    if (!player.alignment_key) continue;
+    const group = bySlot.get(player.alignment_key) ?? [];
+    group.push(player);
+    bySlot.set(player.alignment_key, group);
+  }
+  for (const [slot, group] of bySlot) {
+    if (group.length > 1) issues.push({ code: 'DUPLICATE_ALIGNMENT_SLOT', playerIds: group.map((player) => player.id), message: `Alignment slot ${slot} is assigned to ${group.map((player) => player.position ?? player.id).join(' and ')}.`, severity: 'error' });
+  }
+  for (const player of players) {
+    const position = String(player.position ?? player.role ?? '').toUpperCase();
+    const frontPlayer = /^(DE|DT|NT|DL|EDGE|OLB|ILB|LB|MIKE|WILL|SAM|BUCK|JACK)$/.test(position);
+    if (frontPlayer && player.alignment_key && (!player.defensive_technique || !player.defensive_alignment)) {
+      issues.push({ code: 'TECHNIQUE_MISSING', playerIds: [player.id], message: `${player.position ?? player.id} has a front slot but no complete technique/alignment relationship.`, severity: 'warning' });
+    }
+  }
+  return issues;
 }

@@ -37,7 +37,7 @@ import { DesignerSectionGuide } from './DesignerSectionGuide';
 import { PositionToolkit } from './PositionToolkit';
 import { DEFENSIVE_GAP_OPTIONS, defensiveGapOwners } from './defensiveFront';
 import { routeCollisions } from './geometry';
-import { DEFENSIVE_ALIGNMENTS, DEFENSIVE_TECHNIQUES, defensiveAlignmentPatch } from './defensiveAlignment';
+import { DEFENSIVE_ALIGNMENTS, DEFENSIVE_TECHNIQUES, defensiveAlignmentIssues, defensiveAlignmentPatch } from './defensiveAlignment';
 import { CoverageShellEditor } from './CoverageShellEditor';
 import { rotationLabel } from './rotationSequencing';
 import { DEFENSIVE_EXCHANGE_ROLES, clearDefensiveExchangePairPatch, defensiveExchangePairPatch } from './defensiveExchanges';
@@ -148,8 +148,10 @@ function InspectorSection({ title, children }: { title: string; children: ReactN
 
 function DefensiveFrontMap({ design, onSelect }: Pick<InspectorProps, 'design' | 'onSelect'>) {
   const owners = defensiveGapOwners(design);
+  const alignmentIssues = defensiveAlignmentIssues(design);
   return <InspectorSection title="Defensive front map">
     <p className="inspector-help">Canonical gap ownership for the current front. Select an owned gap to jump to its assignment; duplicate/conflicting ownership is marked for review.</p>
+    {alignmentIssues.length ? <div className="inspector-diagnostic-list" role="alert" aria-label="Defensive alignment diagnostics"><strong>{alignmentIssues.length} alignment issue{alignmentIssues.length === 1 ? '' : 's'}</strong>{alignmentIssues.map((issue) => <button type="button" key={`${issue.code}-${issue.playerIds.join('-')}`} onClick={() => onSelect({ kind: 'player', id: issue.playerIds[0] })}>{issue.message}</button>)}</div> : null}
     <div className="defensive-front-map" role="group" aria-label="Defensive gap ownership map">
       {DEFENSIVE_GAP_OPTIONS.map(([value, label]) => {
         const owner = owners.get(value);
