@@ -14,7 +14,7 @@ import {
   WorkbenchStats,
   WorkbenchTabs,
 } from '../components/OperationalWorkbench';
-import { useOperationsInboxQuery } from '../hooks/useOperationalData';
+import { useMediaProcessingJobQuery, useOperationsInboxQuery } from '../hooks/useOperationalData';
 import { markOperationsNotificationsRead } from '../lib/api';
 import { compactValue, sentenceCase } from '../lib/format';
 import type { OperationsInboxItem } from '../types';
@@ -61,6 +61,7 @@ export function OperationsInboxPage() {
     );
   }, [data?.items, dueState, search, status, urgency]);
   const selected = items.find((item) => item.id === selectedId) ?? items[0];
+  const mediaJobDetailQuery = useMediaProcessingJobQuery(selected?.collection === 'media_processing_jobs' ? selected.record_id : '');
   const blockerCount = items.reduce((total, item) => total + item.blockers.length, 0);
   const evidenceCount = items.reduce((total, item) => total + item.evidence_refs.length, 0);
 
@@ -144,6 +145,7 @@ export function OperationsInboxPage() {
                       <div><p className="eyebrow">Evidence references</p><ul className="evidence-stack">{selected.evidence_refs.length ? selected.evidence_refs.map((ref) => <li key={ref}><strong>{ref}</strong><span>Supporting organization evidence</span></li>) : <li><strong>No evidence references</strong><span>Evidence may be available in the owning system.</span></li>}</ul></div>
                     </div>
                     {selected.last_error ? <div className="approval-boundary"><strong>{selected.last_error.code || 'Media processing error'}</strong> · {selected.last_error.message || 'Review this job in Film Room.'}{selected.next_action ? ` Next action: ${sentenceCase(selected.next_action)}.` : ''}</div> : null}
+                    {selected.collection === 'media_processing_jobs' ? <div className="workbench-pane workbench-pane--soft operations-inbox__media-detail"><div className="workbench-pane__header"><div><h4>Processing lifecycle</h4><p>Authoritative history loaded from the organization media store.</p></div></div>{mediaJobDetailQuery.isLoading ? <p className="workbench-form__hint">Loading job history…</p> : mediaJobDetailQuery.error ? <p className="approval-boundary">Detailed history is unavailable. The persisted inbox summary remains available.</p> : mediaJobDetailQuery.data ? <div className="operations-inbox__media-detail-grid"><div><strong>Job status</strong><span>{mediaJobDetailQuery.data.job.status || 'unknown'} · {mediaJobDetailQuery.data.job.attempt ?? 0} attempt{mediaJobDetailQuery.data.job.attempt === 1 ? '' : 's'}</span></div><div><strong>Outputs</strong><span>{mediaJobDetailQuery.data.outputs.length} persisted output{mediaJobDetailQuery.data.outputs.length === 1 ? '' : 's'}</span></div><div><strong>Worker batches</strong><span>{mediaJobDetailQuery.data.batches.length} batch record{mediaJobDetailQuery.data.batches.length === 1 ? '' : 's'}</span></div></div> : null}</div> : null}
                   </RecordInspector>
                 ) : <div className="record-list__empty">No operational item selected.</div>}
               </div>

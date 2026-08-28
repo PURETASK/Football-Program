@@ -9,6 +9,7 @@ import {
   fetchCollaborationStream,
   fetchFilmWorkspace,
   fetchMediaProcessingJobs,
+  fetchMediaProcessingJob,
   fetchGamePlanData,
   fetchGamePlanReleaseRoom,
   fetchAnalyticsWorkspace,
@@ -130,6 +131,16 @@ export function useMediaProcessingJobsQuery(status = '', enabled = true) {
     queryFn: ({ signal }) => fetchMediaProcessingJobs(session!, status, signal),
     enabled: Boolean(session && enabled),
     staleTime: 10_000,
+  });
+}
+
+export function useMediaProcessingJobQuery(jobId = '', enabled = true) {
+  const { session } = useSession();
+  return useQuery({
+    queryKey: ['media-processing-job', session?.organizationId, jobId],
+    queryFn: ({ signal }) => fetchMediaProcessingJob(session!, jobId, signal),
+    enabled: Boolean(session && jobId && enabled),
+    staleTime: 5_000,
   });
 }
 
