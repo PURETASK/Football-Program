@@ -183,7 +183,7 @@ def handle_request(*, method: str, path: str, body: dict[str, Any] | None = None
     query = parse_qs(parsed.query)
     # Structured play designs use a separate route from the legacy minimum play record.
     extra_post_routes = {"/v1/playbook/designs", "/v1/playbook/designs/validate", "/v1/playbook/designs/templates", "/v1/playbook/designs/variants", "/v1/playbook/designs/request-review", "/v1/playbook/designs/publish", "/v1/playbook/designs/branch", "/v1/playbook/designs/versioning/merge", "/v1/playbook/designs/versioning/rollback", "/v1/playbook/designs/mastery", "/v1/playbook/designs/quiz", "/v1/playbook/designs/export/preflight", "/v1/playbook/designs/export", "/v1/playbook/designs/legality/override", "/v1/playbook/designs/legality/override/approve", "/v1/playbook/designs/comments", "/v1/playbook/designs/comments/reply", "/v1/playbook/designs/comments/resolve", "/v1/playbook/designs/presence", "/v1/playbook/designs/presence/leave", "/v1/playbook/designs/assets/lifecycle", "/v1/playbook/designs/assets/migrate"}
-    post_routes = {"/v1/plays/compile", "/v1/workflows/core-play", "/v1/workflows/evidence-intelligence", "/v1/workflows/weekly-delivery", "/v1/film/observations", "/v1/film/quizzes", "/v1/film/playlists", "/v1/media/assets", "/v1/media/clips", "/v1/media/jobs", "/v1/media/retention-scan", "/v1/media/retention-execute", "/v1/media/transform-batch", "/v1/media/worker/run", "/v1/sources", "/v1/sources/authorized", "/v1/player/assignments", "/v1/practice/plans", "/v1/practice/drill-validation", "/v1/practice/drill-validation/approve", "/v1/practice/resources/preflight", "/v1/performance/batches", "/v1/performance/organization-package", "/v1/performance/organization-package/approve", "/v1/playbook/drafts", "/v1/playbook/drafts/request-approval", "/v1/playbook/drafts/approve", "/v1/playbook/organization-corpus", "/v1/playbook/organization-corpus/approve", "/v1/game-plan/threads", "/v1/game-plan/threads/comments", "/v1/game-plan/threads/resolve", "/v1/game-plan/organization-package", "/v1/game-plan/organization-package/approve", "/v1/schemes", "/v1/schemes/organization-doctrine", "/v1/schemes/organization-doctrine/approve", "/v1/staff/organization-review", "/v1/staff/organization-review/approve", "/v1/player-development/organization-package", "/v1/player-development/organization-package/approve", "/v1/analytics/batches", "/v1/analytics/reports", "/v1/analytics/organization-package", "/v1/analytics/organization-package/approve", "/v1/scouting/reports", "/v1/scouting/organization-package", "/v1/scouting/organization-package/approve", "/v1/special-teams/organization-package", "/v1/special-teams/organization-package/approve", "/v1/media/organization-review", "/v1/media/organization-review/approve", "/v1/integrations/provider-adapter", "/v1/integrations/provider-adapter/approve", "/v1/playbook/visuals", "/v1/film/annotation-sessions", "/v1/ontology/team-aliases", "/v1/delivery/pilot-readiness", "/v1/delivery/pilot-organization", "/v1/delivery/pilot-package", "/v1/organizations/context", "/v1/organizations/context/approve", "/v1/organizations/operating-bundle", "/v1/organizations/operating-bundle/approve", "/v1/control/stage-0-approval", "/v1/control/stage-25-acceptance", "/v1/governance/inbox/review", "/v1/ux/usability-feedback", "/v1/agents/runs"}
+    post_routes = {"/v1/plays/compile", "/v1/workflows/core-play", "/v1/workflows/evidence-intelligence", "/v1/workflows/weekly-delivery", "/v1/film/observations", "/v1/film/quizzes", "/v1/film/playlists", "/v1/media/assets", "/v1/media/clips", "/v1/media/jobs", "/v1/media/retention-scan", "/v1/media/retention-execute", "/v1/media/transform-batch", "/v1/media/worker/run", "/v1/sources", "/v1/sources/authorized", "/v1/player/assignments", "/v1/practice/plans", "/v1/practice/drill-validation", "/v1/practice/drill-validation/approve", "/v1/practice/resources/preflight", "/v1/performance/batches", "/v1/performance/organization-package", "/v1/performance/organization-package/approve", "/v1/playbook/drafts", "/v1/playbook/drafts/request-approval", "/v1/playbook/drafts/approve", "/v1/playbook/organization-corpus", "/v1/playbook/organization-corpus/approve", "/v1/game-plan/threads", "/v1/game-plan/threads/comments", "/v1/game-plan/threads/resolve", "/v1/game-plan/organization-package", "/v1/game-plan/organization-package/approve", "/v1/schemes", "/v1/schemes/organization-doctrine", "/v1/schemes/organization-doctrine/approve", "/v1/staff/organization-review", "/v1/staff/organization-review/approve", "/v1/player-development/organization-package", "/v1/player-development/organization-package/approve", "/v1/analytics/batches", "/v1/analytics/reports", "/v1/analytics/organization-package", "/v1/analytics/organization-package/approve", "/v1/scouting/reports", "/v1/scouting/organization-package", "/v1/scouting/organization-package/approve", "/v1/special-teams/organization-package", "/v1/special-teams/organization-package/approve", "/v1/media/organization-review", "/v1/media/organization-review/approve", "/v1/integrations/provider-adapter", "/v1/integrations/provider-adapter/approve", "/v1/playbook/visuals", "/v1/film/annotation-sessions", "/v1/ontology/team-aliases", "/v1/delivery/pilot-readiness", "/v1/delivery/pilot-organization", "/v1/delivery/pilot-package", "/v1/organizations/context", "/v1/organizations/context/approve", "/v1/organizations/operating-bundle", "/v1/organizations/operating-bundle/approve", "/v1/control/stage-0-approval", "/v1/control/stage-25-acceptance", "/v1/governance/inbox/review", "/v1/ux/usability-feedback", "/v1/agents/runs", "/v1/playbook/designs/templates/lineage-proposal", "/v1/playbook/designs/templates/lineage-proposal/approve"}
     post_routes.add("/v1/operations/inbox/notifications/read")
     post_routes.add("/v1/film/voice-notes")
     post_routes.add("/v1/practice/attendance")
@@ -213,6 +213,36 @@ def handle_request(*, method: str, path: str, body: dict[str, Any] | None = None
         if parsed.path.endswith("/assets"):
             return 200, _response("ok", {"assets": registry.assets(unit=query.get("unit", [None])[0], kind=query.get("kind", [None])[0], category=query.get("category", [None])[0], query=query.get("q", [None])[0], status=query.get("status", [None])[0], formation=query.get("formation", [None])[0], context_formation=query.get("context_formation", [None])[0], personnel=query.get("personnel", [None])[0], rule_profile=query.get("rule_profile", [None])[0])})
         return 200, _response("ok", {"templates": registry.templates(unit=query.get("unit", [None])[0])})
+    if parsed.path == "/v1/playbook/designs/templates/lineage-proposal" and method.upper() == "POST":
+        required = ("organization_id", "template_id", "patches")
+        missing = [field for field in required if not body.get(field)]
+        if missing:
+            return 400, _response("error", None, f"Missing required fields: {', '.join(missing)}")
+        service = service or FootballIntelligenceService(JsonRepository(Path.cwd() / ".runtime" / "core-slice-state.json"))
+        principal, denial = _authenticated(headers, action="draft_play", organization_id=body["organization_id"])
+        if denial:
+            return denial
+        try:
+            proposal = _play_designs(service, organization_id=principal.organization_id, actor=principal.subject).propose_template_lineage_update(body["template_id"], patches=body["patches"], actor=principal.subject)
+        except (KeyError, TypeError, ValueError) as exc:
+            return 422, _response("invalid", None, str(exc))
+        return 201, _response("ok", proposal)
+    if parsed.path == "/v1/playbook/designs/templates/lineage-proposal/approve" and method.upper() == "POST":
+        required = ("organization_id", "proposal_id", "decision_ref")
+        missing = [field for field in required if not body.get(field)]
+        if missing:
+            return 400, _response("error", None, f"Missing required fields: {', '.join(missing)}")
+        service = service or FootballIntelligenceService(JsonRepository(Path.cwd() / ".runtime" / "core-slice-state.json"))
+        principal, denial = _authenticated(headers, action="approve_change", organization_id=body["organization_id"])
+        if denial:
+            return denial
+        if principal.role != "program_owner":
+            return 403, _response("error", None, "Only a program_owner may approve template lineage changes")
+        try:
+            result = _play_designs(service, organization_id=principal.organization_id, actor=principal.subject).approve_template_lineage_update(body["proposal_id"], decision_ref=body["decision_ref"], actor=principal.subject)
+        except (KeyError, TypeError, ValueError) as exc:
+            return 422, _response("invalid", None, str(exc))
+        return 200, _response("ok", result)
     if parsed.path == "/v1/playbook/designs/templates" and method.upper() == "POST":
         required = ("organization_id", "design_id", "name")
         missing = [field for field in required if not body.get(field)]

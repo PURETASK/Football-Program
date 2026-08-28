@@ -123,6 +123,13 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertTrue(report["propagation_required"])
         self.assertFalse(report["mutated"])
         self.assertIn(parent["id"], {item["id"] for item in service.templates()})
+        proposal = service.propose_template_lineage_update(parent["id"], patches=[{"key": parent["assignments"][0]["key"], "patch": {"type": "corner"}}], actor="coach")
+        self.assertEqual(proposal["status"], "pending_owner_approval")
+        approved = service.approve_template_lineage_update(proposal["id"], decision_ref="DEC-TEMPLATE-LINEAGE-001", actor="owner")
+        self.assertEqual(approved["status"], "approved_and_applied")
+        self.assertTrue(approved["mutated"])
+        self.assertIn(child["id"], approved["propagated_template_ids"])
+        self.assertEqual(service.repository.get("play_design_templates", child["id"])["inherited_assignments"][0]["type"], "corner")
 
     def test_batch_variants_are_draft_children_with_look_lineage(self):
         service = self.service()

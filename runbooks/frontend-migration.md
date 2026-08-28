@@ -232,3 +232,12 @@ and descendant packages, reports inheritance depth, inherited assignment
 counts, local override fields, and whether governed propagation would be
 required. Requesting the report has `mutated: false`; no parent edits,
 propagation, version changes, or approvals occur implicitly.
+
+Governed lineage propagation addendum (2026-08-28): organization-owned child
+templates can now receive bounded semantic change proposals. A proposal stores
+the source fingerprint, exact assignment-key patches, descendant impact, and
+pending-owner status. Program-owner approval rechecks the fingerprint, applies
+allowlisted fields, bumps the parent version, refreshes inherited snapshots
+through descendants, preserves local child assignments, marks affected active
+packages for review, and records the propagated IDs. System templates remain
+immutable through this workflow.

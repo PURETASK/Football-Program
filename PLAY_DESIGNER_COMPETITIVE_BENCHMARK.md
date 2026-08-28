@@ -257,6 +257,17 @@ allows a coordinator to express a controlled answer adjustment without
 silently inventing football semantics; server legality and human approval still
 govern the resulting child designs.
 
+Governed lineage propagation addendum — 2026-08-28: organization-owned child
+templates can now receive a bounded semantic change proposal against a stable
+assignment key. A coach submits the proposal with an immutable source
+fingerprint and the system records a read-only impact report; a separate
+program-owner approval is required. Approval rechecks the fingerprint, bumps
+the parent version, applies only the allowlisted fields, refreshes inherited
+assignment snapshots through descendants, preserves child-local assignments,
+marks affected active packages for review, and records every propagated ID in
+the proposal audit record. System templates cannot be mutated through this
+workflow.
+
 ## Template lineage review addendum — 2026-08-28
 
 The Concepts panel now exposes a pre-application inheritance review for child

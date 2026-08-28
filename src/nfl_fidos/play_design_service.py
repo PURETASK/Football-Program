@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -23,6 +24,11 @@ def _clean_required_text(value: Any, field: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"{field} is required")
     return value.strip()
+
+
+def _template_fingerprint(template: dict[str, Any]) -> str:
+    payload = json.dumps(template, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 def _parse_expiry(value: Any) -> datetime:
@@ -353,6 +359,122 @@ class PlayDesignService:
             "propagation_required": bool(impacted),
             "mutated": False,
         }
+
+    def propose_template_lineage_update(self, template_id: str, *, patches: list[dict[str, Any]], actor: str) -> dict[str, Any]:
+        """Create an owner-approved proposal to change an organization template."""
+        templates = self.templates()
+        template = next((item for item in templates if str(item.get("id")) == str(template_id)), None)
+        if template is None:
+            raise KeyError(f"Unknown template: {template_id}")
+        if template.get("scope") != "organization" or template.get("organization_id") != self.repository.organization_id:
+            raise ValueError("Only organization-owned templates can be changed through lineage proposals")
+        if not isinstance(patches, list) or not patches or len(patches) > 64:
+            raise ValueError("patches must contain between 1 and 64 changes")
+        allowed = {"kind", "type", "arrow_style", "assignment", "responsibility", "objective", "technique", "landmark", "depth_yards", "leverage", "gap", "fit_gap", "zone", "coverage", "phase", "read_key", "read_prompt", "exclusive_assignment", "asset_id", "start_ms", "end_ms", "timing", "points", "depends_on", "exchange_with", "target_element_key"}
+        by_key = {str(item.get("key")): item for item in template.get("assignments", []) if isinstance(item, dict) and item.get("key")}
+        normalized: list[dict[str, Any]] = []
+        for index, item in enumerate(patches, start=1):
+            if not isinstance(item, dict) or not isinstance(item.get("key"), str) or not item["key"].strip():
+                raise ValueError(f"patch {index} requires an assignment key")
+            key = item["key"].strip()
+            if key not in by_key:
+                raise ValueError(f"patch {index} targets unknown assignment key: {key}")
+            patch = item.get("patch")
+            if not isinstance(patch, dict) or not patch:
+                raise ValueError(f"patch {index} requires a non-empty patch object")
+            unknown = sorted(set(patch) - allowed)
+            if unknown:
+                raise ValueError(f"patch {index} contains unsupported fields: {', '.join(unknown)}")
+            normalized.append({"key": key, "patch": deepcopy(patch)})
+        impact = self.template_lineage_impact(template_id)
+        proposal_number = len(self.repository.list("play_design_template_change_proposals")) + 1
+        proposal = {
+            "id": f"TPL-PROP-{template_id}-{proposal_number:03d}",
+            "organization_id": self.repository.organization_id,
+            "template_id": str(template_id),
+            "template_name": template.get("name"),
+            "source_fingerprint": _template_fingerprint(template),
+            "source_version": template.get("version", "1.0.0"),
+            "patches": normalized,
+            "impact": impact,
+            "status": "pending_owner_approval",
+            "approval_required": True,
+            "requested_by": actor,
+            "mutated": False,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        return self.repository.put("play_design_template_change_proposals", proposal["id"], proposal, actor=actor, reason="template_lineage_change_proposed")
+
+    def approve_template_lineage_update(self, proposal_id: str, *, decision_ref: str, actor: str) -> dict[str, Any]:
+        proposal = self.repository.get("play_design_template_change_proposals", proposal_id)
+        if proposal is None:
+            raise KeyError(f"Unknown template change proposal: {proposal_id}")
+        if proposal.get("status") != "pending_owner_approval":
+            raise ValueError("Only a pending template change proposal can be approved")
+        decision = _clean_required_text(decision_ref, "decision_ref")
+        template_id = str(proposal.get("template_id"))
+        template = self.repository.get("play_design_templates", template_id)
+        if template is None or template.get("organization_id") != self.repository.organization_id:
+            raise KeyError("Template is no longer available in this organization")
+        if _template_fingerprint(template) != proposal.get("source_fingerprint"):
+            raise ValueError("Template changed after proposal creation; create a new impact report and proposal")
+        by_key = {str(item.get("key")): item for item in template.get("assignments", []) if isinstance(item, dict) and item.get("key")}
+        for item in proposal.get("patches", []):
+            by_key[str(item["key"])].update(deepcopy(item["patch"]))
+        template["assignments"] = list(by_key.values())
+        template["version"] = bump_version(str(template.get("version", "1.0.0")))
+        template["status"] = "review"
+        template["last_change_proposal_id"] = proposal_id
+        template["last_change_decision_ref"] = decision
+        updated = self.repository.put("play_design_templates", template_id, template, actor=actor, reason="template_lineage_change_approved")
+        current_templates = self.templates()
+        by_id = {str(item.get("id")): item for item in current_templates if item.get("id")}
+
+        def effective(item: dict[str, Any], seen: set[str] | None = None) -> dict[str, dict[str, Any]]:
+            seen = set(seen or ())
+            item_id = str(item.get("id", ""))
+            if item_id in seen:
+                return {}
+            seen.add(item_id)
+            parent = by_id.get(str(item.get("parent_template_id"))) if item.get("parent_template_id") else None
+            result = effective(parent, seen) if parent else {}
+            for assignment in item.get("assignments", []):
+                if isinstance(assignment, dict) and assignment.get("key"):
+                    result[str(assignment["key"])] = deepcopy(assignment)
+            return result
+
+        propagated_ids: list[str] = []
+        queue = [template_id]
+        visited = {template_id}
+        while queue:
+            parent_id = queue.pop(0)
+            parent_record = by_id.get(parent_id)
+            if parent_record is None:
+                continue
+            parent_effective = effective(parent_record)
+            for child in current_templates:
+                child_id = str(child.get("id", ""))
+                if str(child.get("parent_template_id", "")) != parent_id or child_id in visited:
+                    continue
+                visited.add(child_id)
+                if child.get("scope") == "organization" and child.get("organization_id") == self.repository.organization_id:
+                    child["inherited_assignments"] = list(parent_effective.values())
+                    child["lineage_source_version"] = parent_record.get("version", "1.0.0")
+                    child["last_lineage_propagation_proposal_id"] = proposal_id
+                    if child.get("status") in {"active", "approved"}:
+                        child["status"] = "review"
+                    self.repository.put("play_design_templates", child_id, child, actor=actor, reason="template_lineage_change_propagated")
+                    propagated_ids.append(child_id)
+                by_id[child_id] = child
+                queue.append(child_id)
+        proposal["status"] = "approved_and_applied"
+        proposal["approved_by"] = actor
+        proposal["approval_decision_ref"] = decision
+        proposal["approved_at"] = datetime.now(timezone.utc).isoformat()
+        proposal["mutated"] = True
+        proposal["updated_template_version"] = updated.get("version")
+        proposal["propagated_template_ids"] = propagated_ids
+        return self.repository.put("play_design_template_change_proposals", proposal_id, proposal, actor=actor, reason="template_lineage_change_recorded")
 
     def create_template(self, design_id: str, *, name: str, actor: str, description: str = "", tags: list[str] | None = None, template_kind: str = "custom", layer: str = "complete_call", element_ids: list[str] | None = None, parent_template_id: str | None = None) -> dict[str, Any]:
         """Capture a saved play or selected assignment stencil as a reusable template."""
