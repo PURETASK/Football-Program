@@ -378,6 +378,15 @@ export function elementProgress(element: PlayElement, timeMs: number, durationMs
   const end = Number(element.end_ms ?? element.timing?.end_ms ?? durationMs);
   if (timeMs <= start) return 0;
   if (timeMs >= end) return 1;
+  const phases = element.timing?.phases?.filter((phase) => Number.isFinite(phase.start_ms) && Number.isFinite(phase.end_ms) && phase.end_ms > phase.start_ms);
+  if (phases?.length) {
+    const phaseIndex = phases.findIndex((phase) => timeMs >= phase.start_ms && timeMs <= phase.end_ms);
+    if (phaseIndex >= 0) {
+      const phase = phases[phaseIndex];
+      const phaseProgress = (timeMs - phase.start_ms) / Math.max(1, phase.end_ms - phase.start_ms);
+      return clamp((phaseIndex + clamp(phaseProgress, 0, 1)) / phases.length, 0, 1);
+    }
+  }
   return (timeMs - start) / Math.max(1, end - start);
 }
 

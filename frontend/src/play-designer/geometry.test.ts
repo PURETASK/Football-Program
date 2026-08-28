@@ -27,6 +27,18 @@ describe('play designer geometry', () => {
     expect(elementProgress(element, 3000, 3000)).toBe(1);
   });
 
+  it('maps playback progress through authored phases for visible route teaching', () => {
+    const element: PlayElement = { id: 'PHASED', kind: 'route', start_ms: 0, end_ms: 2000, timing: { start_ms: 0, end_ms: 2000, phases: [
+      { id: 'release', start_ms: 0, end_ms: 300 },
+      { id: 'stem', start_ms: 300, end_ms: 1400 },
+      { id: 'break', start_ms: 1400, end_ms: 1700 },
+      { id: 'finish', start_ms: 1700, end_ms: 2000 },
+    ] } };
+    expect(elementProgress(element, 300, 2000)).toBeCloseTo(0.25);
+    expect(elementProgress(element, 1400, 2000)).toBeCloseTo(0.5);
+    expect(elementProgress(element, 1550, 2000)).toBeCloseTo(0.625);
+  });
+
   it('detects paths that cross a marquee even when their handles sit outside it', () => {
     const rect = fieldRect({ x: 20, y: 20 }, { x: 30, y: 30 });
     expect(pathIntersectsRect([{ x: 10, y: 25 }, { x: 40, y: 25 }], rect)).toBe(true);
