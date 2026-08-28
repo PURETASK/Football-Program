@@ -225,3 +225,10 @@ assignments, child additions, and exact local override fields; the report is
 derived from the same resolver used by preview and materialization. This is a
 local review aid and does not propagate parent edits or bypass organization
 approval, legality, version, or release controls.
+
+Template lineage impact addendum (2026-08-28): the organization-scoped API
+now exposes a read-only lineage impact report for a template. It walks child
+and descendant packages, reports inheritance depth, inherited assignment
+counts, local override fields, and whether governed propagation would be
+required. Requesting the report has `mutated: false`; no parent edits,
+propagation, version changes, or approvals occur implicitly.

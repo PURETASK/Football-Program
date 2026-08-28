@@ -283,6 +283,77 @@ class PlayDesignService:
         templates = [*system_templates, *organization_templates]
         return [deepcopy(template) for template in templates if not unit or template.get("unit") == unit]
 
+    def template_lineage_impact(self, template_id: str) -> dict[str, Any]:
+        """Report descendants and inherited fields affected by a parent change.
+
+        This is intentionally read-only. Parent edits or propagation require a
+        separate governed workflow and are never performed as a side effect of
+        requesting the report.
+        """
+        templates = self.templates()
+        by_id = {str(item.get("id")): item for item in templates if item.get("id")}
+        target = by_id.get(str(template_id))
+        if target is None:
+            raise KeyError(f"Unknown template: {template_id}")
+
+        def resolved(template: dict[str, Any], seen: set[str] | None = None) -> dict[str, dict[str, Any]]:
+            seen = set(seen or ())
+            current_id = str(template.get("id", ""))
+            if current_id in seen:
+                return {}
+            seen.add(current_id)
+            parent = by_id.get(str(template.get("parent_template_id"))) if template.get("parent_template_id") else None
+            output = resolved(parent, seen) if parent else {}
+            for assignment in template.get("assignments", []):
+                if isinstance(assignment, dict) and assignment.get("key"):
+                    output[str(assignment["key"])] = deepcopy(assignment)
+            return output
+
+        def changed_fields(before: dict[str, Any], after: dict[str, Any]) -> list[str]:
+            return sorted({*before.keys(), *after.keys()} - {"key"}, key=str)
+
+        impacted: list[dict[str, Any]] = []
+        queue: list[tuple[str, int]] = [(str(target["id"]), 0)]
+        visited = {str(target["id"])}
+        while queue:
+            parent_id, depth = queue.pop(0)
+            parent = by_id[parent_id]
+            parent_effective = resolved(parent)
+            for child in templates:
+                child_id = str(child.get("id", ""))
+                if str(child.get("parent_template_id", "")) != parent_id or child_id in visited:
+                    continue
+                visited.add(child_id)
+                child_effective = resolved(child)
+                local_by_key = {str(item.get("key")): item for item in child.get("assignments", []) if isinstance(item, dict) and item.get("key")}
+                inherited_keys = sorted(set(parent_effective) & set(child_effective))
+                overridden = []
+                for key in inherited_keys:
+                    if key in local_by_key:
+                        fields = [field for field in changed_fields(parent_effective[key], local_by_key[key]) if parent_effective[key].get(field) != local_by_key[key].get(field)]
+                        if fields:
+                            overridden.append({"key": key, "fields": fields})
+                impacted.append({
+                    "template_id": child_id,
+                    "name": child.get("name"),
+                    "depth": depth + 1,
+                    "status": child.get("status", "active"),
+                    "inherited_assignment_count": len(inherited_keys),
+                    "local_override_count": len(overridden),
+                    "overrides": overridden,
+                    "propagation_required": True,
+                })
+                queue.append((child_id, depth + 1))
+        return {
+            "template_id": str(target["id"]),
+            "template_name": target.get("name"),
+            "organization_id": self.repository.organization_id,
+            "dependent_count": len(impacted),
+            "dependents": impacted,
+            "propagation_required": bool(impacted),
+            "mutated": False,
+        }
+
     def create_template(self, design_id: str, *, name: str, actor: str, description: str = "", tags: list[str] | None = None, template_kind: str = "custom", layer: str = "complete_call", element_ids: list[str] | None = None, parent_template_id: str | None = None) -> dict[str, Any]:
         """Capture a saved play or selected assignment stencil as a reusable template."""
         design = self.repository.get("play_designs", design_id)

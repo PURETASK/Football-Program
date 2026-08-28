@@ -140,7 +140,8 @@ defensive-authoring, timeline, API, and export tests:
 - Multi-track timeline controls for phases, markers, narration, ball events,
   reads, exchanges, rotations, playback speed, and pause cues.
 
-The remaining benchmark gaps are narrower and still active: true multi-user
+The remaining benchmark gaps are narrower and still active: governed parent
+change propagation (the current impact report is read-only), true multi-user
 edit convergence under concurrent mutations, complete provider-grade export
 layout/device certification, authoritative depth for every supported rule
 profile, automated browser visual/screen-reader/tablet traces, and moderated
@@ -185,9 +186,9 @@ package as its parent. The saved child records `parent_template_id` and a
 resolved `inherited_assignments` payload; child assignments take precedence
 by assignment key during materialization. The library displays the inherited
 parent so a coach can distinguish a reusable variation from an unrelated
-copy. This establishes traceable parent reuse while leaving visual local
-override diffs, parent-change propagation, and multi-look batch generation
-for the next slice. Verification for this slice is 166 frontend tests and 24
+copy. This establishes traceable parent reuse while leaving parent-change
+propagation and multi-look batch generation for the next slice. Verification
+for this slice is 166 frontend tests and 24
 focused Play Designer backend/API tests, with typecheck and production build
 passing locally.
 

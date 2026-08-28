@@ -104,6 +104,26 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertEqual(child["parent_template_id"], parent["id"])
         self.assertEqual(len(child["inherited_assignments"]), len(parent["assignments"]))
 
+    def test_template_lineage_impact_is_read_only_and_lists_descendants(self):
+        service = self.service()
+        candidate = design()
+        candidate["elements"][0]["id"] = "E-LINEAGE"
+        saved = service.save(design=candidate, actor="coach")
+        parent = service.create_template(saved["id"], name="Base package", actor="coach")
+        child_candidate = deepcopy(candidate)
+        child_candidate["id"] = "DESIGN-LINEAGE-CHILD"
+        child_candidate["elements"][0]["type"] = "corner"
+        child_saved = service.save(design=child_candidate, actor="coach")
+        child = service.create_template(child_saved["id"], name="Child variation", actor="coach", parent_template_id=parent["id"])
+        report = service.template_lineage_impact(parent["id"])
+        self.assertEqual(report["dependent_count"], 1)
+        self.assertEqual(report["dependents"][0]["template_id"], child["id"])
+        self.assertEqual(report["dependents"][0]["local_override_count"], 1)
+        self.assertIn("type", report["dependents"][0]["overrides"][0]["fields"])
+        self.assertTrue(report["propagation_required"])
+        self.assertFalse(report["mutated"])
+        self.assertIn(parent["id"], {item["id"] for item in service.templates()})
+
     def test_batch_variants_are_draft_children_with_look_lineage(self):
         service = self.service()
         candidate = design()
