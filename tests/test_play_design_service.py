@@ -44,6 +44,13 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertEqual(len(dagger["alignment"]["slots"]), 11)
         self.assertEqual(dagger["template_kind"], "concept_layer")
         self.assertTrue(any("jet" in alias for item in service.assets(query="jet") for alias in item.get("aliases", [])))
+        templates = {item["id"]: item for item in service.templates()}
+        self.assertTrue({"TPL-OFF-EMPTY-QUICK", "TPL-OFF-COUNTER-GT", "TPL-DEF-TEX-ET"}.issubset(templates))
+        self.assertEqual(templates["TPL-OFF-EMPTY-QUICK"]["formation"], "shotgun_empty")
+        self.assertEqual(templates["TPL-OFF-COUNTER-GT"]["assignments"][1]["type"], "pull")
+        tex = templates["TPL-DEF-TEX-ET"]
+        self.assertEqual(tex["assignments"][0]["partner_id"], "DE-L-ET")
+        self.assertEqual(tex["assignments"][1]["exchange_role"], "looper")
 
     def test_professional_asset_registry_contract_is_complete_and_unique(self):
         report = validate_asset_registry(load_asset_registry())

@@ -185,3 +185,11 @@ sprint-out offensive variations. Registry validation confirms unique IDs and ter
 accessibility metadata, lifecycle metadata, and replacement safety. The
 existing palette, compatibility scoring, alias search, lifecycle filtering,
 thumbnails, templates, and position toolkit consume the same registry.
+
+Concept template addendum (2026-08-28): the reusable system template catalog now
+contains 11 approved concept/protection/coverage/pressure templates. The new
+templates add Empty Quick Choice, Counter GT, and TEX / ET Exchange with
+assignments, partner-aware exchange fields, timing markers, coaching points,
+situation tags, and companion-layer metadata. Template loading and materializer
+tests confirm these entries are available to the organization-scoped editor;
+organization-specific templates remain separately persisted and governed.

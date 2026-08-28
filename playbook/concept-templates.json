@@ -114,6 +114,46 @@
         {"key": "DT-R-RUSH", "slot": "DT-R", "kind": "rush", "type": "penetrate", "arrow_style": "rush", "objective": "Compress the opposite A gap", "gap": "A", "points": [{"dx": 0, "dy": 0}, {"dx": -3, "dy": 11}], "timing": {"start_ms": 0, "end_ms": 1400}},
         {"key": "DE-R-RUSH", "slot": "DE-R", "kind": "rush", "type": "contain", "arrow_style": "rush", "objective": "Close the launch point", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": 13}], "timing": {"start_ms": 0, "end_ms": 1550}}
       ]
+    },
+    {
+      "id": "TPL-OFF-EMPTY-QUICK", "name": "Empty Quick Choice", "unit": "offense", "template_kind": "complete_call", "layer": "route_concept", "formation": "shotgun_empty", "personnel": "10", "concept": "Empty Quick Choice", "version": "1.0.0", "status": "approved", "scope": "system",
+      "description": "Empty spacing with a choice route, quick access throws, and a QB draw constraint.", "tags": ["empty", "quick-game", "choice"], "situations": ["3rd-and-short", "two-minute"], "expected_companion_layers": ["protection"],
+      "coaching_points": ["Confirm the box count before the cadence.", "Choice receiver declares leverage before the snap and throttles versus zone."],
+      "timeline": {"duration_ms": 2100, "markers": [{"id": "EMPTY-COUNT", "label": "Count the box", "kind": "read", "ms": -250}, {"id": "EMPTY-CHOICE", "label": "Choice window", "kind": "cue", "ms": 850}]},
+      "assignments": [
+        {"key": "X-CHOICE", "slot": "X", "kind": "route", "type": "choice", "arrow_style": "route", "objective": "Win leverage with an option break", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -8}, {"dx": 12, "dy": -10}], "timing": {"start_ms": 0, "end_ms": 1500}},
+        {"key": "H-SLANT", "slot": "H", "kind": "route", "type": "slant", "arrow_style": "route", "objective": "Replace the apex defender", "points": [{"dx": 0, "dy": 0}, {"dx": -2, "dy": -8}, {"dx": -12, "dy": -11}], "timing": {"start_ms": 0, "end_ms": 1150}},
+        {"key": "Y-OUT", "slot": "Y", "kind": "route", "type": "out", "arrow_style": "route", "objective": "Stretch the curl defender", "depth_yards": 6, "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -6}, {"dx": 12, "dy": -6}], "timing": {"start_ms": 0, "end_ms": 1050}},
+        {"key": "Z-GO", "slot": "Z", "kind": "route", "type": "go", "arrow_style": "route", "objective": "Clear the corner", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -24}], "timing": {"start_ms": 0, "end_ms": 2200}},
+        {"key": "RB-SWING", "slot": "RB", "kind": "route", "type": "swing", "arrow_style": "route", "objective": "Create the outlet and widen the fit", "points": [{"dx": 0, "dy": 0}, {"dx": 12, "dy": -4}], "timing": {"start_ms": 150, "end_ms": 1150}},
+        {"key": "QB-BOX-READ", "slot": "QB", "kind": "read", "type": "box_count", "objective": "Throw access or run the box count", "read_key": "six-man box", "target_element_key": "X-CHOICE", "timing": {"start_ms": 0, "end_ms": 1100}}
+      ]
+    },
+    {
+      "id": "TPL-OFF-COUNTER-GT", "name": "Counter GT", "unit": "offense", "template_kind": "complete_call", "layer": "run_concept", "formation": "pistol", "personnel": "11", "concept": "Counter GT", "version": "1.0.0", "status": "approved", "scope": "system",
+      "description": "Backfield counter action with a guard-tackle pull and split-flow constraint.", "tags": ["gap", "counter", "pullers"], "situations": ["early-down", "short-yardage"], "expected_companion_layers": ["protection"],
+      "coaching_points": ["Backfield action must sell the opposite direction.", "Pullers stay square and identify the first color in the alley."],
+      "timeline": {"duration_ms": 1800, "markers": [{"id": "COUNTER-MESH", "label": "Counter mesh", "kind": "handoff", "ms": 400}, {"id": "COUNTER-POINT", "label": "Pullers arrive", "kind": "cue", "ms": 1050}]},
+      "assignments": [
+        {"key": "RB-COUNTER", "slot": "RB", "kind": "run", "type": "counter", "arrow_style": "run", "objective": "Sell flow away, then press the pullers", "points": [{"dx": 0, "dy": 0}, {"dx": 7, "dy": 3}, {"dx": -4, "dy": -13}], "timing": {"start_ms": 0, "end_ms": 1500}},
+        {"key": "LG-PULL", "slot": "LG", "kind": "block", "type": "pull", "arrow_style": "block", "objective": "Pull and kick the first force threat", "points": [{"dx": 0, "dy": 0}, {"dx": -7, "dy": 3}, {"dx": -12, "dy": -7}], "timing": {"start_ms": 0, "end_ms": 1200}},
+        {"key": "LT-PULL", "slot": "LT", "kind": "block", "type": "pull", "arrow_style": "block", "objective": "Pull and wrap inside the kick block", "points": [{"dx": 0, "dy": 0}, {"dx": -9, "dy": 2}, {"dx": -7, "dy": -9}], "timing": {"start_ms": 0, "end_ms": 1250}},
+        {"key": "Y-SPLIT", "slot": "Y", "kind": "block", "type": "split", "arrow_style": "block", "objective": "Close the backside edge", "points": [{"dx": 0, "dy": 0}, {"dx": 7, "dy": 4}], "timing": {"start_ms": 0, "end_ms": 950}},
+        {"key": "QB-COUNTER-READ", "slot": "QB", "kind": "read", "type": "edge_constraint", "objective": "Read the backside edge constraint", "read_key": "backside end", "target_element_key": "Y-SPLIT", "timing": {"start_ms": 0, "end_ms": 650}}
+      ]
+    },
+    {
+      "id": "TPL-DEF-TEX-ET", "name": "TEX / ET Exchange", "unit": "defense", "template_kind": "complete_call", "layer": "rush", "formation": "4-2-5_over", "front": "4-2-5_over", "coverage": "cover_3", "personnel": "nickel", "concept": "TEX / ET", "version": "1.0.0", "status": "approved", "scope": "system",
+      "description": "Interior tackle-end exchange with declared contain, fit, and replacement responsibilities.", "tags": ["stunt", "exchange", "pressure"], "situations": ["3rd-and-medium", "dropback"], "expected_companion_layers": ["coverage"],
+      "coaching_points": ["Penetrator crosses the guard's face before the looper enters the B gap.", "Contain and coverage replacements remain explicit if the exchange is picked up."],
+      "timeline": {"duration_ms": 1900, "markers": [{"id": "TEX-SELL", "label": "Sell vertical rush", "kind": "cue", "ms": 350}, {"id": "TEX-EXCHANGE", "label": "Exchange point", "kind": "exchange", "ms": 700}]},
+      "assignments": [
+        {"key": "DT-L-TEX", "slot": "DT-L", "kind": "stunt", "type": "tex", "arrow_style": "stunt", "objective": "Penetrate and cross the guard face", "gap": "A", "partner_id": "DE-L-ET", "exchange_role": "penetrator", "points": [{"dx": 0, "dy": 0}, {"dx": -5, "dy": 6}, {"dx": -7, "dy": 13}], "timing": {"start_ms": 0, "end_ms": 1250}},
+        {"key": "DE-L-ET", "slot": "DE-L", "kind": "stunt", "type": "et", "arrow_style": "stunt", "objective": "Loop inside after the penetrator clears", "gap": "B", "partner_id": "DT-L-TEX", "exchange_role": "looper", "points": [{"dx": 0, "dy": 0}, {"dx": -1, "dy": 4}, {"dx": -8, "dy": 10}], "timing": {"start_ms": 350, "end_ms": 1450}},
+        {"key": "DE-R-CONTAIN", "slot": "DE-R", "kind": "rush", "type": "contain", "arrow_style": "rush", "objective": "Maintain the launch-point edge", "points": [{"dx": 0, "dy": 0}, {"dx": 1, "dy": 13}], "timing": {"start_ms": 0, "end_ms": 1450}},
+        {"key": "MLB-HOOK", "slot": "MLB", "kind": "coverage", "type": "hook", "coverage": "cover_3", "zone": "hook_middle", "arrow_style": "coverage", "objective": "Replace the interior pressure window", "exchange_with": "DT-L-TEX", "points": [{"dx": 0, "dy": 0}, {"dx": -4, "dy": -5}], "timing": {"start_ms": 0, "end_ms": 1550}},
+        {"key": "FS-MIDDLE", "slot": "FS", "kind": "coverage", "type": "middle_third", "coverage": "cover_3", "zone": "deep_middle", "arrow_style": "coverage", "objective": "Own the middle third during the exchange", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -12}], "timing": {"start_ms": 0, "end_ms": 1700}}
+      ]
     }
   ]
 }
