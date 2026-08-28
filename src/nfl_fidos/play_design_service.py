@@ -384,6 +384,48 @@ class PlayDesignService:
         self._store_immutable_snapshot(snapshot, actor=actor, reason="play_design_snapshot_created")
         return saved
 
+    def create_batch_variants(self, design_id: str, *, variants: list[dict[str, Any]], actor: str, batch_id: str | None = None) -> dict[str, Any]:
+        """Create bounded, draft child designs for explicit defensive/situational looks."""
+        source = self.repository.get("play_designs", design_id)
+        if source is None:
+            raise KeyError(f"Unknown play design: {design_id}")
+        if not isinstance(variants, list) or not variants or len(variants) > 32:
+            raise ValueError("variants must contain between 1 and 32 looks")
+        clean_batch = str(batch_id or f"VARIANT-BATCH-{design_id}-{len(self.repository.list('play_design_variant_batches')) + 1:04d}")
+        if not clean_batch.startswith("VARIANT-BATCH-"):
+            raise ValueError("batch_id must start with VARIANT-BATCH-")
+        allowed_patch = {"formation", "front", "coverage", "personnel", "concept", "rule_profile"}
+        created: list[dict[str, Any]] = []
+        for index, item in enumerate(variants, start=1):
+            if not isinstance(item, dict):
+                raise ValueError("each variant must be an object")
+            label = _clean_required_text(item.get("label") or item.get("name") or f"Look {index}", "variant label")
+            patch = item.get("patch") or item.get("look") or {}
+            if not isinstance(patch, dict) or any(key not in allowed_patch for key in patch):
+                raise ValueError("variant patch contains an unsupported field")
+            if not patch:
+                raise ValueError("each variant requires at least one look field")
+            slug = re.sub(r"[^A-Z0-9]+", "-", label.upper()).strip("-")[:28] or f"LOOK-{index:02d}"
+            child_id = f"{design_id}-VAR-{slug}-{index:02d}"
+            child = deepcopy(source)
+            child.update({key: value for key, value in patch.items()})
+            child["id"] = child_id
+            child["name"] = f"{source.get('name') or design_id} · {label}"
+            child["status"] = "draft"
+            child["version"] = "0.1.0"
+            child.pop("_revision", None)
+            child.pop("latest_snapshot_id", None)
+            child.pop("checksum", None)
+            child.pop("release_id", None)
+            child.pop("release_bundle", None)
+            child.pop("approval", None)
+            child["parent_design_id"] = design_id
+            child["variant_batch_id"] = clean_batch
+            child["variant_look"] = {"label": label, "patch": deepcopy(patch), "source_design_id": design_id, "source_revision": source.get("_revision")}
+            created.append(self.save(child, actor=actor))
+        report = {"id": clean_batch, "organization_id": self.repository.organization_id, "source_design_id": design_id, "variant_ids": [item["id"] for item in created], "variants": created, "count": len(created), "status": "created", "immutable_source_revision": source.get("_revision"), "human_review_required": True}
+        return self.repository.put("play_design_variant_batches", clean_batch, report, actor=actor, reason="play_design_variant_batch_created")
+
     def validate_draft(self, design: dict[str, Any]) -> dict[str, Any]:
         """Validate the current unsaved design without creating canonical state."""
         candidate = normalize_timeline_design(deepcopy(design))

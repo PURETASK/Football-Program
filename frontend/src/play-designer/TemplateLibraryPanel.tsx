@@ -9,6 +9,7 @@ interface TemplateLibraryPanelProps {
   design: PlayDesign;
   onApply: (template: PlayTemplate, mode: 'replace' | 'layer') => void;
   onSave?: (input: { name: string; description: string; tags: string[]; elementIds?: string[]; parentTemplateId?: string }) => Promise<void>;
+  onCreateVariants?: (input: { field: 'front' | 'coverage' | 'formation' | 'concept'; labels: string[] }) => Promise<void>;
   selectedElementIds?: string[];
 }
 
@@ -36,7 +37,7 @@ function TemplatePreview({ template }: { template: PlayTemplate }) {
   );
 }
 
-export function TemplateLibraryPanel({ templates, design, onApply, onSave, selectedElementIds = [] }: TemplateLibraryPanelProps) {
+export function TemplateLibraryPanel({ templates, design, onApply, onSave, onCreateVariants, selectedElementIds = [] }: TemplateLibraryPanelProps) {
   const [search, setSearch] = useState('');
   const [kind, setKind] = useState('all');
   const [replaceConfirmation, setReplaceConfirmation] = useState<string | null>(null);
@@ -46,6 +47,9 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave, selec
   const [templateTags, setTemplateTags] = useState('');
   const [captureSelection, setCaptureSelection] = useState(false);
   const [parentTemplateId, setParentTemplateId] = useState('');
+  const [variantField, setVariantField] = useState<'front' | 'coverage' | 'formation' | 'concept'>('coverage');
+  const [variantLabels, setVariantLabels] = useState('Cover 3, Cover 1, Quarters');
+  const [variantState, setVariantState] = useState<'idle' | 'saving' | 'error'>('idle');
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const deferredSearch = useDeferredValue(search);
   const kinds = useMemo(() => [...new Set(templates.map((template) => template.template_kind ?? 'custom'))].sort(), [templates]);
@@ -80,6 +84,14 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave, selec
     } catch {
       setSaveState('error');
     }
+  };
+
+  const createVariants = async () => {
+    if (!onCreateVariants) return;
+    const labels = variantLabels.split(',').map((value) => value.trim()).filter(Boolean).slice(0, 32);
+    if (!labels.length) return;
+    setVariantState('saving');
+    try { await onCreateVariants({ field: variantField, labels }); setVariantState('idle'); } catch { setVariantState('error'); }
   };
 
   return (
@@ -125,6 +137,13 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave, selec
           <button type="button" disabled={!templateName.trim() || saveState === 'saving'} onClick={() => void save()}>{saveState === 'saving' ? 'Saving...' : captureSelection && selectedElementIds.length ? 'Capture selected stencil' : 'Capture template'}</button>
           {saveState === 'error' ? <span role="alert">The template could not be saved.</span> : null}
         </div> : null}
+      </section> : null}
+      {onCreateVariants ? <section className="template-capture template-variants">
+        <div className="template-library__intro"><Layers3 size={15} /><span><strong>Generate defensive-look variants</strong><small>Create traceable draft children from this play for multiple fronts, coverages, formations, or concepts.</small></span></div>
+        <label><span>Variant field</span><select value={variantField} onChange={(event) => setVariantField(event.target.value as typeof variantField)}><option value="coverage">Coverage</option><option value="front">Front</option><option value="formation">Formation</option><option value="concept">Concept</option></select></label>
+        <label><span>Look values <small>(comma separated, up to 32)</small></span><input value={variantLabels} onChange={(event) => setVariantLabels(event.target.value)} placeholder="Cover 3, Cover 1, Quarters" /></label>
+        <button type="button" disabled={!variantLabels.trim() || variantState === 'saving'} onClick={() => void createVariants()}>{variantState === 'saving' ? 'Generating variants…' : 'Generate draft variants'}</button>
+        {variantState === 'error' ? <span role="alert">The variant batch could not be generated.</span> : null}
       </section> : null}
     </div>
   );

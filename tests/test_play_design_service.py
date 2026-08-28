@@ -74,6 +74,20 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertEqual(child["parent_template_id"], parent["id"])
         self.assertEqual(len(child["inherited_assignments"]), len(parent["assignments"]))
 
+    def test_batch_variants_are_draft_children_with_look_lineage(self):
+        service = self.service()
+        source = service.save(design=design(), actor="coach")
+        report = service.create_batch_variants(source["id"], actor="coach", variants=[
+            {"label": "Cover 3", "patch": {"coverage": "cover_3"}},
+            {"label": "Quarters", "patch": {"coverage": "quarters"}},
+        ])
+        self.assertEqual(report["count"], 2)
+        self.assertTrue(report["id"].startswith("VARIANT-BATCH-"))
+        self.assertEqual(len(report["variants"]), 2)
+        self.assertTrue(all(item["parent_design_id"] == source["id"] for item in report["variants"]))
+        self.assertEqual(report["variants"][0]["variant_look"]["patch"], {"coverage": "cover_3"})
+        self.assertTrue(all(item["status"] == "draft" for item in report["variants"]))
+
     def test_registry_returns_authoritative_compatibility_and_alignment_presets(self):
         service = self.service()
         assets = service.assets(unit="offense", context_formation="shotgun_trips", personnel="11", rule_profile="nfl")

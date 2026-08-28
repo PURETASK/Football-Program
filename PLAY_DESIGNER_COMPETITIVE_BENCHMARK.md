@@ -180,3 +180,18 @@ and local assignment counts. Materialized elements carry an explicit
 `template_assignment_origin` value, allowing later comparison and teaching
 surfaces to distinguish inherited responsibilities from child overrides
 without reconstructing provenance from labels.
+
+## Multi-look variant engine addendum — 2026-08-28
+
+The canonical Python service and organization-scoped API now generate bounded
+batches of up to 32 draft child designs from an explicit source play. Each
+variant applies a controlled look patch (formation, front, coverage,
+personnel, concept, or rule profile), receives its own identity, revision,
+checksum, immutable save snapshot, and validation result, and records
+`parent_design_id`, `variant_batch_id`, and a `variant_look` payload containing
+the label, patch, source design, and source revision. The persisted batch report
+retains every generated child and marks the result human-review-required.
+This makes multi-look generation operationally traceable and reviewable while
+leaving variant-specific assignment transformations, visual batch comparison,
+approval/release bundling, and provider-grade export certification for the
+next slice.

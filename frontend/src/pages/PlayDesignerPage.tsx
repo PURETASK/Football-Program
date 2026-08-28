@@ -22,7 +22,7 @@ import {
   ApiError,
   addPlayComment,
   branchPlayDesign,
-  createPlayTemplate,
+  createPlayTemplate, createPlayVariants,
   leavePlayPresence,
   mergePlayBranch,
   publishPlayDesign,
@@ -460,6 +460,14 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
     setActionMessage(`Template "${input.name}" captured from the immutable play snapshot.`);
   };
 
+  const createVariants = async (input: { field: 'front' | 'coverage' | 'formation' | 'concept'; labels: string[] }) => {
+    if (!session) return;
+    const variants = input.labels.map((label) => ({ label, patch: { [input.field]: label.toLowerCase().replaceAll(' ', '_') } }));
+    const report = await createPlayVariants(session, { designId: state.present.id, variants });
+    setActionMessage(`${report.count} draft variants generated from ${state.present.name ?? state.present.id}. Each remains linked to the source play for review.`);
+    await refreshPlayData();
+  };
+
   const applyTemplate = (template: PlayTemplate, mode: 'replace' | 'layer') => {
     void import('../play-designer/templateMaterializer').then(({ applyPlayTemplate }) => {
       dispatch({ type: 'commit_design', design: applyPlayTemplate(state.present, template, mode) });
@@ -520,6 +528,7 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
             onChoose={chooseAsset}
             onApplyTemplate={applyTemplate}
             onSaveTemplate={captureTemplate}
+            onCreateVariants={createVariants}
             selectedElementIds={state.selected.filter((selection): selection is { kind: 'element'; id: string } => selection.kind === 'element').map((selection) => selection.id)}
           />
         </Suspense>
