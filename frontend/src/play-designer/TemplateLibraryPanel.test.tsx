@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
@@ -75,7 +75,9 @@ describe('TemplateLibraryPanel', () => {
     const onCreateVariants = vi.fn().mockResolvedValue({ variants: [variant], count: 1 });
     render(<TemplateLibraryPanel templates={[]} design={DESIGN} onApply={vi.fn()} onCreateVariants={onCreateVariants} onOpenVariant={vi.fn()} />);
 
+    fireEvent.change(screen.getByLabelText('Optional assignment transformations'), { target: { value: '[{"element_id":"E-1","patch":{"type":"corner"}}]' } });
     await user.click(screen.getByRole('button', { name: 'Generate draft variants' }));
+    expect(onCreateVariants).toHaveBeenCalledWith({ field: 'coverage', labels: ['Cover 3', 'Cover 1', 'Quarters'], assignmentPatches: [{ element_id: 'E-1', patch: { type: 'corner' } }] });
     expect(screen.getByText(/1 metadata · 1 assignment changes/)).toBeVisible();
     await user.click(screen.getByText('Inspect field-level changes'));
     expect(screen.getAllByText('Coverage').at(-1)).toBeVisible();

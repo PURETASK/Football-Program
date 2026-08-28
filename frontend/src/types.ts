@@ -287,7 +287,7 @@ export interface PlayDesign {
   _revision?: number;
   parent_design_id?: string;
   variant_batch_id?: string;
-  variant_look?: { label?: string; patch?: Record<string, unknown>; source_design_id?: string; source_revision?: number };
+  variant_look?: { label?: string; patch?: Record<string, unknown>; assignment_patches?: Array<{ element_id: string; patch: Record<string, unknown> }>; source_design_id?: string; source_revision?: number };
   updated_at?: string;
   [key: string]: unknown;
 }

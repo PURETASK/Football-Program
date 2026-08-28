@@ -460,9 +460,9 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
     setActionMessage(`Template "${input.name}" captured from the immutable play snapshot.`);
   };
 
-  const createVariants = async (input: { field: 'front' | 'coverage' | 'formation' | 'concept'; labels: string[] }) => {
+  const createVariants = async (input: { field: 'front' | 'coverage' | 'formation' | 'concept'; labels: string[]; assignmentPatches?: Array<{ element_id: string; patch: Record<string, unknown> }> }) => {
     if (!session) throw new Error('An authenticated organization session is required to generate variants.');
-    const variants = input.labels.map((label) => ({ label, patch: { [input.field]: label.toLowerCase().replaceAll(' ', '_') } }));
+    const variants = input.labels.map((label) => ({ label, patch: { [input.field]: label.toLowerCase().replaceAll(' ', '_') }, ...(input.assignmentPatches?.length ? { assignment_patches: input.assignmentPatches } : {}) }));
     const report = await createPlayVariants(session, { designId: state.present.id, variants });
     setActionMessage(`${report.count} draft variants generated from ${state.present.name ?? state.present.id}. Each remains linked to the source play for review.`);
     await refreshPlayData();

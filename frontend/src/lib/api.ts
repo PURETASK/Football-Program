@@ -149,7 +149,7 @@ export function createPlayTemplate(session: AppSession, input: { designId: strin
 
 export interface PlayVariantBatchResult { id: string; source_design_id: string; variant_ids: string[]; variants: PlayDesign[]; count: number; status: string; human_review_required?: boolean }
 
-export function createPlayVariants(session: AppSession, input: { designId: string; variants: Array<{ label: string; patch: Partial<Pick<PlayDesign, 'formation' | 'front' | 'coverage' | 'personnel' | 'concept' | 'rule_profile'>> }>; batchId?: string }): Promise<PlayVariantBatchResult> {
+export function createPlayVariants(session: AppSession, input: { designId: string; variants: Array<{ label: string; patch: Partial<Pick<PlayDesign, 'formation' | 'front' | 'coverage' | 'personnel' | 'concept' | 'rule_profile'>>; assignment_patches?: Array<{ element_id: string; patch: Record<string, unknown> }> }>; batchId?: string }): Promise<PlayVariantBatchResult> {
   return request('/v1/playbook/designs/variants', session, {
     method: 'POST',
     body: organizationBody(session, { design_id: input.designId, variants: input.variants, ...(input.batchId ? { batch_id: input.batchId } : {}) }),

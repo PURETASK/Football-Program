@@ -10,7 +10,7 @@ interface TemplateLibraryPanelProps {
   design: PlayDesign;
   onApply: (template: PlayTemplate, mode: 'replace' | 'layer') => void;
   onSave?: (input: { name: string; description: string; tags: string[]; elementIds?: string[]; parentTemplateId?: string }) => Promise<void>;
-  onCreateVariants?: (input: { field: 'front' | 'coverage' | 'formation' | 'concept'; labels: string[] }) => Promise<{ variants: PlayDesign[]; count: number }>;
+  onCreateVariants?: (input: { field: 'front' | 'coverage' | 'formation' | 'concept'; labels: string[]; assignmentPatches?: Array<{ element_id: string; patch: Record<string, unknown> }> }) => Promise<{ variants: PlayDesign[]; count: number }>;
   onOpenVariant?: (designId: string) => void;
   selectedElementIds?: string[];
 }
@@ -74,6 +74,7 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave, onCre
   const [parentTemplateId, setParentTemplateId] = useState('');
   const [variantField, setVariantField] = useState<'front' | 'coverage' | 'formation' | 'concept'>('coverage');
   const [variantLabels, setVariantLabels] = useState('Cover 3, Cover 1, Quarters');
+  const [variantAssignmentPatches, setVariantAssignmentPatches] = useState('');
   const [variantState, setVariantState] = useState<'idle' | 'saving' | 'error'>('idle');
   const [generatedVariants, setGeneratedVariants] = useState<PlayDesign[]>([]);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -116,8 +117,16 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave, onCre
     if (!onCreateVariants) return;
     const labels = variantLabels.split(',').map((value) => value.trim()).filter(Boolean).slice(0, 32);
     if (!labels.length) return;
+    let assignmentPatches: Array<{ element_id: string; patch: Record<string, unknown> }> | undefined;
+    if (variantAssignmentPatches.trim()) {
+      try {
+        const parsed: unknown = JSON.parse(variantAssignmentPatches);
+        if (!Array.isArray(parsed)) throw new Error('Assignment patches must be a JSON array.');
+        assignmentPatches = parsed as Array<{ element_id: string; patch: Record<string, unknown> }>;
+      } catch { setVariantState('error'); return; }
+    }
     setVariantState('saving');
-    try { const report = await onCreateVariants({ field: variantField, labels }); setGeneratedVariants(report.variants); setVariantState('idle'); } catch { setVariantState('error'); }
+    try { const report = await onCreateVariants({ field: variantField, labels, assignmentPatches }); setGeneratedVariants(report.variants); setVariantState('idle'); } catch { setVariantState('error'); }
   };
 
   return (
@@ -168,6 +177,7 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave, onCre
         <div className="template-library__intro"><Layers3 size={15} /><span><strong>Generate defensive-look variants</strong><small>Create traceable draft children from this play for multiple fronts, coverages, formations, or concepts.</small></span></div>
         <label><span>Variant field</span><select value={variantField} onChange={(event) => setVariantField(event.target.value as typeof variantField)}><option value="coverage">Coverage</option><option value="front">Front</option><option value="formation">Formation</option><option value="concept">Concept</option></select></label>
         <label><span>Look values <small>(comma separated, up to 32)</small></span><input value={variantLabels} onChange={(event) => setVariantLabels(event.target.value)} placeholder="Cover 3, Cover 1, Quarters" /></label>
+        <label><span>Optional assignment transformations <small>(JSON; applied to every generated look)</small></span><textarea aria-label="Optional assignment transformations" rows={3} value={variantAssignmentPatches} onChange={(event) => setVariantAssignmentPatches(event.target.value)} placeholder='[{"element_id":"ROUTE-X","patch":{"type":"corner"}}]' /></label>
         <button type="button" disabled={!variantLabels.trim() || variantState === 'saving'} onClick={() => void createVariants()}>{variantState === 'saving' ? 'Generating variants…' : 'Generate draft variants'}</button>
         {variantState === 'error' ? <span role="alert">The variant batch could not be generated.</span> : null}
         {generatedVariants.length ? <div className="variant-review-rail" aria-label="Generated variant review"><strong>Generated review set</strong>{generatedVariants.map((variant) => { const diff = diffPlayVariant(design, variant); return <article className="variant-review-card" key={variant.id}><div className="variant-review-card__diagrams"><div><DesignPreview design={design} label="Source" /><small>Source</small></div><span aria-hidden="true">→</span><div><DesignPreview design={variant} label={variant.variant_look?.label ?? 'Variant'} /><small>{variant.variant_look?.label ?? 'Variant'}</small></div></div><div><strong>{variant.name ?? variant.id}</strong><small>{variant.variant_look?.label ?? 'Look variant'} · {variant.status ?? 'draft'} · v{variant.version ?? '0.1.0'}</small></div><span>{variant.variant_look?.patch ? Object.entries(variant.variant_look.patch as Record<string, unknown>).map(([key, value]) => `${titleCase(key)}: ${String(value)}`).join(' · ') : 'Explicit look patch'}</span><small className="variant-review-card__diff" aria-label={`${diff.metadata.length} metadata changes, ${diff.elements.changed.length} changed assignments, ${diff.elements.added.length} added assignments, ${diff.elements.removed.length} removed assignments`}>{diff.metadata.length} metadata · {diff.elements.changed.length} assignment changes · +{diff.elements.added.length} / −{diff.elements.removed.length} assignments · {diff.unchanged_elements} unchanged</small><details className="variant-review-card__details"><summary>Inspect field-level changes</summary><div className="variant-review-card__details-body">{diff.metadata.length ? <div><strong>Metadata</strong><span>{diff.metadata.map(diffDetailLabel).join(', ')}</span></div> : null}{diff.elements.changed.length ? <div><strong>Changed assignments</strong><ul>{diff.elements.changed.map((item) => <li key={item.id}><code>{item.id}</code><span>{item.changes.map((change) => `${diffDetailLabel(change.field)}: ${diffDetailValue(change.before)} → ${diffDetailValue(change.after)}`).join(' · ')}</span></li>)}</ul></div> : null}{diff.elements.added.length ? <div><strong>Added assignments</strong><span>{diff.elements.added.map((id) => <code key={id}>{id}</code>)}</span></div> : null}{diff.elements.removed.length ? <div><strong>Removed assignments</strong><span>{diff.elements.removed.map((id) => <code key={id}>{id}</code>)}</span></div> : null}{!diff.metadata.length && !diff.elements.changed.length && !diff.elements.added.length && !diff.elements.removed.length ? <span>No field-level changes.</span> : null}</div></details><button type="button" onClick={() => onOpenVariant?.(variant.id)} disabled={!onOpenVariant}>Open variant</button></article>; })}</div> : null}

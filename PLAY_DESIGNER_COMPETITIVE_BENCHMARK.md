@@ -227,3 +227,13 @@ conflict path is an accessible expandable item showing the base, target, and
 branch values plus the server explanation when supplied. This makes an
 overlapping edit actionable for staff while keeping the merge paused for an
 authorized human decision.
+
+Generated look variants now accept an optional bounded assignment-transformation
+recipe. Each recipe targets a stable element ID and applies a validated set of
+route, timing, blocking, protection, coverage, pressure, rotation, drawing, or
+teaching fields to every generated child. Unknown targets and unsupported fields
+are rejected before persistence, and the normalized recipe is retained in
+`variant_look.assignment_patches` for diffing, review, and provenance. This
+allows a coordinator to express a controlled answer adjustment without
+silently inventing football semantics; server legality and human approval still
+govern the resulting child designs.

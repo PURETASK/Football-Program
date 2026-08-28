@@ -76,7 +76,9 @@ class PlayDesignServiceTests(unittest.TestCase):
 
     def test_batch_variants_are_draft_children_with_look_lineage(self):
         service = self.service()
-        source = service.save(design=design(), actor="coach")
+        candidate = design()
+        candidate["elements"][0]["id"] = "E-TRANSFORM"
+        source = service.save(design=candidate, actor="coach")
         report = service.create_batch_variants(source["id"], actor="coach", variants=[
             {"label": "Cover 3", "patch": {"coverage": "cover_3"}},
             {"label": "Quarters", "patch": {"coverage": "quarters"}},
@@ -87,6 +89,29 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertTrue(all(item["parent_design_id"] == source["id"] for item in report["variants"]))
         self.assertEqual(report["variants"][0]["variant_look"]["patch"], {"coverage": "cover_3"})
         self.assertTrue(all(item["status"] == "draft" for item in report["variants"]))
+
+    def test_batch_variants_apply_bounded_assignment_transformations(self):
+        service = self.service()
+        candidate = design()
+        candidate["elements"][0]["id"] = "E-TRANSFORM"
+        source = service.save(design=candidate, actor="coach")
+        element_id = source["elements"][0]["id"]
+        report = service.create_batch_variants(source["id"], actor="coach", variants=[
+            {"label": "Alert variation", "patch": {"coverage": "cover_3"}, "assignment_patches": [{"element_id": element_id, "patch": {"type": "corner", "note": "Convert versus squat corner."}}]},
+        ])
+        child = report["variants"][0]
+        changed = next(item for item in child["elements"] if item["id"] == element_id)
+        self.assertEqual(changed["type"], "corner")
+        self.assertEqual(changed["note"], "Convert versus squat corner.")
+        self.assertEqual(child["variant_look"]["assignment_patches"][0]["element_id"], element_id)
+
+    def test_batch_variants_reject_unknown_assignment_patch_targets(self):
+        service = self.service()
+        source = service.save(design=design(), actor="coach")
+        with self.assertRaises(ValueError):
+            service.create_batch_variants(source["id"], actor="coach", variants=[
+                {"label": "Invalid", "patch": {"coverage": "cover_3"}, "assignment_patches": [{"element_id": "MISSING", "patch": {"type": "corner"}}]},
+            ])
 
     def test_registry_returns_authoritative_compatibility_and_alignment_presets(self):
         service = self.service()

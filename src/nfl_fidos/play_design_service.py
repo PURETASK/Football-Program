@@ -395,6 +395,16 @@ class PlayDesignService:
         if not clean_batch.startswith("VARIANT-BATCH-"):
             raise ValueError("batch_id must start with VARIANT-BATCH-")
         allowed_patch = {"formation", "front", "coverage", "personnel", "concept", "rule_profile"}
+        allowed_assignment_patch = {
+            "type", "points", "path", "note", "assignment", "responsibility", "objective", "technique",
+            "landmark", "depth_yards", "leverage", "gap", "fit_gap", "gap_owner", "gap_owner_label",
+            "fit_rule", "coverage", "rush_lane", "blitz_path", "stunt", "rotation", "rotation_trigger",
+            "rotation_from_zone", "rotation_to_zone", "rotation_replacement_player_id", "rotation_vacated_zone",
+            "rotation_sequence", "rotation_communication", "blocking_primitive", "protection_mode",
+            "release_after_ms", "route_family", "stem_depth_yards", "break_type", "break_depth_yards",
+            "finish_direction", "option_rule", "option_condition", "arrow_style", "arrow_ends", "path_mode",
+            "line_style", "stroke_width", "line_cap", "start_ms", "end_ms", "timing", "phase", "zone",
+        }
         created: list[dict[str, Any]] = []
         for index, item in enumerate(variants, start=1):
             if not isinstance(item, dict):
@@ -405,6 +415,9 @@ class PlayDesignService:
                 raise ValueError("variant patch contains an unsupported field")
             if not patch:
                 raise ValueError("each variant requires at least one look field")
+            assignment_patches = item.get("assignment_patches") or []
+            if not isinstance(assignment_patches, list) or len(assignment_patches) > 64:
+                raise ValueError("assignment_patches must contain at most 64 entries")
             slug = re.sub(r"[^A-Z0-9]+", "-", label.upper()).strip("-")[:28] or f"LOOK-{index:02d}"
             child_id = f"{design_id}-VAR-{slug}-{index:02d}"
             child = deepcopy(source)
@@ -421,7 +434,22 @@ class PlayDesignService:
             child.pop("approval", None)
             child["parent_design_id"] = design_id
             child["variant_batch_id"] = clean_batch
-            child["variant_look"] = {"label": label, "patch": deepcopy(patch), "source_design_id": design_id, "source_revision": source.get("_revision")}
+            normalized_assignment_patches: list[dict[str, Any]] = []
+            elements_by_id = {str(element.get("id")): element for element in child.get("elements", []) if isinstance(element, dict) and element.get("id")}
+            for assignment_patch in assignment_patches:
+                if not isinstance(assignment_patch, dict):
+                    raise ValueError("each assignment patch must be an object")
+                element_id = _clean_required_text(assignment_patch.get("element_id"), "assignment patch element_id")
+                element_patch = assignment_patch.get("patch")
+                if element_id not in elements_by_id:
+                    raise ValueError(f"assignment patch targets unknown element: {element_id}")
+                if not isinstance(element_patch, dict) or not element_patch:
+                    raise ValueError("each assignment patch requires a non-empty patch object")
+                if "id" in element_patch or any(key not in allowed_assignment_patch for key in element_patch):
+                    raise ValueError("assignment patch contains an unsupported field")
+                elements_by_id[element_id].update(deepcopy(element_patch))
+                normalized_assignment_patches.append({"element_id": element_id, "patch": deepcopy(element_patch)})
+            child["variant_look"] = {"label": label, "patch": deepcopy(patch), "assignment_patches": normalized_assignment_patches, "source_design_id": design_id, "source_revision": source.get("_revision")}
             created.append(self.save(child, actor=actor))
         report = {"id": clean_batch, "organization_id": self.repository.organization_id, "source_design_id": design_id, "variant_ids": [item["id"] for item in created], "variants": created, "count": len(created), "status": "created", "immutable_source_revision": source.get("_revision"), "human_review_required": True}
         return self.repository.put("play_design_variant_batches", clean_batch, report, actor=actor, reason="play_design_variant_batch_created")
