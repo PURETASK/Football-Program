@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { coverageShellBoxes } from './coverageShell';
+import { coverageMovementPatch, coverageShellAnchor, coverageShellBoxes } from './coverageShell';
 
 describe('coverage shell geometry', () => {
   it('maps declared zones to spatial boxes and removes duplicates', () => {
@@ -11,5 +11,21 @@ describe('coverage shell geometry', () => {
 
   it('ignores unknown zones so new server terms do not break rendering', () => {
     expect(coverageShellBoxes(['future_zone', 'robber'])).toEqual([expect.objectContaining({ id: 'robber' })]);
+  });
+
+  it('materializes a shell-targeted drop path when the assignment has no path', () => {
+    const design = { id: 'SHELL', unit: 'defense' as const, players: [{ id: 'CB-L', start: { x: 15, y: 30 } }] };
+    const patch = coverageMovementPatch({ id: 'DROP', kind: 'coverage', player_id: 'CB-L' }, design, 'flat_left');
+    expect(coverageShellAnchor('flat_left')).toEqual({ x: 13.5, y: 21.5 });
+    expect(patch).toMatchObject({ zone: 'flat_left', phase: 'coverage', movement_geometry: 'shell-targeted' });
+    expect(patch.path).toEqual([{ x: 15, y: 30 }, { x: 14.25, y: 25.75 }, { x: 13.5, y: 21.5 }]);
+  });
+
+  it('does not overwrite an existing coach-drawn coverage path', () => {
+    const design = { id: 'SHELL', unit: 'defense' as const };
+    const element = { id: 'DROP', kind: 'coverage', points: [{ x: 15, y: 30 }, { x: 20, y: 20 }] };
+    const patch = coverageMovementPatch(element, design, 'flat_left');
+    expect(patch).not.toHaveProperty('points');
+    expect(patch.movement_geometry).toBe('shell-targeted');
   });
 });

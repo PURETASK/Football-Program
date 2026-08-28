@@ -1,3 +1,5 @@
+import type { PlayDesign, PlayElement, Point } from '../types';
+
 export interface CoverageShellBox {
   id: string;
   label: string;
@@ -32,4 +34,23 @@ export function coverageShellBoxes(zones: string[] | undefined): CoverageShellBo
     seen.add(box.id);
     return true;
   });
+}
+
+export function coverageShellAnchor(zone: string): Point | undefined {
+  const box = BOXES[zone];
+  return box ? { x: box.x + box.width / 2, y: box.y + box.height / 2 } : undefined;
+}
+
+/** Connect a coverage/rotation assignment to an explicit shell destination. */
+export function coverageMovementPatch(element: PlayElement, design: PlayDesign, zone: string): Partial<PlayElement> {
+  const anchor = coverageShellAnchor(zone);
+  const next: Partial<PlayElement> = { zone: zone || undefined, rotation_to_zone: element.kind === 'rotation' ? zone || undefined : element.rotation_to_zone, phase: element.kind === 'rotation' ? 'rotation' : 'coverage', movement_geometry: 'shell-targeted' };
+  const existing = element.points ?? element.path ?? [];
+  const source = existing[0] ?? (element.player_id ? design.players?.find((player) => player.id === element.player_id)?.start : undefined);
+  if (!anchor || !source || existing.length >= 2) return next;
+  const midpoint = { x: (source.x + anchor.x) / 2, y: (source.y + anchor.y) / 2 };
+  const points = [source, midpoint, anchor];
+  if (element.points) next.points = points;
+  else next.path = points;
+  return next;
 }

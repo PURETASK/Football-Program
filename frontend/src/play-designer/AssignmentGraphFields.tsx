@@ -8,6 +8,7 @@ import { ROTATION_TRIGGERS, rotationSequencePatch } from './rotationSequencing';
 import { OFFENSIVE_BLOCKING_PRIMITIVES, PROTECTION_MODES, blockingConstructionPatch, offensiveBlockingPatch } from './offensiveBlocking';
 import { ROUTE_BREAKS, ROUTE_FAMILIES, ROUTE_FINISHES, ROUTE_OPTION_RULES, routeAuthoringPatch, routeConstructionPatch } from './routeAuthoring';
 import { addRouteBranch, branchStart } from './routeBranches';
+import { coverageMovementPatch } from './coverageShell';
 
 interface AssignmentGraphFieldsProps {
   design: PlayDesign;
@@ -110,7 +111,7 @@ export function AssignmentGraphFields({ design, element, onElement }: Assignment
         <option value="">Unspecified</option>{DEFENSIVE_GAP_OPTIONS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}
       </select></label> : null}
       <CommitInput label="Gap / fit" value={element.fit_gap ?? element.gap} onCommit={(value) => onElement(element.id, element.kind === 'fit' ? { fit_gap: value } : { gap: value })} />
-      <CommitInput label="Zone" value={element.zone} onCommit={(value) => onElement(element.id, { zone: value })} />
+      {['coverage', 'rotation'].includes(element.kind) ? <label className="inspector-field"><span>Shell destination</span><select aria-label="Shell destination" value={element.zone ?? element.rotation_to_zone ?? ''} onChange={(event) => onElement(element.id, coverageMovementPatch(element, design, event.target.value))}><option value="">Unspecified</option>{['deep_left', 'deep_middle', 'deep_right', 'deep_half_left', 'deep_half_right', 'flat_left', 'flat_right', 'hook_curl_left', 'hook_curl_middle', 'hook_curl_right', 'robber', 'bracket', 'man'].map((zone) => <option value={zone} key={zone}>{zone.replaceAll('_', ' ')}</option>)}</select></label> : <CommitInput label="Zone" value={element.zone} onCommit={(value) => onElement(element.id, { zone: value })} />}
     </div>
     <div className="inspector-form inspector-form--two inspector-form--nested">
       <CommitInput label="Read key" value={element.read_key} onCommit={(value) => onElement(element.id, { read_key: value })} />

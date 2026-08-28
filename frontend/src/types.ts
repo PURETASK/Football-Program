@@ -168,6 +168,7 @@ export interface PlayElement {
   rotation_vacated_zone?: string;
   rotation_sequence?: number;
   rotation_communication?: string;
+  movement_geometry?: 'manual' | 'shell-targeted' | string;
   blocking_primitive?: string;
   blocking_path_role?: string;
   blocking_geometry?: 'manual' | 'target-aware' | string;
