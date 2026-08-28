@@ -21,7 +21,7 @@ import {
   translatePoints,
 } from './geometry';
 import { defaultTimelinePhases, elementTiming } from './timelineModel';
-import { coverageShellBoxes } from './coverageShell';
+import { coverageShellBoxes, coverageShellLinks } from './coverageShell';
 import { defensiveGapLinks } from './defensiveFront';
 import { defensiveExchangeLinks, defensiveExchangeProgress } from './defensiveExchanges';
 import { defensiveAlignmentLabel } from './defensiveAlignment';
@@ -210,6 +210,7 @@ export function PlayDesignerCanvas({
   }, [routeCollisionRecords]);
   const players = design.players ?? [];
   const shellBoxes = useMemo(() => design.unit === 'defense' ? coverageShellBoxes(design.coverage_zones) : [], [design.coverage_zones, design.unit]);
+  const shellLinks = useMemo(() => design.unit === 'defense' ? coverageShellLinks(design) : [], [design]);
   const gapLinks = useMemo(() => design.unit === 'defense' ? defensiveGapLinks(design) : [], [design]);
   const exchangeLinks = useMemo(() => design.unit === 'defense' ? defensiveExchangeLinks(design) : [], [design]);
   const selectedElement = selection.length === 1 && selection[0].kind === 'element'
@@ -618,6 +619,15 @@ export function PlayDesignerCanvas({
         ) : null}
 
         {shellBoxes.length ? <g className="designer-coverage-shell" role="group" aria-label="Declared coverage shell zones">
+          {shellLinks.map((link) => {
+            const box = shellBoxes.find((candidate) => candidate.id === link.zone);
+            if (!box) return null;
+            const label = `${link.owner} to ${box.label}${link.sequence !== undefined ? `, step ${link.sequence}` : ''}`;
+            const midpoint = { x: (link.from.x + link.to.x) / 2, y: (link.from.y + link.to.y) / 2 };
+            return <g key={link.id} className="designer-coverage-shell__link" role="img" aria-label={`Coverage shell movement: ${label}`}>
+              <path d={smoothPathData([link.from, midpoint, link.to])} markerEnd={`url(#${markerPrefix}-coverage)`} />
+            </g>;
+          })}
           {shellBoxes.map((box) => { const owners = elements.filter((element) => element.kind === 'coverage' || element.kind === 'rotation').filter((element) => element.zone === box.id || element.rotation_to_zone === box.id); const ownerLabel = owners.map((element) => `${element.player_id ?? element.type ?? element.id}${element.kind === 'rotation' && element.rotation_sequence !== undefined ? ` · step ${element.rotation_sequence}` : ''}`).join(' + ') || 'Unassigned'; return <g key={box.id} role="group" aria-label={`${box.label}: ${ownerLabel}`}>
             <rect x={box.x} y={box.y} width={box.width} height={box.height} rx="1" />
             <text x={box.x + box.width / 2} y={box.y + box.height / 2}>{box.label}</text>

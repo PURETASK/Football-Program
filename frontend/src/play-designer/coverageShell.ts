@@ -9,6 +9,16 @@ export interface CoverageShellBox {
   height: number;
 }
 
+export interface CoverageShellLink {
+  id: string;
+  zone: string;
+  owner: string;
+  kind: 'coverage' | 'rotation';
+  from: Point;
+  to: Point;
+  sequence?: number;
+}
+
 const BOXES: Record<string, CoverageShellBox> = {
   deep_left: { id: 'deep_left', label: 'Deep left', x: 1, y: 1, width: 32, height: 14 },
   deep_middle: { id: 'deep_middle', label: 'Deep middle', x: 34, y: 1, width: 32, height: 14 },
@@ -39,6 +49,28 @@ export function coverageShellBoxes(zones: string[] | undefined): CoverageShellBo
 export function coverageShellAnchor(zone: string): Point | undefined {
   const box = BOXES[zone];
   return box ? { x: box.x + box.width / 2, y: box.y + box.height / 2 } : undefined;
+}
+
+/** Build explicit owner-to-destination vectors for the visual coverage shell. */
+export function coverageShellLinks(design: PlayDesign): CoverageShellLink[] {
+  return (design.elements ?? []).flatMap((element) => {
+    if (element.kind !== 'coverage' && element.kind !== 'rotation') return [];
+    const zone = element.kind === 'rotation' ? element.rotation_to_zone ?? element.zone : element.zone;
+    if (!zone) return [];
+    const to = coverageShellAnchor(zone);
+    if (!to) return [];
+    const from = element.points?.at(-1) ?? element.path?.at(-1) ?? (element.player_id ? design.players?.find((player) => player.id === element.player_id)?.start : undefined);
+    if (!from) return [];
+    return [{
+      id: `${element.id}::shell`,
+      zone,
+      owner: element.player_id ?? element.type ?? element.id,
+      kind: element.kind,
+      from,
+      to,
+      sequence: element.kind === 'rotation' && element.rotation_sequence !== undefined ? element.rotation_sequence : undefined,
+    }];
+  });
 }
 
 /** Connect a coverage/rotation assignment to an explicit shell destination. */
