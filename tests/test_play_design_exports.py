@@ -95,6 +95,15 @@ class PlayDesignExportTests(unittest.TestCase):
         self.assertEqual(preflight["validation"]["status"], "invalid")
         self.assertIn("EXPORT-PLAYER-COUNT", {issue["code"] for issue in preflight["validation"]["issues"]})
 
+    def test_export_player_count_follows_selected_rule_profile(self):
+        candidate = design()
+        candidate["rule_profile"] = "flag"
+        candidate["players"] = candidate["players"][:5]
+        self.assertNotIn("EXPORT-PLAYER-COUNT", {issue["code"] for issue in validate_export_design(candidate, kind="play_card", format="pdf")})
+        youth = design()
+        youth["rule_profile"] = "youth"
+        self.assertIn("EXPORT-RULE-PROFILE-UNRESOLVED", {issue["code"] for issue in validate_export_design(youth, kind="play_card", format="pdf")})
+
     def test_svg_export_preserves_branch_paths_and_drawing_semantics(self):
         candidate = design()
         candidate["elements"][0].update({

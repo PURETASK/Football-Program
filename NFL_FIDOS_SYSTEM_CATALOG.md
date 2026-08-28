@@ -142,7 +142,7 @@ How to use: create a branch for a competing look, compare it with the source, re
 
 ### Exports
 
-Supports PDF, SVG, PNG, HTML/JSON data, call-sheet output, wristband CSV/layouts, install sheets, accessible text, branding, black-and-white options, page numbering, source manifests, hashes, and export preflight.
+Supports PDF, SVG, PNG, HTML/JSON data, call-sheet output, wristband CSV/layouts, install sheets, accessible text, branding, black-and-white options, page numbering, source manifests, hashes, and export preflight. Export validation follows the selected rule profile's player count and fails closed when a local-adoption profile such as youth or local-variant flag football lacks its approved local rule source.
 
 How to use: run export preflight first, correct blockers, select audience/layout/branding/print options, export, and retain the manifest with the artifact. Production printer/device validation remains a gate.
 

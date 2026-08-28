@@ -17,6 +17,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from .play_creation import validate_legality, validate_play_design
+from .play_legality import RULE_PROFILE_CATALOG
 
 try:  # Optional in the local foundation; the export contract remains testable without it.
     from reportlab.lib import colors
@@ -114,8 +115,16 @@ def validate_export_design(design: dict[str, Any], *, kind: str, format: str, ro
     validation = design.get("validation", {})
     if validation.get("status") == "invalid":
         issues.append({"code": "EXPORT-DESIGN-INVALID", "message": "Invalid play designs cannot be exported as production artifacts", "path": "validation", "severity": "error"})
-    if not isinstance(design.get("players"), list) or len(design.get("players", [])) != 11:
-        issues.append({"code": "EXPORT-PLAYER-COUNT", "message": "A production play card requires 11 players", "path": "players", "severity": "error"})
+    rule_profile = str(design.get("rule_profile") or "nfl")
+    profile = RULE_PROFILE_CATALOG.get(rule_profile)
+    if profile is None:
+        issues.append({"code": "EXPORT-RULE-PROFILE", "message": "Export requires a controlled rule profile", "path": "rule_profile", "severity": "error"})
+    elif profile.get("players_on_field") is None:
+        issues.append({"code": "EXPORT-RULE-PROFILE-UNRESOLVED", "message": "The selected rule profile requires local player-count rules before export", "path": "rule_profile", "severity": "error"})
+    elif not isinstance(design.get("players"), list) or len(design.get("players", [])) != profile["players_on_field"]:
+        issues.append({"code": "EXPORT-PLAYER-COUNT", "message": f"The selected {rule_profile} profile requires {profile['players_on_field']} players", "path": "players", "severity": "error", "expected": profile["players_on_field"], "observed": len(design.get("players", [])) if isinstance(design.get("players"), list) else None})
+    if profile and profile.get("requires_local_rules") and not design.get("local_rule_source_ref"):
+        issues.append({"code": "EXPORT-LOCAL-RULE-SOURCE", "message": "The selected profile requires an approved local rule source before export", "path": "local_rule_source_ref", "severity": "error"})
     if not isinstance(design.get("elements"), list):
         issues.append({"code": "EXPORT-ELEMENTS", "message": "Design elements must be a list", "path": "elements", "severity": "error"})
     else:
