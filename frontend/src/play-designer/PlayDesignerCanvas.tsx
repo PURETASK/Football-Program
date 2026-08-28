@@ -5,7 +5,6 @@ import type { EditorSelection, EditorTool } from './editorState';
 import {
   elementPoints,
   elementProgress,
-  collisionIds,
   fieldRect,
   handleRole,
   insertPointOnNearestSegment,
@@ -16,6 +15,7 @@ import {
   pointerToFieldPoint,
   positionAlongPath,
   polylinePathData,
+  routeCollisions,
   simplifyPath,
   smoothPathData,
   translatePoints,
@@ -198,7 +198,16 @@ export function PlayDesignerCanvas({
   const lineOfScrimmageY = Number(design.field_context?.line_of_scrimmage_y ?? 26.5);
   const ballPoint = normalizePoint({ x: Number(design.field_context?.ball_x ?? 50), y: Number(design.field_context?.ball_y ?? lineOfScrimmageY) }, false);
   const elements = design.elements ?? [];
-  const routeCollisions = useMemo(() => collisionIds(elements), [elements]);
+  const routeCollisionRecords = useMemo(() => routeCollisions(elements), [elements]);
+  const routeCollisionIds = useMemo(() => new Set(routeCollisionRecords.flatMap((collision) => [collision.firstId, collision.secondId])), [routeCollisionRecords]);
+  const routeCollisionByElement = useMemo(() => {
+    const output = new Map<string, typeof routeCollisionRecords[number]>();
+    for (const collision of routeCollisionRecords) {
+      if (!output.has(collision.firstId)) output.set(collision.firstId, collision);
+      if (!output.has(collision.secondId)) output.set(collision.secondId, collision);
+    }
+    return output;
+  }, [routeCollisionRecords]);
   const players = design.players ?? [];
   const shellBoxes = useMemo(() => design.unit === 'defense' ? coverageShellBoxes(design.coverage_zones) : [], [design.coverage_zones, design.unit]);
   const gapLinks = useMemo(() => design.unit === 'defense' ? defensiveGapLinks(design) : [], [design]);
@@ -642,7 +651,8 @@ export function PlayDesignerCanvas({
             if (element.hidden) return null;
             const points = displayElementPoints(element, playerDrag, elementDrag, handleDrag, snap);
             const isSelected = selected(selection, 'element', element.id);
-            const hasCollision = routeCollisions.has(element.id);
+            const collision = routeCollisionByElement.get(element.id);
+            const hasCollision = routeCollisionIds.has(element.id);
             const progress = playbackTime === null ? 1 : elementProgress(element, playbackTime, duration);
             if (!points.length && element.kind !== 'annotation') return null;
             if (element.kind === 'annotation') {
@@ -672,7 +682,7 @@ export function PlayDesignerCanvas({
                 className="designer-element"
                 role="button"
                 tabIndex={0}
-                aria-label={`${element.type ?? element.kind} assignment${element.player_id ? ` for ${element.player_id}` : ''}${hasCollision ? ' with possible route collision' : ''}`}
+                  aria-label={`${element.type ?? element.kind} assignment${element.player_id ? ` for ${element.player_id}` : ''}${collision ? ` with ${collision.kind} route collision: ${collision.explanation}` : ''}`}
                 onKeyDown={(event) => keyboardSelect(event, { kind: 'element', id: element.id })}
                 onPointerDown={(event) => beginElementDrag(event, element)}
                 onDoubleClick={(event) => {
@@ -699,7 +709,7 @@ export function PlayDesignerCanvas({
                   strokeWidth={Number(element.stroke_width ?? 0.26)}
                 />
                 {(element.branches ?? []).map((branch) => { const branchReveal = playbackTime === null ? 1 : branchProgress(branch, playbackTime, duration); return <path key={branch.id} className="designer-route-branch" d={smoothPathData(branch.points)} fill="none" markerEnd={marker ? `url(#${markerPrefix}-${marker})` : undefined} pathLength="1" strokeDasharray={playbackTime === null ? undefined : 1} strokeDashoffset={playbackTime === null ? undefined : 1 - branchReveal} aria-label={`${branch.label}: ${branch.condition}`} />; })}
-                {hasCollision ? <g className="designer-collision-badge" aria-label="Possible route collision"><circle cx={points.at(-1)?.x ?? 0} cy={points.at(-1)?.y ?? 0} r="1.25" /><text x={(points.at(-1)?.x ?? 0) - 0.42} y={(points.at(-1)?.y ?? 0) + 0.48}>!</text></g> : null}
+                {collision ? <g className="designer-collision-badge" aria-label={`${collision.kind === 'intersection' ? 'Route intersection' : 'Route corridor conflict'}: ${collision.explanation}`}><circle cx={points.at(-1)?.x ?? 0} cy={points.at(-1)?.y ?? 0} r="1.25" /><text x={(points.at(-1)?.x ?? 0) - 0.42} y={(points.at(-1)?.y ?? 0) + 0.48}>!</text></g> : null}
               </g>
             );
           })}

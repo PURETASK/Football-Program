@@ -99,6 +99,17 @@ describe('PlayDesignerCanvas', () => {
     expect(screen.getByRole('img', { name: 'Ball at 22.0, 19.0 on the synchronized timeline' })).toBeInTheDocument();
   });
 
+  it('exposes explainable route collision diagnostics to field users', () => {
+    const callbacks = props();
+    const design = { ...DESIGN, elements: [
+      { ...DESIGN.elements![0], id: 'ROUTE-A', points: [{ x: 10, y: 30 }, { x: 40, y: 10 }] },
+      { id: 'ROUTE-B', kind: 'route' as const, type: 'dig', player_id: 'X2', points: [{ x: 10, y: 10 }, { x: 40, y: 30 }] },
+    ] };
+    render(<PlayDesignerCanvas {...callbacks} design={design} />);
+    expect(screen.getByRole('button', { name: /post assignment for X with intersection route collision/i })).toHaveAttribute('aria-label', expect.stringContaining('Routes intersect'));
+    expect(screen.getAllByLabelText(/Route intersection:/i)).toHaveLength(2);
+  });
+
   it('marquee-selects players and paths crossing a blank-field drag', () => {
     const callbacks = props();
     render(<PlayDesignerCanvas {...callbacks} />);
