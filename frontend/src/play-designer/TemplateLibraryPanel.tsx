@@ -15,6 +15,7 @@ interface TemplateLibraryPanelProps {
   onRequestVariantReview?: (batchId: string) => Promise<void>;
   onApproveVariantReview?: (batchId: string) => Promise<void>;
   onCreateVariantReleaseBundle?: (batchId: string) => Promise<void>;
+  onInspectVariantReleaseBundle?: (bundleId: string) => Promise<{ valid: boolean; expected_manifest_hash?: string; declared_manifest_hash?: string }>;
   onOpenVariant?: (designId: string) => void;
   selectedElementIds?: string[];
 }
@@ -70,7 +71,7 @@ function TemplatePreview({ template }: { template: PlayTemplate }) {
   );
 }
 
-export function TemplateLibraryPanel({ templates, design, variantBatches = [], onRequestVariantReview, onApproveVariantReview, onCreateVariantReleaseBundle, onApply, onSave, onCreateVariants, onOpenVariant, selectedElementIds = [] }: TemplateLibraryPanelProps) {
+export function TemplateLibraryPanel({ templates, design, variantBatches = [], onRequestVariantReview, onApproveVariantReview, onCreateVariantReleaseBundle, onInspectVariantReleaseBundle, onApply, onSave, onCreateVariants, onOpenVariant, selectedElementIds = [] }: TemplateLibraryPanelProps) {
   const [search, setSearch] = useState('');
   const [kind, setKind] = useState('all');
   const [replaceConfirmation, setReplaceConfirmation] = useState<string | null>(null);
@@ -88,6 +89,8 @@ export function TemplateLibraryPanel({ templates, design, variantBatches = [], o
   const [reviewBatchId, setReviewBatchId] = useState<string | null>(null);
   const [approveBatchId, setApproveBatchId] = useState<string | null>(null);
   const [releaseBundleBatchId, setReleaseBundleBatchId] = useState<string | null>(null);
+  const [inspectionBundleId, setInspectionBundleId] = useState<string | null>(null);
+  const [inspectionResults, setInspectionResults] = useState<Record<string, { status: 'verified' | 'mismatch' | 'error'; expected?: string; declared?: string }>>({});
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const deferredSearch = useDeferredValue(search);
   const kinds = useMemo(() => [...new Set(templates.map((template) => template.template_kind ?? 'custom'))].sort(), [templates]);
@@ -200,7 +203,7 @@ export function TemplateLibraryPanel({ templates, design, variantBatches = [], o
         <div className="template-library__intro"><Layers3 size={15} /><span><strong>Saved review sets</strong><small>Reopen draft looks generated for this source play. These records remain human-review-required until staff approval.</small></span></div>
         <div className="variant-history-list">{variantBatches.map((batch) => <article className="variant-history-card" key={batch.id}>
           <header><span><strong>{batch.id}</strong><small>{batch.count} draft look{batch.count === 1 ? '' : 's'} · {batch.status}</small></span><span>{batch.review ? `${batch.review.ready_count}/${batch.count} ready for review` : batch.human_review_required ? 'Review required' : 'Recorded'}</span></header>
-          {batch.release_bundle ? <div className="variant-history-card__bundle" role="status"><strong>Frozen release bundle · {batch.release_bundle.integrity_valid === false ? 'integrity check failed' : 'integrity verified'}</strong><span>{batch.release_bundle.id}</span><small>Immutable manifest · {batch.release_bundle.manifest_hash?.slice(0, 12)}… · production activation disabled</small></div> : null}
+          {batch.release_bundle ? <div className="variant-history-card__bundle" role="status"><strong>Frozen release bundle · {batch.release_bundle.integrity_valid === false ? 'integrity check failed' : 'integrity verified'}</strong><span>{batch.release_bundle.id}</span><small>Immutable manifest · {batch.release_bundle.manifest_hash?.slice(0, 12)}… · production activation disabled</small>{onInspectVariantReleaseBundle ? <><button type="button" className="variant-history-card__inspect" disabled={inspectionBundleId === batch.release_bundle.id} onClick={async () => { setInspectionBundleId(batch.release_bundle?.id ?? null); try { const result = await onInspectVariantReleaseBundle(batch.release_bundle?.id ?? ''); setInspectionResults((current) => ({ ...current, [batch.release_bundle?.id ?? '']: { status: result.valid ? 'verified' : 'mismatch', expected: result.expected_manifest_hash, declared: result.declared_manifest_hash } })); } catch { setInspectionResults((current) => ({ ...current, [batch.release_bundle?.id ?? '']: { status: 'error' } })); } finally { setInspectionBundleId(null); } }}>{inspectionBundleId === batch.release_bundle.id ? 'Checking manifest…' : 'Verify manifest integrity'}</button>{inspectionResults[batch.release_bundle.id]?.status === 'verified' ? <small role="status">Server read verified the immutable manifest.</small> : null}{inspectionResults[batch.release_bundle.id]?.status === 'mismatch' ? <small role="alert">Server read detected a manifest mismatch. Do not distribute this bundle.</small> : null}{inspectionResults[batch.release_bundle.id]?.status === 'error' ? <small role="alert">The server integrity check could not be completed.</small> : null}</> : null}</div> : null}
           <div className="variant-history-card__looks">{batch.variants.map((variant) => <button type="button" key={variant.id} onClick={() => onOpenVariant?.(variant.id)} disabled={!onOpenVariant}><span>{variant.variant_look?.label ?? variant.name ?? variant.id}</span><small>{variant.id}</small></button>)}</div>
           {onRequestVariantReview && batch.status === 'created' && batch.review?.ready ? <button type="button" className="variant-history-card__review" disabled={reviewBatchId === batch.id} onClick={async () => { setReviewBatchId(batch.id); try { await onRequestVariantReview(batch.id); } finally { setReviewBatchId(null); } }}>{reviewBatchId === batch.id ? 'Requesting review…' : 'Request staff review'}</button> : null}
           {onApproveVariantReview && batch.status === 'under_review' ? <button type="button" className="variant-history-card__approve" disabled={approveBatchId === batch.id} onClick={async () => { setApproveBatchId(batch.id); try { await onApproveVariantReview(batch.id); } finally { setApproveBatchId(null); } }}>{approveBatchId === batch.id ? 'Approving batch…' : 'Approve batch for release'}</button> : null}

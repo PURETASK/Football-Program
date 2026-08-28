@@ -143,4 +143,23 @@ describe('TemplateLibraryPanel', () => {
     expect(screen.getByText('VARIANT-RELEASE-VARIANT-BATCH-LOCKED-001')).toBeVisible();
     expect(screen.getByText(/production activation disabled/)).toBeVisible();
   });
+
+  it('rechecks a persisted release bundle and exposes the server result', async () => {
+    const user = userEvent.setup();
+    const onInspectVariantReleaseBundle = vi.fn().mockResolvedValue({ valid: true, expected_manifest_hash: 'abcdef1234567890', declared_manifest_hash: 'abcdef1234567890' });
+    render(<TemplateLibraryPanel templates={[]} design={DESIGN} variantBatches={[{ id: 'VARIANT-BATCH-INSPECT-001', variants: [], count: 1, status: 'approved_for_release', release_bundle: { id: 'VARIANT-RELEASE-INSPECT-001', status: 'frozen', immutable: true, manifest_hash: 'abcdef1234567890', created_at: '2026-08-28T00:00:00Z', production_activation: false } }]} onApply={vi.fn()} onInspectVariantReleaseBundle={onInspectVariantReleaseBundle} />);
+
+    await user.click(screen.getByRole('button', { name: 'Verify manifest integrity' }));
+    expect(onInspectVariantReleaseBundle).toHaveBeenCalledWith('VARIANT-RELEASE-INSPECT-001');
+    expect(await screen.findByText('Server read verified the immutable manifest.')).toBeVisible();
+  });
+
+  it('warns when a server integrity recheck detects a mismatch', async () => {
+    const user = userEvent.setup();
+    const onInspectVariantReleaseBundle = vi.fn().mockResolvedValue({ valid: false, expected_manifest_hash: 'expected', declared_manifest_hash: 'declared' });
+    render(<TemplateLibraryPanel templates={[]} design={DESIGN} variantBatches={[{ id: 'VARIANT-BATCH-INSPECT-002', variants: [], count: 1, status: 'approved_for_release', release_bundle: { id: 'VARIANT-RELEASE-INSPECT-002', status: 'frozen', immutable: true, manifest_hash: 'declared', created_at: '2026-08-28T00:00:00Z', production_activation: false } }]} onApply={vi.fn()} onInspectVariantReleaseBundle={onInspectVariantReleaseBundle} />);
+
+    await user.click(screen.getByRole('button', { name: 'Verify manifest integrity' }));
+    expect(await screen.findByText('Server read detected a manifest mismatch. Do not distribute this bundle.')).toBeVisible();
+  });
 });

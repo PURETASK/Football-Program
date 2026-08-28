@@ -23,7 +23,7 @@ import {
   ApiError,
   addPlayComment,
   branchPlayDesign,
-  createPlayTemplate, createPlayVariants, requestPlayVariantBatchReview, approvePlayVariantBatchReview, createPlayVariantReleaseBundle,
+  createPlayTemplate, createPlayVariants, requestPlayVariantBatchReview, approvePlayVariantBatchReview, createPlayVariantReleaseBundle, fetchPlayVariantReleaseBundle,
   leavePlayPresence,
   mergePlayBranch,
   publishPlayDesign,
@@ -512,6 +512,13 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
     setActionMessage(`Variant batch ${batchId} is frozen into an immutable release manifest. Production activation remains disabled.`);
   };
 
+  const inspectVariantReleaseBundle = async (bundleId: string) => {
+    if (!session) throw new Error('An authenticated organization session is required to inspect a release bundle.');
+    const result = await fetchPlayVariantReleaseBundle(session, bundleId);
+    setActionMessage(result.integrity.valid ? `Release bundle ${bundleId} passed the server manifest integrity check.` : `Release bundle ${bundleId} failed the server manifest integrity check. Do not distribute it.`);
+    return result.integrity;
+  };
+
   const applyTemplate = (template: PlayTemplate, mode: 'replace' | 'layer') => {
     void import('../play-designer/templateMaterializer').then(({ applyPlayTemplate }) => {
       dispatch({ type: 'commit_design', design: applyPlayTemplate(state.present, template, mode) });
@@ -577,6 +584,7 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
             onRequestVariantReview={requestVariantReview}
             onApproveVariantReview={session?.role === 'program_owner' ? approveVariantReview : undefined}
             onCreateVariantReleaseBundle={session?.role === 'program_owner' ? freezeVariantReleaseBundle : undefined}
+            onInspectVariantReleaseBundle={inspectVariantReleaseBundle}
             onOpenVariant={(designId) => navigate(`/playbook/designer/${encodeURIComponent(designId)}`)}
             selectedElementIds={state.selected.filter((selection): selection is { kind: 'element'; id: string } => selection.kind === 'element').map((selection) => selection.id)}
           />
