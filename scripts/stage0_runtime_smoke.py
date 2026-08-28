@@ -61,6 +61,21 @@ def run_smoke(database: Path) -> dict[str, object]:
             f"/v1/playbook/workspace?organization_id={DEMO_ORGANIZATION_ID}",
             {"Authorization": f"Bearer {token}"},
         )
+        jobs_body = check(
+            "authenticated_media_jobs",
+            f"/v1/media/jobs?organization_id={DEMO_ORGANIZATION_ID}",
+            {"Authorization": f"Bearer {token}"},
+        )
+        jobs_payload = json.loads(jobs_body)
+        demo_job_id = next((job.get("id") for job in jobs_payload.get("data", {}).get("jobs", []) if job.get("id") == "MEDIA-JOB-DEMO-THUMBNAIL"), None)
+        if demo_job_id:
+            check(
+                "authenticated_media_job_detail",
+                f"/v1/media/jobs/{demo_job_id}?organization_id={DEMO_ORGANIZATION_ID}",
+                {"Authorization": f"Bearer {token}"},
+            )
+        else:
+            checks.append({"name": "authenticated_media_job_detail", "path": "MEDIA-JOB-DEMO-THUMBNAIL", "status_code": 0, "bytes": 0, "passed": False})
         passed = all(bool(item["passed"]) for item in checks) and bool(asset_paths)
         return {
             "status": "passed" if passed else "failed",

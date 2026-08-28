@@ -12,7 +12,7 @@ class Stage0RuntimeSmokeTests(unittest.TestCase):
         self.assertEqual(result["status"], "passed")
         self.assertTrue(result["synthetic"])
         self.assertFalse(result["safety"]["external_state_changed"])
-        self.assertGreaterEqual(len(result["checks"]), 3)
+        self.assertGreaterEqual(len(result["checks"]), 5)
         self.assertTrue(all(item["passed"] for item in result["checks"]))
 
 
