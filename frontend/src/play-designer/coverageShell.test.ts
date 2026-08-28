@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { coverageMovementPatch, coverageShellAnchor, coverageShellBoxes } from './coverageShell';
+import { coverageMovementPatch, coverageShellAnchor, coverageShellBoxes, coverageShellOwners } from './coverageShell';
 
 describe('coverage shell geometry', () => {
   it('maps declared zones to spatial boxes and removes duplicates', () => {
@@ -27,5 +27,13 @@ describe('coverage shell geometry', () => {
     const patch = coverageMovementPatch(element, design, 'flat_left');
     expect(patch).not.toHaveProperty('points');
     expect(patch.movement_geometry).toBe('shell-targeted');
+  });
+
+  it('collects all visual shell owners for conflict-aware rendering', () => {
+    const owners = coverageShellOwners({ elements: [
+      { id: 'DROP-1', kind: 'coverage', player_id: 'FS', zone: 'deep_middle' },
+      { id: 'DROP-2', kind: 'rotation', player_id: 'MIKE', rotation_to_zone: 'deep_middle' },
+    ] });
+    expect(owners.get('deep_middle')).toEqual(['FS', 'MIKE']);
   });
 });

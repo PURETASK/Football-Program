@@ -1453,6 +1453,8 @@
 .defensive-alignment-board__player text { fill: #fff7ed; font-size: 2.15px; font-weight: 900; pointer-events: none; }
 .defensive-alignment-board__player:hover circle,
 .defensive-alignment-board__player:focus-visible circle { fill: #54d3f2; transform: scale(1.18); }
+.coverage-shell-authoring__zone.is-conflict rect { stroke: #ff8b84; stroke-width: 0.9; }
+.coverage-shell-authoring__owner { fill: #d8f4ff; font-size: 2.2px; font-weight: 900; pointer-events: none; }
 .offensive-blocking-editor { display: grid; gap: 8px; margin: 4px 0 0; padding: 10px; border: 1px solid rgb(95 220 160 / 0.22); border-radius: 12px; background: rgb(95 220 160 / 0.05); }
 .offensive-blocking-editor legend { padding: 0 4px; color: #a7f2c7; font-weight: 700; }
 .offensive-blocking-editor p { color: var(--muted); font-size: 11px; line-height: 1.45; }

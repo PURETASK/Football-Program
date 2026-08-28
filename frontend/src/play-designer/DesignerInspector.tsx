@@ -40,6 +40,7 @@ import { DEFENSIVE_GAP_OPTIONS, defensiveGapOwners, defensiveGapSummary } from '
 import { routeCollisions } from './geometry';
 import { DEFENSIVE_ALIGNMENTS, DEFENSIVE_TECHNIQUES, defensiveAlignmentIssues, defensiveAlignmentLabel, defensiveAlignmentPatch } from './defensiveAlignment';
 import { CoverageShellEditor } from './CoverageShellEditor';
+import { coverageShellOwners } from './coverageShell';
 import { rotationLabel } from './rotationSequencing';
 import { DEFENSIVE_EXCHANGE_ROLES, clearDefensiveExchangePairPatch, defensiveExchangePairPatch } from './defensiveExchanges';
 import { defensiveResponsibilityIssues } from './defensiveResponsibilityValidation';
@@ -599,7 +600,7 @@ export function DesignerInspector(props: InspectorProps) {
                   <fieldset className="coverage-shell-editor">
                     <legend>Coverage shell</legend>
                     <p>Author the spatial shell first; Checks will flag any zone that has no assignment owner.</p>
-                    <CoverageShellEditor zones={props.design.coverage_zones ?? []} onChange={(zones) => props.onMeta({ coverage_zones: zones })} />
+                    <CoverageShellEditor zones={props.design.coverage_zones ?? []} owners={coverageShellOwners(props.design)} onChange={(zones) => props.onMeta({ coverage_zones: zones })} />
                     <div className="coverage-shell-grid">
                       {COVERAGE_ZONE_OPTIONS.map(([value, label]) => <label key={value}><input type="checkbox" checked={(props.design.coverage_zones ?? []).includes(value)} onChange={(event) => {
                         const zones = event.target.checked ? [...new Set([...(props.design.coverage_zones ?? []), value])] : (props.design.coverage_zones ?? []).filter((zone) => zone !== value);

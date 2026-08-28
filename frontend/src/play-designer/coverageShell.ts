@@ -51,6 +51,20 @@ export function coverageShellAnchor(zone: string): Point | undefined {
   return box ? { x: box.x + box.width / 2, y: box.y + box.height / 2 } : undefined;
 }
 
+/** Return every assignment that declares ownership of each visual shell zone. */
+export function coverageShellOwners(design: Pick<PlayDesign, 'elements'>): Map<string, string[]> {
+  const owners = new Map<string, string[]>();
+  for (const element of design.elements ?? []) {
+    if (element.kind !== 'coverage' && element.kind !== 'rotation') continue;
+    const zone = element.kind === 'rotation' ? element.rotation_to_zone ?? element.zone : element.zone;
+    if (!zone) continue;
+    const list = owners.get(zone) ?? [];
+    list.push(element.player_id ?? element.type ?? element.id);
+    owners.set(zone, list);
+  }
+  return owners;
+}
+
 /** Build explicit owner-to-destination vectors for the visual coverage shell. */
 export function coverageShellLinks(design: PlayDesign): CoverageShellLink[] {
   return (design.elements ?? []).flatMap((element) => {
