@@ -1,9 +1,12 @@
 import os
+import json
 import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+from contextlib import redirect_stdout
+import io
 
 sys.path.insert(0, str(Path(__file__).parents[1] / "src"))
 
@@ -101,6 +104,25 @@ class DemoDataTests(unittest.TestCase):
             self.assertFalse(report["safety"]["owner_approval_recorded"])
             self.assertFalse(report["safety"]["production_implementation_allowed"])
             self.assertFalse(report["safety"]["activation_performed"])
+
+    def test_stage0_rehearsal_output_matches_persisted_owner_review_packet(self):
+        with tempfile.TemporaryDirectory() as directory:
+            database = Path(directory) / "stage0.sqlite3"
+            output = Path(directory) / "owner-review.json"
+            with redirect_stdout(io.StringIO()) as captured:
+                from scripts import stage0_rehearsal
+
+                exit_code = stage0_rehearsal.main([
+                    "--database", str(database),
+                    "--no-media",
+                    "--output", str(output),
+                ])
+            self.assertEqual(exit_code, 0)
+            printed = json.loads(captured.getvalue())
+            persisted = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(printed, persisted)
+            self.assertEqual(persisted["report_output"], str(output.resolve()))
+            self.assertFalse(persisted["safety"]["owner_approval_recorded"])
 
 
 if __name__ == "__main__":

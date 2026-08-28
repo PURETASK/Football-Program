@@ -109,13 +109,13 @@ def main(argv: list[str] | None = None) -> int:
             close()
 
     report = build_rehearsal_report(root=ROOT, database=database, seed=seed)
-    serialized = json.dumps(report, indent=2, sort_keys=True)
     if args.output:
         output = args.output.expanduser().resolve()
         output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(serialized + "\n", encoding="utf-8")
         report["report_output"] = str(output)
-        serialized = json.dumps(report, indent=2, sort_keys=True)
+    serialized = json.dumps(report, indent=2, sort_keys=True)
+    if args.output:
+        output.write_text(serialized + "\n", encoding="utf-8")
     print(serialized)
     return 0
 
