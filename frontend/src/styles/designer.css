@@ -338,6 +338,8 @@
 .template-preview__path--coverage { stroke: #ffb84f; stroke-dasharray: 2 1; }
 .template-preview__path--rush { stroke: #ff7e8c; }
 .template-preview__path--read { stroke: #c0a9ff; stroke-dasharray: 1 1; }
+.template-preview__path--inherited { opacity: 0.52; stroke-dasharray: 1.2 1.2; }
+.template-preview__path--local { opacity: 0.98; }
 .template-card header { display: flex; min-width: 0; align-items: flex-start; justify-content: space-between; gap: 0.3rem; }
 .template-card header > span:first-child { display: grid; min-width: 0; gap: 0.13rem; }
 .template-card header strong { overflow: hidden; color: #edf5ff; font-size: 0.61rem; text-overflow: ellipsis; white-space: nowrap; }

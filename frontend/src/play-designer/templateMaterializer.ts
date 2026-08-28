@@ -39,12 +39,18 @@ function namespaceTimeline(template: PlayTemplate, design: PlayDesign, applicati
   return { snap_ms: Number(source.snap_ms ?? 0), duration_ms: Math.max(1000, Number(source.duration_ms ?? 3000)), markers: [{ id: `${applicationId}-SNAP`, label: 'Snap', kind: 'snap', ms: 0 }, ...sourceMarkers.filter((marker) => marker.kind !== 'snap')], narration: sourceNarration, events: sourceEvents };
 }
 
+export function resolveTemplateAssignments(template: PlayTemplate): Array<{ assignment: PlayTemplateAssignment; origin: 'inherited' | 'local' }> {
+  const resolved = new Map<string, { assignment: PlayTemplateAssignment; origin: 'inherited' | 'local' }>();
+  for (const assignment of template.inherited_assignments ?? []) resolved.set(assignment.key, { assignment, origin: 'inherited' });
+  for (const assignment of template.assignments ?? []) resolved.set(assignment.key, { assignment, origin: 'local' });
+  return [...resolved.values()];
+}
+
 /** Materialize a reusable slot-relative package into this team's canonical play record. */
 export function applyPlayTemplate(design: PlayDesign, template: PlayTemplate, mode: 'replace' | 'layer' = 'replace'): PlayDesign {
   if (template.unit !== design.unit) return design;
-  const assignmentByKey = new Map<string, PlayTemplateAssignment>();
-  for (const assignment of [...(template.inherited_assignments ?? []), ...(template.assignments ?? [])]) assignmentByKey.set(assignment.key, assignment);
-  const assignments = [...assignmentByKey.values()];
+  const resolvedAssignments = resolveTemplateAssignments(template);
+  const assignments = resolvedAssignments.map(({ assignment }) => assignment);
   if (!assignments.length) return { ...design, formation: template.formation ?? design.formation, front: template.front ?? design.front, coverage: template.coverage ?? design.coverage, personnel: template.personnel ?? design.personnel, concept: template.concept ?? design.concept };
   const priorApplications = Array.isArray(design.template_applications) ? design.template_applications as Array<Record<string, unknown>> : [];
   const applicationId = `APP-${identifier(template.id)}-${priorApplications.length + 1}`;
@@ -58,7 +64,7 @@ export function applyPlayTemplate(design: PlayDesign, template: PlayTemplate, mo
     while (existingIds.has(id)) { id = `${base}-${copy}`; copy += 1; }
     existingIds.add(id); idByKey.set(assignment.key, id);
   }
-  const materialized = assignments.map((assignment) => {
+  const materialized = resolvedAssignments.map(({ assignment, origin: assignmentOrigin }) => {
     const { key, slot, points: offsets, depends_on: dependencyKeys, exchange_with: exchangeKey, target_element_key: targetKey, timing: sourceTiming, ...fields } = assignment;
     const player = playerBySlot.get(slot);
     const origin = player?.start ?? { x: Number(design.field_context?.ball_x ?? 50), y: Number(design.field_context?.ball_y ?? 26.5) };
@@ -66,7 +72,7 @@ export function applyPlayTemplate(design: PlayDesign, template: PlayTemplate, mo
     const timingStart = Number(sourceTiming?.start_ms ?? fields.start_ms ?? 0);
     const timingEnd = Math.max(timingStart + 1, Number(sourceTiming?.end_ms ?? fields.end_ms ?? 1200));
     const timing = { ...sourceTiming, start_ms: timingStart, end_ms: timingEnd, phases: sourceTiming?.phases?.length ? clone(sourceTiming.phases) : defaultTimelinePhases(String(fields.kind), timingStart, timingEnd) };
-    const element: PlayElement = { ...fields, id: idByKey.get(key)!, player_id: player?.id ?? null, asset_id: fields.asset_id ?? template.id, template_id: template.id, template_assignment_key: key, start_ms: timingStart, end_ms: timingEnd, timing, depends_on: (dependencyKeys ?? []).map((dependency) => idByKey.get(dependency)).filter((id): id is string => Boolean(id)), exchange_with: exchangeKey ? idByKey.get(exchangeKey) : undefined, target_element_id: targetKey ? idByKey.get(targetKey) : undefined };
+    const element: PlayElement = { ...fields, id: idByKey.get(key)!, player_id: player?.id ?? null, asset_id: fields.asset_id ?? template.id, template_id: template.id, template_assignment_key: key, template_assignment_origin: assignmentOrigin, start_ms: timingStart, end_ms: timingEnd, timing, depends_on: (dependencyKeys ?? []).map((dependency) => idByKey.get(dependency)).filter((id): id is string => Boolean(id)), exchange_with: exchangeKey ? idByKey.get(exchangeKey) : undefined, target_element_id: targetKey ? idByKey.get(targetKey) : undefined };
     if (points.length) element.points = points;
     return element;
   });

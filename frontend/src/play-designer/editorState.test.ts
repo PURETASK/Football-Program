@@ -167,5 +167,6 @@ describe('play designer editor state', () => {
     const materialized = applyPlayTemplate(createEmptyDesign(), child);
     expect(materialized.elements).toHaveLength(2);
     expect(materialized.elements?.map((element) => element.type)).toEqual(['go', 'out']);
+    expect(materialized.elements?.map((element) => element.template_assignment_origin)).toEqual(['inherited', 'local']);
   });
 });

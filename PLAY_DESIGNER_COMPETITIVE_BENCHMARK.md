@@ -172,3 +172,11 @@ override diffs, parent-change propagation, and multi-look batch generation
 for the next slice. Verification for this slice is 166 frontend tests and 24
 focused Play Designer backend/API tests, with typecheck and production build
 passing locally.
+
+The lineage boundary is now visible before and after application. Template
+previews render inherited paths with a lighter dashed treatment and local
+paths with the normal emphasis; package metadata reports total, inherited,
+and local assignment counts. Materialized elements carry an explicit
+`template_assignment_origin` value, allowing later comparison and teaching
+surfaces to distinguish inherited responsibilities from child overrides
+without reconstructing provenance from labels.

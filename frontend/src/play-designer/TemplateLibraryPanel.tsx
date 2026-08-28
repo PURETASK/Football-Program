@@ -2,6 +2,7 @@ import { useDeferredValue, useMemo, useState } from 'react';
 import { BookmarkPlus, Check, Layers3, Search, ShieldAlert, Sparkles } from 'lucide-react';
 
 import type { PlayDesign, PlayTemplate } from '../types';
+import { resolveTemplateAssignments } from './templateMaterializer';
 
 interface TemplateLibraryPanelProps {
   templates: PlayTemplate[];
@@ -22,11 +23,11 @@ function TemplatePreview({ template }: { template: PlayTemplate }) {
     <svg className="template-preview" viewBox="0 0 100 53" role="img" aria-label={`${template.name} diagram preview`}>
       <rect x="0" y="0" width="100" height="53" rx="3" />
       <line className="template-preview__los" x1="0" x2="100" y1="26.5" y2="26.5" />
-      {(template.assignments ?? []).map((assignment) => {
+      {resolveTemplateAssignments(template).map(({ assignment, origin: assignmentOrigin }) => {
         const slot = slotByKey.get(assignment.slot);
         if (!slot || !assignment.points?.length) return null;
         const points = assignment.points.map((point) => `${slot.x + point.dx},${slot.y + point.dy}`).join(' ');
-        return <polyline className={`template-preview__path template-preview__path--${assignment.kind}`} key={assignment.key} points={points} />;
+        return <polyline className={`template-preview__path template-preview__path--${assignment.kind} template-preview__path--${assignmentOrigin}`} key={assignment.key} points={points} />;
       })}
       {slots.map((slot) => template.unit === 'defense'
         ? <rect className="template-preview__player" key={slot.key} x={slot.x - 1.8} y={slot.y - 1.8} width="3.6" height="3.6" rx="0.5" />
@@ -99,7 +100,7 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave, selec
             <TemplatePreview template={template} />
             <header><span><strong>{template.name}</strong><small>{titleCase(template.template_kind ?? 'custom')} · {template.scope ?? 'system'} · v{template.version ?? '1.0.0'}</small></span><span className={`template-status template-status--${template.status ?? 'active'}`}>{template.status ?? 'active'}</span></header>
             <p>{template.description ?? 'Reusable organization football package.'}</p>
-            <div className="template-card__meta"><span>{template.formation ?? template.front ?? 'Any look'}</span><span>{template.personnel ?? 'Open personnel'}</span><span>{template.assignments?.length ?? 0} assignments</span></div>
+            <div className="template-card__meta"><span>{template.formation ?? template.front ?? 'Any look'}</span><span>{template.personnel ?? 'Open personnel'}</span><span>{resolveTemplateAssignments(template).length} assignments</span>{template.inherited_assignments?.length ? <span>{template.inherited_assignments.length} inherited</span> : null}<span>{template.assignments?.length ?? 0} local</span></div>
             {template.parent_template_id ? <small className="template-companion"><Layers3 size={12} /> Inherits from {templates.find((parent) => parent.id === template.parent_template_id)?.name ?? template.parent_template_id}</small> : null}
             {template.tags?.length ? <div className="template-tags">{template.tags.slice(0, 4).map((tag) => <span key={tag}>{tag}</span>)}</div> : null}
             {template.expected_companion_layers?.length ? <small className="template-companion"><Layers3 size={12} /> Pair with: {template.expected_companion_layers.map(titleCase).join(', ')}</small> : <small className="template-companion"><Check size={12} /> Complete package</small>}
