@@ -16,7 +16,7 @@
     "registered_risks": 15,
     "registered_questions": 3,
     "implemented_stage_specifications": 26,
-    "regression_tests_passing": 546,
+    "regression_tests_passing": 626,
     "eval_families_passing": 97
   },
   "gaps": [

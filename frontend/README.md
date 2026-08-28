@@ -2,6 +2,10 @@
 
 This directory contains the incremental React and TypeScript replacement for the legacy single-page operator dashboard. The Python API and football-domain services remain authoritative.
 
+## Current verification correction (2026-08-28)
+
+The current checkout passes 199/199 frontend tests and 626/626 Python regression tests. TypeScript typecheck and the production frontend build pass. Older dated verification paragraphs below are preserved as historical records; use this correction for the current baseline.
+
 ## Current routes
 
 - `/app` — redesigned, organization-aware Today command center.
