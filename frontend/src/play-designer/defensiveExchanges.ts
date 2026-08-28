@@ -1,4 +1,5 @@
 import type { PlayDesign, PlayElement } from '../types';
+import { timelineEventKind, timelineEventStart, timelineEventEnd } from './timelineEvents';
 
 export type DefensiveExchangeRole = 'penetrate_loop' | 'loop_penetrate' | 'rush_replace' | 'drop_replace' | 'carry_transfer' | 'rotate_replace';
 
@@ -48,6 +49,19 @@ export interface DefensiveExchangeLink {
   from: { x: number; y: number };
   to: { x: number; y: number };
   replacement?: { x: number; y: number; label: string };
+}
+
+/** Return playback reveal progress for an exchange/rotation cue, if one is authored. */
+export function defensiveExchangeProgress(design: PlayDesign, link: DefensiveExchangeLink, timeMs: number | null, fallbackDuration: number): number {
+  if (timeMs === null) return 1;
+  const event = (design.timeline?.events ?? []).find((candidate) => {
+    const kind = timelineEventKind(candidate);
+    return (kind === 'exchange' || kind === 'rotation') && (candidate.element_id === link.fromId || candidate.element_id === link.toId);
+  });
+  if (!event) return 1;
+  const start = timelineEventStart(event);
+  const end = timelineEventEnd(event, fallbackDuration);
+  return Math.max(0, Math.min(1, (timeMs - start) / Math.max(1, end - start)));
 }
 
 const REPLACEMENT_ANCHORS: Record<string, { x: number; y: number }> = {

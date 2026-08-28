@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { clearDefensiveExchangePairPatch, defensiveExchangeLinks, defensiveExchangePairPatch, exchangePatch, reciprocalExchangePatch } from './defensiveExchanges';
+import { clearDefensiveExchangePairPatch, defensiveExchangeLinks, defensiveExchangePairPatch, defensiveExchangeProgress, exchangePatch, reciprocalExchangePatch } from './defensiveExchanges';
 import type { PlayDesign } from '../types';
 
 describe('defensive exchange relationships', () => {
@@ -51,5 +51,16 @@ describe('defensive exchange relationships', () => {
       ['RUSH-1', expect.objectContaining({ exchange_with: undefined, target_element_id: undefined, exchange_role: undefined, phase: undefined })],
       ['DROP-1', expect.objectContaining({ exchange_with: undefined, target_element_id: undefined, exchange_role: undefined, phase: undefined })],
     ]);
+  });
+
+  it('reveals an exchange link from its synchronized event timing', () => {
+    const design: PlayDesign = { id: 'TIMED-EXCHANGE', unit: 'defense', elements: [
+      { id: 'RUSH', kind: 'rush', exchange_with: 'DROP', points: [{ x: 40, y: 20 }, { x: 46, y: 30 }] },
+      { id: 'DROP', kind: 'coverage', exchange_with: 'RUSH', points: [{ x: 60, y: 20 }, { x: 55, y: 28 }] },
+    ], timeline: { duration_ms: 2000, events: [{ id: 'EX', type: 'exchange', element_id: 'RUSH', at_ms: 400, end_ms: 800 }] } };
+    const link = defensiveExchangeLinks(design)[0];
+    expect(defensiveExchangeProgress(design, link, 200, 2000)).toBe(0);
+    expect(defensiveExchangeProgress(design, link, 600, 2000)).toBeCloseTo(0.5);
+    expect(defensiveExchangeProgress(design, link, 900, 2000)).toBe(1);
   });
 });
