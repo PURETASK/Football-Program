@@ -14,7 +14,7 @@ import {
 } from '../components/OperationalWorkbench';
 import { useFilmWorkspaceQuery, usePlayerTodayQuery, usePracticeWorkspaceQuery, useRosterWorkspaceQuery } from '../hooks/useOperationalData';
 import { usePlayDesignsQuery } from '../hooks/useWorkspaceData';
-import { createPlayerAssignment } from '../lib/api';
+import { createPlayerAssignment, recordPlayMastery, submitPlayQuiz } from '../lib/api';
 import { readEncryptedOfflineCache, writeEncryptedOfflineCache } from '../lib/encryptedOfflineCache';
 import { compactValue, recordId, recordLabel, sentenceCase, splitList } from '../lib/format';
 import type { FootballRecord, PlayerTodayData } from '../types';
@@ -101,6 +101,7 @@ export function PlayerPage() {
   const [selectedId, setSelectedId] = useState(() => recordQuery.get('record') || '');
   const [revealedSteps, setRevealedSteps] = useState(1);
   const [cachedData, setCachedData] = useState<PlayerTodayData | null>(null);
+  const [quizAnswer, setQuizAnswer] = useState('');
   useEffect(() => {
     if (!session) {
       setCachedData(null);
@@ -148,6 +149,48 @@ export function PlayerPage() {
       void queryClient.invalidateQueries({ queryKey: ['player-today', session?.organizationId, playerId] });
     },
   });
+  const masteryMutation = useMutation({
+    mutationFn: (values: Parameters<typeof recordPlayMastery>[1]) => recordPlayMastery(session!, values),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ['player-today', session?.organizationId, playerId] }); },
+  });
+  const quizMutation = useMutation({
+    mutationFn: (values: Parameters<typeof submitPlayQuiz>[1]) => submitPlayQuiz(session!, values),
+    onSuccess: () => { setQuizAnswer(''); void queryClient.invalidateQueries({ queryKey: ['player-today', session?.organizationId, playerId] }); },
+  });
+
+  function markCurrentStepMastered() {
+    if (!session || tab !== 'lessons' || !selected) return;
+    const steps = Array.isArray(selected.steps) ? selected.steps as Array<Record<string, unknown>> : [];
+    const step = steps[Math.max(0, Math.min(revealedSteps - 1, steps.length - 1))];
+    const designId = String(selected.source_play_id || selected.artifact_id || '');
+    if (!designId || !step) return;
+    masteryMutation.mutate({
+      designId,
+      role: String(selected.learner_role || selected.role || 'player'),
+      stepId: String(step.id || `${selected.id}-STEP-${revealedSteps}`),
+      score: 1,
+      result: 'mastered',
+      practiceRef: String(selected.practice_id || ''),
+      notes: `Player marked lesson step ${revealedSteps} mastered from the Player Learning Hub.`,
+      userId: playerId,
+    });
+  }
+
+  function submitQuizAnswer(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!session || tab !== 'quizzes' || !selected || !quizAnswer.trim()) return;
+    const designId = String(selected.design_id || selected.source_play_id || selected.artifact_id || '');
+    const quizId = String(selected.quiz_id || '');
+    if (!designId || !quizId) return;
+    quizMutation.mutate({
+      designId,
+      role: String(selected.role || selected.learner_role || 'player'),
+      quizId,
+      answer: quizAnswer.trim(),
+      practiceRef: String(selected.practice_id || ''),
+      userId: playerId,
+    });
+  }
 
   function submitAssignment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -224,6 +267,23 @@ export function PlayerPage() {
                 {selected ? <PlayerRecordInspector onReveal={() => setRevealedSteps((count) => count + 1)} record={selected} revealedSteps={revealedSteps} tab={tab} /> : <div className="record-list__empty"><BookOpenCheck aria-hidden="true" size={22} /> Select a learning record to begin.</div>}
               </div>
             </div>
+
+            {selected && tab === 'lessons' && Array.isArray(selected.steps) && selected.steps.length ? (
+              <section className="workbench-form workbench-pane" aria-labelledby="player-mastery-action-heading">
+                <div className="workbench-pane__header"><div><h3 id="player-mastery-action-heading"><Target aria-hidden="true" size={16} /> Record lesson mastery</h3><p>Mark the currently revealed step as mastered. The server records the player-scoped evidence and preserves any practice linkage.</p></div></div>
+                <div className="workbench-form__actions"><span className="workbench-form__hint">Step {Math.min(revealedSteps, selected.steps.length)} of {selected.steps.length} · player: {playerId}</span><button className="button button--primary" disabled={masteryMutation.isPending || !session} onClick={markCurrentStepMastered} type="button"><Target size={14} /> Mark current step mastered</button></div>
+                <MutationNotice error={masteryMutation.error} pending={masteryMutation.isPending} success={masteryMutation.isSuccess} successMessage="Lesson mastery recorded." />
+              </section>
+            ) : null}
+
+            {selected && tab === 'quizzes' ? (
+              <form className="workbench-form workbench-pane" onSubmit={submitQuizAnswer}>
+                <div className="workbench-pane__header"><div><h3 id="player-quiz-heading"><BookOpenCheck aria-hidden="true" size={16} /> Submit quiz response</h3><p>Submit the player’s answer through the guarded quiz endpoint; grading and mastery updates remain server-controlled.</p></div></div>
+                <label className="is-wide"><span>Answer</span><textarea aria-labelledby="player-quiz-heading" onChange={(event) => setQuizAnswer(event.target.value)} placeholder="Describe the read, assignment, or coaching answer…" required value={quizAnswer} /></label>
+                <div className="workbench-form__actions"><span className="workbench-form__hint">Quiz: {String(selected.quiz_id || 'not supplied')} · player: {playerId}</span><button className="button button--primary" disabled={quizMutation.isPending || !quizAnswer.trim() || !session} type="submit"><ArrowRight size={14} /> Submit response</button></div>
+                <MutationNotice error={quizMutation.error} pending={quizMutation.isPending} success={quizMutation.isSuccess} successMessage={quizMutation.data?.correct ? 'Correct response recorded.' : 'Quiz response recorded for review.'} />
+              </form>
+            ) : null}
 
             {canAssign && tab === 'assignments' ? (
               <form className="workbench-form workbench-pane" onSubmit={submitAssignment}>
