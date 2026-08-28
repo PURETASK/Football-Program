@@ -169,6 +169,6 @@ by assignment key during materialization. The library displays the inherited
 parent so a coach can distinguish a reusable variation from an unrelated
 copy. This establishes traceable parent reuse while leaving visual local
 override diffs, parent-change propagation, and multi-look batch generation
-for the next slice. Verification for this slice is 165 frontend tests and 24
+for the next slice. Verification for this slice is 166 frontend tests and 24
 focused Play Designer backend/API tests, with typecheck and production build
 passing locally.
