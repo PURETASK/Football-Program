@@ -151,4 +151,21 @@ describe('play designer editor state', () => {
     expect(layered.elements?.[1]).toMatchObject({ kind: 'block', player_id: 'X', template_id: 'TPL-PROTECTION' });
     expect(layered.template_applications).toHaveLength(1);
   });
+
+  it('materializes inherited assignments while letting child keys override the parent', () => {
+    const inherited: PlayTemplate = {
+      id: 'TPL-BASE', name: 'Base family', unit: 'offense', assignments: [
+        { key: 'X-CLEAR', slot: 'X', kind: 'route', type: 'go', points: [{ dx: 0, dy: 0 }, { dx: 0, dy: -20 }] },
+        { key: 'Y-DIG', slot: 'Y', kind: 'route', type: 'dig', points: [{ dx: 0, dy: 0 }, { dx: 0, dy: -10 }] },
+      ],
+    };
+    const child: PlayTemplate = {
+      id: 'TPL-CHILD', name: 'Boundary variation', unit: 'offense', inherited_assignments: inherited.assignments, assignments: [
+        { key: 'Y-DIG', slot: 'Y', kind: 'route', type: 'out', points: [{ dx: 0, dy: 0 }, { dx: 12, dy: -8 }] },
+      ],
+    };
+    const materialized = applyPlayTemplate(createEmptyDesign(), child);
+    expect(materialized.elements).toHaveLength(2);
+    expect(materialized.elements?.map((element) => element.type)).toEqual(['go', 'out']);
+  });
 });
