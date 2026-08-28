@@ -102,7 +102,7 @@ describe('DesignerInspector assignment graph controls', () => {
     fireEvent.change(screen.getByLabelText('Jersey number'), { target: { value: '75' } });
     fireEvent.blur(screen.getByLabelText('Jersey number'));
     expect(props.onPlayer).toHaveBeenCalledWith('LT', { alignment: { on_line: true, eligible: true, number: 75 } });
-    expect(screen.getByRole('alert', { name: /Eligibility review required/i })).toBeInTheDocument();
+    expect(screen.getByRole('alert', { name: /^Eligibility review required$/i })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('checkbox', { name: 'Reported eligible exception' }));
     expect(props.onPlayer).toHaveBeenCalledWith('LT', { alignment: { on_line: true, eligible: true, number: 72, reported_eligible: true } });
   });
@@ -111,6 +111,29 @@ describe('DesignerInspector assignment graph controls', () => {
     const props = inspectorProps();
     render(<DesignerInspector {...props} design={{ ...DESIGN, unit: 'offense', rule_profile: 'high_school' }} selected={[{ kind: 'player', id: 'LT' }]} />);
     expect(screen.queryByRole('checkbox', { name: 'Reported eligible exception' })).not.toBeInTheDocument();
+  });
+
+  it('summarizes offensive personnel eligibility exceptions across the whole play', () => {
+    const props = inspectorProps();
+    const offenseDesign = {
+      ...DESIGN,
+      unit: 'offense' as const,
+      players: [
+        { id: 'LT', position: 'LT', alignment: { eligible: true, number: 72 }, start: { x: 44, y: 26 } },
+        { id: 'RT', position: 'RT', alignment: { eligible: true, number: 74, reported_eligible: true }, start: { x: 56, y: 26 } },
+      ],
+    };
+    render(<DesignerInspector {...props} design={offenseDesign} selected={[]} />);
+
+    expect(screen.getByRole('alert', { name: 'Personnel eligibility review required' })).toHaveTextContent('1 player require review');
+    fireEvent.click(screen.getByRole('button', { name: /LT.*#72/i }));
+    expect(props.onSelect).toHaveBeenCalledWith({ kind: 'player', id: 'LT' });
+  });
+
+  it('shows a clean personnel legality state when no exception is present', () => {
+    const props = inspectorProps();
+    render(<DesignerInspector {...props} design={{ ...DESIGN, unit: 'offense', players: [{ id: 'LT', position: 'LT', alignment: { eligible: true, number: 72, reported_eligible: true } }] }} selected={[]} />);
+    expect(screen.getByRole('status')).toHaveTextContent('No number-based eligibility exceptions detected.');
   });
 
   it('declares coverage-shell zones for server ownership checks', () => {

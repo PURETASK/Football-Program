@@ -164,6 +164,26 @@ function DefensiveFrontMap({ design, onSelect }: Pick<InspectorProps, 'design' |
   </InspectorSection>;
 }
 
+function OffensivePersonnelLegality({ design, onSelect }: Pick<InspectorProps, 'design' | 'onSelect'>) {
+  const profile = String(design.rule_profile ?? 'nfl');
+  if (design.unit !== 'offense' || !['nfl', 'ncaa'].includes(profile)) return null;
+  const flaggedPlayers = (design.players ?? []).filter((player) => {
+    const alignment = player.alignment ?? {};
+    const number = typeof alignment.number === 'number' ? alignment.number : undefined;
+    return alignment.eligible === true && number !== undefined && number >= 50 && number <= 79 && alignment.reported_eligible !== true;
+  });
+  const profileLabel = profile === 'ncaa' ? 'NCAA' : 'NFL';
+  return <InspectorSection title="Personnel legality review">
+    <p className="inspector-help">{profileLabel} number-based eligibility is checked across the full offensive personnel group. Select a player to resolve an exception before publishing.</p>
+    {flaggedPlayers.length ? <div className="personnel-legality-summary personnel-legality-summary--review" role="alert" aria-label="Personnel eligibility review required">
+      <strong>{flaggedPlayers.length} player{flaggedPlayers.length === 1 ? '' : 's'} require review</strong>
+      {flaggedPlayers.map((player) => <button type="button" key={player.id} onClick={() => onSelect({ kind: 'player', id: player.id })}>
+        <span>{player.position ?? player.role ?? player.id}</span><small>#{player.alignment?.number} · mark reported eligible or revise eligibility/number</small>
+      </button>)}
+    </div> : <div className="personnel-legality-summary personnel-legality-summary--ready" role="status"><CheckCircle2 size={16} /><span>No number-based eligibility exceptions detected.</span></div>}
+  </InspectorSection>;
+}
+
 function RotationSequencePanel({ design, onSelect }: Pick<InspectorProps, 'design' | 'onSelect'>) {
   const sequence = (design.elements ?? []).filter((element) => element.kind === 'rotation' || element.rotation_sequence !== undefined).sort((a, b) => (a.rotation_sequence ?? 999) - (b.rotation_sequence ?? 999));
   if (!sequence.length) return null;
@@ -566,6 +586,7 @@ export function DesignerInspector(props: InspectorProps) {
                 </fieldset> : null}
               </div>
             </InspectorSection>
+            <OffensivePersonnelLegality design={props.design} onSelect={props.onSelect} />
             <InspectorSection title="Field and alignment">
               <div className="inspector-form">
                 <div className="inspector-form inspector-form--two inspector-form--nested">
