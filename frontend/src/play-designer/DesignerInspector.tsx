@@ -166,19 +166,31 @@ function DefensiveFrontMap({ design, onSelect }: Pick<InspectorProps, 'design' |
 
 function OffensivePersonnelLegality({ design, onSelect }: Pick<InspectorProps, 'design' | 'onSelect'>) {
   const profile = String(design.rule_profile ?? 'nfl');
-  if (design.unit !== 'offense' || !['nfl', 'ncaa'].includes(profile)) return null;
-  const flaggedPlayers = (design.players ?? []).filter((player) => {
+  if (design.unit !== 'offense') return null;
+  const flaggedPlayers = ['nfl', 'ncaa'].includes(profile) ? (design.players ?? []).filter((player) => {
     const alignment = player.alignment ?? {};
     const number = typeof alignment.number === 'number' ? alignment.number : undefined;
     return alignment.eligible === true && number !== undefined && number >= 50 && number <= 79 && alignment.reported_eligible !== true;
-  });
-  const profileLabel = profile === 'ncaa' ? 'NCAA' : 'NFL';
+  }) : [];
+  const numberedPlayers = (design.players ?? []).filter((player) => typeof player.alignment?.number === 'number');
+  const duplicateNumberGroups = [...numberedPlayers.reduce((groups, player) => {
+    const number = player.alignment?.number as number;
+    const group = groups.get(number) ?? [];
+    group.push(player);
+    groups.set(number, group);
+    return groups;
+  }, new Map<number, PlayPlayer[]>()).entries()].filter(([, players]) => players.length > 1);
+  const profileLabel = ['nfl', 'ncaa'].includes(profile) ? (profile === 'ncaa' ? 'NCAA' : 'NFL') : profile.replace('_', ' ');
+  const findingCount = flaggedPlayers.length + duplicateNumberGroups.length;
   return <InspectorSection title="Personnel legality review">
-    <p className="inspector-help">{profileLabel} number-based eligibility is checked across the full offensive personnel group. Select a player to resolve an exception before publishing.</p>
-    {flaggedPlayers.length ? <div className="personnel-legality-summary personnel-legality-summary--review" role="alert" aria-label="Personnel eligibility review required">
-      <strong>{flaggedPlayers.length} player{flaggedPlayers.length === 1 ? '' : 's'} require review</strong>
-      {flaggedPlayers.map((player) => <button type="button" key={player.id} onClick={() => onSelect({ kind: 'player', id: player.id })}>
+    <p className="inspector-help">{profileLabel} offensive personnel is checked across the full play for number-based eligibility and duplicate jersey assignments. Resolve review items before publishing.</p>
+    {findingCount ? <div className="personnel-legality-summary personnel-legality-summary--review" role="alert" aria-label="Personnel eligibility review required">
+      <strong>{findingCount} personnel finding{findingCount === 1 ? '' : 's'} require review</strong>
+      {flaggedPlayers.map((player) => <button type="button" key={`eligibility-${player.id}`} onClick={() => onSelect({ kind: 'player', id: player.id })}>
         <span>{player.position ?? player.role ?? player.id}</span><small>#{player.alignment?.number} · mark reported eligible or revise eligibility/number</small>
+      </button>)}
+      {duplicateNumberGroups.map(([number, players]) => <button type="button" key={`duplicate-${number}`} onClick={() => onSelect({ kind: 'player', id: players[0].id })}>
+        <span>Duplicate jersey number #{number}</span><small>{players.map((player) => player.position ?? player.role ?? player.id).join(' · ')} · assign unique numbers for this personnel group</small>
       </button>)}
     </div> : <div className="personnel-legality-summary personnel-legality-summary--ready" role="status"><CheckCircle2 size={16} /><span>No number-based eligibility exceptions detected.</span></div>}
   </InspectorSection>;

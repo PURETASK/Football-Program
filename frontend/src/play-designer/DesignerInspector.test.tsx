@@ -125,7 +125,7 @@ describe('DesignerInspector assignment graph controls', () => {
     };
     render(<DesignerInspector {...props} design={offenseDesign} selected={[]} />);
 
-    expect(screen.getByRole('alert', { name: 'Personnel eligibility review required' })).toHaveTextContent('1 player require review');
+    expect(screen.getByRole('alert', { name: 'Personnel eligibility review required' })).toHaveTextContent('1 personnel finding require review');
     fireEvent.click(screen.getByRole('button', { name: /LT.*#72/i }));
     expect(props.onSelect).toHaveBeenCalledWith({ kind: 'player', id: 'LT' });
   });
@@ -134,6 +134,17 @@ describe('DesignerInspector assignment graph controls', () => {
     const props = inspectorProps();
     render(<DesignerInspector {...props} design={{ ...DESIGN, unit: 'offense', players: [{ id: 'LT', position: 'LT', alignment: { eligible: true, number: 72, reported_eligible: true } }] }} selected={[]} />);
     expect(screen.getByRole('status')).toHaveTextContent('No number-based eligibility exceptions detected.');
+  });
+
+  it('flags duplicate offensive jersey numbers and locates the first affected player', () => {
+    const props = inspectorProps();
+    render(<DesignerInspector {...props} design={{ ...DESIGN, unit: 'offense', players: [
+      { id: 'X', position: 'X', alignment: { number: 11 } },
+      { id: 'Y', position: 'Y', alignment: { number: 11 } },
+    ] }} selected={[]} />);
+    expect(screen.getByRole('alert', { name: 'Personnel eligibility review required' })).toHaveTextContent('Duplicate jersey number #11');
+    fireEvent.click(screen.getByRole('button', { name: /Duplicate jersey number #11/i }));
+    expect(props.onSelect).toHaveBeenCalledWith({ kind: 'player', id: 'X' });
   });
 
   it('declares coverage-shell zones for server ownership checks', () => {
