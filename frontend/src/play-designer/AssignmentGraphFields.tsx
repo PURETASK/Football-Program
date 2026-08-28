@@ -6,7 +6,7 @@ import { DEFENSIVE_EXCHANGE_ROLES, exchangePatch, exchangeRole, reciprocalExchan
 import { DEFENSIVE_GAP_OPTIONS, gapOwnerPatch } from './defensiveFront';
 import { ROTATION_TRIGGERS, rotationSequencePatch } from './rotationSequencing';
 import { OFFENSIVE_BLOCKING_PRIMITIVES, PROTECTION_MODES, offensiveBlockingPatch } from './offensiveBlocking';
-import { ROUTE_BREAKS, ROUTE_FAMILIES, ROUTE_FINISHES, ROUTE_OPTION_RULES, routeAuthoringPatch } from './routeAuthoring';
+import { ROUTE_BREAKS, ROUTE_FAMILIES, ROUTE_FINISHES, ROUTE_OPTION_RULES, routeAuthoringPatch, routeConstructionPatch } from './routeAuthoring';
 import { addRouteBranch, branchStart } from './routeBranches';
 
 interface AssignmentGraphFieldsProps {
@@ -71,10 +71,10 @@ export function AssignmentGraphFields({ design, element, onElement }: Assignment
       <p>Define the route’s stem, break, finish, and conversion rule; direct canvas handles remain available for exact geometry.</p>
       <div className="inspector-form inspector-form--two inspector-form--nested">
         <label className="inspector-field"><span>Route family</span><select value={element.route_family ?? ''} onChange={(event) => onElement(element.id, routeAuthoringPatch({ route_family: event.target.value || undefined }))}><option value="">Unspecified</option>{ROUTE_FAMILIES.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
-        <CommitInput label="Stem depth (yards)" type="number" min={0} max={60} value={element.stem_depth_yards} onCommit={(value) => onElement(element.id, routeAuthoringPatch({ stem_depth_yards: value.trim() ? Number(value) : undefined }))} />
+        <CommitInput label="Stem depth (yards)" type="number" min={0} max={60} value={element.stem_depth_yards} onCommit={(value) => onElement(element.id, routeConstructionPatch(element, design, { stem_depth_yards: value.trim() ? Number(value) : undefined }))} />
         <label className="inspector-field"><span>Break</span><select value={element.break_type ?? ''} onChange={(event) => onElement(element.id, routeAuthoringPatch({ break_type: event.target.value || undefined }))}><option value="">Unspecified</option>{ROUTE_BREAKS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
-        <CommitInput label="Break depth (yards)" type="number" min={0} max={60} value={element.break_depth_yards} onCommit={(value) => onElement(element.id, routeAuthoringPatch({ break_depth_yards: value.trim() ? Number(value) : undefined }))} />
-        <label className="inspector-field"><span>Finish direction</span><select value={element.finish_direction ?? ''} onChange={(event) => onElement(element.id, routeAuthoringPatch({ finish_direction: event.target.value || undefined }))}><option value="">Unspecified</option>{ROUTE_FINISHES.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+        <CommitInput label="Break depth (yards)" type="number" min={0} max={60} value={element.break_depth_yards} onCommit={(value) => onElement(element.id, routeConstructionPatch(element, design, { break_depth_yards: value.trim() ? Number(value) : undefined }))} />
+        <label className="inspector-field"><span>Finish direction</span><select value={element.finish_direction ?? ''} onChange={(event) => onElement(element.id, routeConstructionPatch(element, design, { finish_direction: event.target.value || undefined }))}><option value="">Unspecified</option>{ROUTE_FINISHES.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
         <label className="inspector-field"><span>Option rule</span><select value={element.option_rule ?? 'none'} onChange={(event) => onElement(element.id, routeAuthoringPatch({ option_rule: event.target.value }))}>{ROUTE_OPTION_RULES.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
       </div>
       <CommitInput label="Option condition / coaching rule" value={element.option_condition} onCommit={(value) => onElement(element.id, routeAuthoringPatch({ option_condition: value }))} />
