@@ -1,4 +1,4 @@
-import type { PlayPlayer } from '../types';
+import type { PlayAlignmentSlot, PlayPlayer } from '../types';
 
 export const DEFENSIVE_TECHNIQUES = [
   ['0', '0-technique / head up center'], ['1', '1-technique / shaded center'], ['2i', '2i-technique / inside guard'],
@@ -18,4 +18,23 @@ export function defensiveAlignmentPatch(technique: string, alignment: string): P
 
 export function defensiveAlignmentLabel(player: PlayPlayer): string {
   return [player.defensive_technique && `${player.defensive_technique}-tech`, player.defensive_alignment?.replaceAll('_', ' ')].filter(Boolean).join(' · ') || 'Alignment not specified';
+}
+
+/**
+ * Convert the compact role language used by a front preset into executable
+ * technique metadata. Front slots remain the positional source of truth; the
+ * derived fields make the same placement teachable and auditable.
+ */
+export function defensiveSlotAlignmentPatch(slot: Pick<PlayAlignmentSlot, 'role' | 'position'>): Partial<PlayPlayer> {
+  const role = String(slot.role ?? '').toUpperCase().replaceAll('-', '');
+  const byRole: Record<string, { technique?: string; alignment: string }> = {
+    '0T': { technique: '0', alignment: 'head_up' }, '1T': { technique: '1', alignment: 'inside_shade' },
+    '2I': { technique: '2i', alignment: 'inside_eye' }, '2T': { technique: '2', alignment: 'head_up' },
+    '3T': { technique: '3', alignment: 'outside_eye' }, '4I': { technique: '4i', alignment: 'inside_eye' },
+    '4T': { technique: '4', alignment: 'head_up' }, '5T': { technique: '5', alignment: 'outside_eye' },
+    '7T': { technique: '7', alignment: 'inside_eye' }, '9T': { technique: '9', alignment: 'wide' },
+    EDGE: { technique: '9', alignment: 'wide' }, APEX: { alignment: 'wide' },
+  };
+  const match = byRole[role];
+  return match ? { defensive_technique: match.technique, defensive_alignment: match.alignment, alignment_key: slot.role } : {};
 }

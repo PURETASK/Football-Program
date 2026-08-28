@@ -109,6 +109,17 @@ describe('play designer editor state', () => {
     expect(state.past).toHaveLength(1);
   });
 
+  it('derives defensive technique labels when applying a front alignment preset', () => {
+    const asset: PlayAsset = {
+      id: 'ASSET-FRONT-TEST', kind: 'front', category: 'front', term: 'test_front', unit: 'defense',
+      alignment: { slots: [{ key: 'DT-L', position: 'DT', role: '3T', x: 42, y: 22 }] },
+    };
+    const defense = { ...design(), unit: 'defense' as const, players: [{ id: 'DT-L', position: 'DT', role: 'DT', start: { x: 50, y: 22 } }], elements: [] };
+    let state = createEditorState(defense);
+    state = editorReducer(state, { type: 'apply_alignment', asset, patch: { front: asset.term } });
+    expect(state.present.players?.[0]).toMatchObject({ defensive_technique: '3', defensive_alignment: 'outside_eye', alignment_key: '3T', start: { x: 42, y: 22 } });
+  });
+
   it('moves the full unlocked call when the hash or line context changes', () => {
     let state = createEditorState(design());
     state = editorReducer(state, { type: 'apply_field_context', patch: { hash: 'right', ball_x: 62 }, translate: { x: 12, y: 0 } });

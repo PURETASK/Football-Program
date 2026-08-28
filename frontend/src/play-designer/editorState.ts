@@ -1,5 +1,6 @@
 import type { PlayAsset, PlayDesign, PlayElement, PlayFieldContext, PlayPlayer, Point } from '../types';
 import { elementPoints, mirrorPoints, normalizePoint, translatePoints } from './geometry';
+import { defensiveSlotAlignmentPatch } from './defensiveAlignment';
 
 export type EditorTool = 'select' | 'route' | 'motion' | 'run' | 'block' | 'coverage' | 'rush' | 'stunt' | 'annotation' | 'pan';
 export type SelectionKind = 'player' | 'element';
@@ -201,6 +202,7 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
           position: slot.position ?? player.position,
           role: slot.role ?? player.role,
           start: target,
+          ...(state.present.unit === 'defense' ? defensiveSlotAlignmentPatch(slot) : {}),
         };
       });
       const elements = (state.present.elements ?? []).map((element) => {
