@@ -195,3 +195,11 @@ This makes multi-look generation operationally traceable and reviewable while
 leaving variant-specific assignment transformations, visual batch comparison,
 approval/release bundling, and provider-grade export certification for the
 next slice.
+
+The first visual comparison slice is now present in the Concepts panel. Each
+generated child displays a structured source diagram beside its variant
+diagram, the look patch, validation/revision state, and a direct route into the
+child editor. The comparison is rendered from canonical players and element
+geometry, so it remains inspectable and does not introduce an image as a
+second source of truth. Full element-level diffing and variant-specific
+transformation remain open.
