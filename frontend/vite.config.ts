@@ -21,5 +21,9 @@ export default defineConfig({
     setupFiles: './src/test/setup.ts',
     css: true,
     globals: true,
+    // Workspace route tests mount lazy React trees and share the jsdom global.
+    // Keep files isolated at the runner level so parallel module loading
+    // cannot make one route's async render satisfy another route's assertion.
+    fileParallelism: false,
   },
 });
