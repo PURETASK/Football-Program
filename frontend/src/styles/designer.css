@@ -1035,6 +1035,15 @@
 .coverage-shell-editor { display: grid; gap: 0.42rem; margin: 0; padding: 0.55rem; border: 1px solid rgb(255 121 98 / 0.12); border-radius: 9px; background: rgb(255 121 98 / 0.025); }
 .coverage-shell-editor legend { padding: 0 0.22rem; color: #e0b5aa; font-size: 0.5rem; font-weight: 800; }
 .coverage-shell-editor p { margin: 0; color: #7f7785; font-size: 0.44rem; line-height: 1.35; }
+.pre-snap-sequence-editor { display: grid; gap: 0.5rem; margin: 0; padding: 0.55rem; border: 1px solid rgb(246 204 101 / 0.2); border-radius: 9px; background: rgb(246 204 101 / 0.035); }
+.pre-snap-sequence-editor legend { padding: 0 0.22rem; color: #f6cc65; font-size: 0.5rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.pre-snap-sequence { display: grid; gap: 0.42rem; }
+.pre-snap-step { display: grid; grid-template-columns: 22px minmax(0, 1fr) 24px; align-items: start; gap: 0.42rem; padding: 0.42rem; border: 1px solid rgb(255 255 255 / 0.08); border-radius: 8px; background: rgb(5 18 29 / 0.48); }
+.pre-snap-step__index { display: grid; width: 22px; height: 22px; place-items: center; border-radius: 50%; color: #1b1a12; background: #f6cc65; font-size: 0.52rem; font-weight: 900; }
+.pre-snap-step__fields { display: grid; gap: 0.35rem; min-width: 0; }
+.pre-snap-step__fields .inspector-field { font-size: 0.46rem; }
+.pre-snap-step__fields input, .pre-snap-step__fields select { min-height: 28px; padding: 0 0.35rem; font-size: 0.49rem; }
+.pre-snap-step .icon-button { min-width: 24px; min-height: 24px; padding: 0; color: #ff9b9b; border-color: rgb(255 121 98 / 0.2); }
 .coverage-shell-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.22rem 0.4rem; }
 .coverage-shell-grid label { display: flex; min-height: 27px; align-items: center; gap: 0.3rem; padding: 0.18rem 0.25rem; border-radius: 6px; color: #a8b2c0; background: rgb(255 255 255 / 0.018); font-size: 0.45rem; cursor: pointer; }
 .coverage-shell-grid label:hover { background: rgb(255 121 98 / 0.06); }

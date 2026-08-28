@@ -223,6 +223,16 @@ export interface PlayTimeline {
   narration?: PlayNarrationCue[];
 }
 
+export interface PlayPreSnapStep {
+  id: string;
+  kind: 'huddle' | 'shift' | 'motion' | 'set' | 'cadence' | string;
+  label: string;
+  start_ms: number;
+  end_ms: number;
+  player_ids?: string[];
+  notes?: string;
+}
+
 export interface PlayTimelineEvent {
   id?: string;
   kind?: string;
@@ -283,6 +293,7 @@ export interface PlayDesign {
   players?: PlayPlayer[];
   elements?: PlayElement[];
   timeline?: PlayTimeline;
+  pre_snap_sequence?: PlayPreSnapStep[];
   field_context?: PlayFieldContext;
   assignment_model_version?: string;
   concept?: string;

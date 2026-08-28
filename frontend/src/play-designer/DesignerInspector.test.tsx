@@ -43,6 +43,13 @@ function inspectorProps() {
 }
 
 describe('DesignerInspector assignment graph controls', () => {
+  it('authors an ordered pre-snap huddle, shift, motion, and cadence sequence', () => {
+    const props = inspectorProps();
+    render(<DesignerInspector {...props} design={{ ...DESIGN, pre_snap_sequence: [] }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add pre-snap step' }));
+    expect(props.onMeta).toHaveBeenCalledWith(expect.objectContaining({ pre_snap_sequence: [expect.objectContaining({ kind: 'set', start_ms: -900, end_ms: -250 })] }));
+  });
+
   it('exposes local adoption constraints for jurisdiction-dependent profiles', () => {
     const props = inspectorProps();
     render(<DesignerInspector {...props} design={{ ...DESIGN, rule_profile: 'youth' }} />);

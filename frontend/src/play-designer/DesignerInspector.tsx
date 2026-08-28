@@ -27,6 +27,7 @@ import type {
   PlayLegalityReport,
   PlayAsset,
   PlayPlayer,
+  PlayPreSnapStep,
   PlayTemplate,
   PlayMergeResult,
   PlayVersionHistory,
@@ -101,6 +102,34 @@ const COVERAGE_ZONE_OPTIONS = [
   ['hook_curl_left', 'Hook/curl left'], ['hook_curl_middle', 'Hook/curl middle'], ['hook_curl_right', 'Hook/curl right'],
   ['robber', 'Robber / low hole'], ['man', 'Man coverage'], ['bracket', 'Bracket / double'],
 ] as const;
+
+function PreSnapSequenceEditor({ design, onMeta }: { design: PlayDesign; onMeta: (patch: Partial<PlayDesign>) => void }) {
+  const sequence = design.pre_snap_sequence ?? [];
+  const update = (id: string, patch: Partial<PlayPreSnapStep>) => onMeta({ pre_snap_sequence: sequence.map((step) => step.id === id ? { ...step, ...patch } : step) });
+  const add = () => onMeta({ pre_snap_sequence: [...sequence, { id: `PRE-${Date.now().toString(36).toUpperCase()}`, kind: 'set', label: 'Set and communicate', start_ms: -900, end_ms: -250 }] });
+  const remove = (id: string) => onMeta({ pre_snap_sequence: sequence.filter((step) => step.id !== id) });
+  return <fieldset className="pre-snap-sequence-editor">
+    <legend>Pre-snap sequence</legend>
+    <p className="inspector-help">Author the ordered huddle, shift, motion, set, and cadence steps before the snap. These steps remain separate from post-snap assignment timing.</p>
+    <div className="pre-snap-sequence" role="list" aria-label="Pre-snap sequence steps">
+      {sequence.map((step, index) => <div className="pre-snap-step" role="listitem" key={step.id}>
+        <span className="pre-snap-step__index">{index + 1}</span>
+        <div className="pre-snap-step__fields">
+          <label className="inspector-field"><span>Step type</span><select aria-label={`Step ${index + 1} type`} value={step.kind} onChange={(event) => update(step.id, { kind: event.target.value })}>{['huddle', 'shift', 'motion', 'set', 'cadence'].map((kind) => <option value={kind} key={kind}>{kind}</option>)}</select></label>
+          <label className="inspector-field"><span>Label</span><input aria-label={`Step ${index + 1} label`} value={step.label} onChange={(event) => update(step.id, { label: event.target.value })} /></label>
+          <div className="inspector-form inspector-form--two inspector-form--nested">
+            <label className="inspector-field"><span>Start (ms)</span><input aria-label={`Step ${index + 1} start`} type="number" value={step.start_ms} onChange={(event) => update(step.id, { start_ms: Number(event.target.value) })} /></label>
+            <label className="inspector-field"><span>End (ms)</span><input aria-label={`Step ${index + 1} end`} type="number" value={step.end_ms} onChange={(event) => update(step.id, { end_ms: Number(event.target.value) })} /></label>
+          </div>
+          <label className="inspector-field"><span>Coaching note</span><input aria-label={`Step ${index + 1} note`} value={step.notes ?? ''} onChange={(event) => update(step.id, { notes: event.target.value })} placeholder="Communication or trigger" /></label>
+        </div>
+        <button className="icon-button" type="button" aria-label={`Remove pre-snap step ${index + 1}`} onClick={() => remove(step.id)}>×</button>
+      </div>)}
+      {!sequence.length ? <div className="comment-empty">No pre-snap steps authored. Add the first communication or movement step.</div> : null}
+    </div>
+    <button className="button button--secondary" type="button" onClick={add}>Add pre-snap step</button>
+  </fieldset>;
+}
 
 const TAB_GUIDANCE: Record<InspectorTab, { title: string; description: string }> = {
   inspect: { title: 'Inspect and edit', description: 'Edit play identity, player alignment, assignment details, timing, and visibility without redrawing the call.' },
@@ -678,6 +707,9 @@ export function DesignerInspector(props: InspectorProps) {
                 <label className="inspector-field"><span>Field zone</span><select value={props.design.field_context?.field_zone ?? 'open_field'} onChange={(event) => props.onFieldContext({ field_zone: event.target.value })}><option value="backed_up">Backed up</option><option value="open_field">Open field</option><option value="plus_territory">Plus territory</option><option value="high_red_zone">High red zone</option><option value="low_red_zone">Low red zone</option><option value="goal_line">Goal line</option></select></label>
               </div>
               <p className="inspector-help">Hash and line changes translate every unlocked player and assignment together. Locked objects stay fixed for deliberate exceptions.</p>
+            </InspectorSection>
+            <InspectorSection title="Pre-snap communication">
+              <PreSnapSequenceEditor design={props.design} onMeta={props.onMeta} />
             </InspectorSection>
             {props.design.unit === 'defense' ? <DefensiveAlignmentMap design={props.design} onSelect={props.onSelect} onPlayer={props.onPlayer} /> : null}
             {props.design.unit === 'defense' ? <DefensiveFrontMap design={props.design} onSelect={props.onSelect} /> : null}

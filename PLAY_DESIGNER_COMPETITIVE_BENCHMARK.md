@@ -45,8 +45,8 @@ The NFL FIDOS Play Designer must combine the fastest professional diagram-author
 |---|---|---|
 | Canvas precision | Implemented and tested | Preserve while adding richer semantic handles and tablet verification |
 | Intelligent assets | Formation/front compatibility and lifecycle integration implemented | Complete route/concept fragment reuse, naming recipes, and organization catalogs |
-| Formation/alignment | 13 professional 11-player presets plus field translation implemented | Add huddle/shift sequences, explicit eligibility, spacing dimensions, and role constraints |
-| Assignment graph | In implementation | Structured references, cycle/conflict validation, graph summary, and inspector controls |
+| Formation/alignment | 13 professional 11-player presets, field translation, and authored pre-snap sequence implemented | Add formation spacing dimensions, role constraints, and deployment-environment verification |
+| Assignment graph | Structured references, cycle/conflict validation, graph summary, and inspector controls implemented | Expand production-scale administration and multi-client convergence evidence |
 | Timeline | Basic synchronized playback exists | Multi-track phases, speed, cue stepping, pauses, narration, exchanges, and ball events |
 | Live checks | Saved-design legality exists | Debounced, non-persisting validation of the current unsaved draft |
 | Templates/play families | Registry-backed templates, partial stencils, inheritance, naming, and batch variants exist | Multi-client convergence, richer catalog governance, and production-scale template administration |
@@ -81,6 +81,15 @@ Position authoring addendum (2026-08-26): selecting one player icon in the desig
 Visual authoring addendum (2026-08-26): assignment inspection now includes explicit arrow/line meaning, no-arrow mode, end/start/both/none arrowheads, smooth versus sharp path geometry, solid/dashed/dotted treatment, line-weight, and line-cap controls. The selected path renders those choices on the canonical SVG canvas and continues to animate against the same timeline path. This keeps route, block, motion, run, coverage, rush, stunt, and annotation semantics legible in both live editing and playback; the production build and 125-test frontend suite remain green.
 
 Action materialization addendum (2026-08-26): position recommendations now offer a separate one-click “Add starting action” control in addition to manual draw mode. The new materializer generates bounded, position-relative geometry for routes, motions, runs, blocks/protections, coverage, rushes, stunts, fits, and fallback actions; links the new element to its player and registry asset; applies timing, pre-snap/post-snap phase, landmark, depth, assignment, teaching, arrow, and line metadata; and returns the element through the normal editor reducer for selection, undo, save, version, validation, collaboration, and export. Motion actions are automatically placed on the negative pre-snap timeline. Pure materialization behavior is covered by dedicated tests.
+
+Pre-snap sequence addendum (2026-08-28): the inspector now authors an
+organization-persisted sequence of huddle, shift, motion, set, and cadence
+steps, each with an explicit order, label, start/end time, and coaching note.
+The sequence is modeled separately from post-snap assignment timing so a coach
+can teach the cadence and movement phase without corrupting route, block, read,
+or coverage clocks. The controls are keyboard-accessible, removal is explicit,
+and the new sequence metadata travels with the canonical play object for save,
+version, validation, teaching, collaboration, and export consumers.
 
 Geometry authoring addendum (2026-08-26): assignment controls now include landmark snapping to hashes, the line of scrimmage, five-, ten-, and fifteen-yard landmarks, and the goal line. Editing Depth (yards) now updates the actual path endpoint using unit-aware offensive/defensive direction while retaining the authored start and intermediate handles. These are geometry mutations, not display-only labels, and remain compatible with the existing handle editor, sharp/smooth rendering, timeline, and validation flows.
 
