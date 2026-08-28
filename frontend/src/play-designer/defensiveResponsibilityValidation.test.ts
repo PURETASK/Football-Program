@@ -32,4 +32,15 @@ describe('defensive responsibility validation', () => {
     const blockRushSynchronized = { ...design, timeline: { duration_ms: 2500, events: [{ id: 'BR', kind: 'rush_exchange', element_id: 'RUSH', start_ms: 250, end_ms: 700 }] } };
     expect(defensiveResponsibilityIssues(blockRushSynchronized).map((finding) => finding.code)).not.toContain('EXCHANGE_TIMELINE_MISSING');
   });
+
+  it('surfaces multi-owner shell/gap responsibilities and incomplete rotations', () => {
+    const design: PlayDesign = { id: 'OWNERS', unit: 'defense', coverage_zones: ['flat_left'], players: [{ id: 'CB', position: 'CB' }], elements: [
+      { id: 'DROP-1', kind: 'coverage', player_id: 'CB', zone: 'flat_left' },
+      { id: 'DROP-2', kind: 'rotation', player_id: 'SS', rotation_to_zone: 'flat_left', rotation_sequence: 0, rotation_replacement_player_id: 'MISSING' },
+      { id: 'FIT-1', kind: 'fit', player_id: 'MIKE', gap_owner: 'left_b' },
+      { id: 'FIT-2', kind: 'fit', player_id: 'WILL', gap_owner: 'left_b' },
+    ] };
+    const codes = defensiveResponsibilityIssues(design).map((finding) => finding.code);
+    expect(codes).toEqual(expect.arrayContaining(['SHELL_ZONE_MULTI_OWNER', 'GAP_OWNERSHIP_CONFLICT', 'ROTATION_TRIGGER_MISSING', 'ROTATION_SEQUENCE_INVALID', 'ROTATION_REPLACEMENT_PLAYER_MISSING', 'ROTATION_VACATED_ZONE_MISSING']));
+  });
 });
