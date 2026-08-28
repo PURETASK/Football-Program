@@ -71,4 +71,13 @@ describe('defensive exchange relationships', () => {
     expect(defensiveExchangeProgress(design, link, 600, 2000)).toBeCloseTo(0.5);
     expect(defensiveExchangeProgress(design, link, 900, 2000)).toBe(1);
   });
+
+  it('reveals an exchange link from a block/rush exchange cue', () => {
+    const design: PlayDesign = { id: 'TIMED-BLOCK-RUSH', unit: 'defense', elements: [
+      { id: 'RUSH', kind: 'rush', exchange_with: 'DROP', points: [{ x: 40, y: 20 }, { x: 46, y: 30 }] },
+      { id: 'DROP', kind: 'coverage', exchange_with: 'RUSH', points: [{ x: 60, y: 20 }, { x: 55, y: 28 }] },
+    ], timeline: { duration_ms: 2000, events: [{ id: 'BR', kind: 'rush_exchange', element_id: 'RUSH', start_ms: 400, end_ms: 800 }] } };
+    const link = defensiveExchangeLinks(design)[0];
+    expect(defensiveExchangeProgress(design, link, 600, 2000)).toBeCloseTo(0.5);
+  });
 });

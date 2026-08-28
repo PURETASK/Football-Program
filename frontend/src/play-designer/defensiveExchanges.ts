@@ -73,7 +73,7 @@ export function defensiveExchangeProgress(design: PlayDesign, link: DefensiveExc
   if (timeMs === null) return 1;
   const event = (design.timeline?.events ?? []).find((candidate) => {
     const kind = timelineEventKind(candidate);
-    return (kind === 'exchange' || kind === 'rotation') && (candidate.element_id === link.fromId || candidate.element_id === link.toId);
+    return (kind === 'exchange' || kind === 'rotation' || kind === 'block_exchange' || kind === 'rush_exchange') && (candidate.element_id === link.fromId || candidate.element_id === link.toId);
   });
   if (!event) return 1;
   const start = timelineEventStart(event);

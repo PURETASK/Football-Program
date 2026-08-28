@@ -29,5 +29,7 @@ describe('defensive responsibility validation', () => {
     expect(defensiveResponsibilityIssues(design).map((finding) => finding.code)).toContain('EXCHANGE_TIMELINE_MISSING');
     const synchronized = { ...design, timeline: { duration_ms: 2500, events: [{ id: 'EX', kind: 'exchange', element_id: 'RUSH', start_ms: 250, end_ms: 700 }] } };
     expect(defensiveResponsibilityIssues(synchronized).map((finding) => finding.code)).not.toContain('EXCHANGE_TIMELINE_MISSING');
+    const blockRushSynchronized = { ...design, timeline: { duration_ms: 2500, events: [{ id: 'BR', kind: 'rush_exchange', element_id: 'RUSH', start_ms: 250, end_ms: 700 }] } };
+    expect(defensiveResponsibilityIssues(blockRushSynchronized).map((finding) => finding.code)).not.toContain('EXCHANGE_TIMELINE_MISSING');
   });
 });
