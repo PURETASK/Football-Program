@@ -25,6 +25,8 @@
 .film-processing-status { margin-top: 1rem; }
 .film-processing-status__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.65rem; }
 .film-processing-job { display: grid; gap: 0.4rem; min-width: 0; padding: 0.7rem; border: 1px solid rgb(255 255 255 / 0.08); border-radius: 10px; background: rgb(7 13 24 / 0.42); }
+.film-processing-job { color: inherit; text-decoration: none; }
+.film-processing-job:hover, .film-processing-job:focus-visible { border-color: rgb(21 191 240 / 0.6); background: rgb(21 191 240 / 0.08); }
 .film-processing-job > div { display: grid; gap: 0.2rem; }
 .film-processing-job strong { overflow: hidden; color: #fff; font-size: 0.72rem; text-overflow: ellipsis; white-space: nowrap; }
 .film-processing-job span, .film-processing-job small { color: #8fa4bc; font-size: 0.65rem; line-height: 1.4; }

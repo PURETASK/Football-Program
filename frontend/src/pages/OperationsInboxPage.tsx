@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { BellRing, ExternalLink, Filter, ListChecks, ShieldCheck } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
 import { useSession } from '../auth/SessionContext';
 import {
@@ -32,12 +33,16 @@ function dueLabel(item: OperationsInboxItem): string {
 export function OperationsInboxPage() {
   const { session } = useSession();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState<InboxTab>('all');
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
   const [urgency, setUrgency] = useState('all');
   const [dueState, setDueState] = useState('all');
-  const [selectedId, setSelectedId] = useState('');
+  const [selectedId, setSelectedId] = useState(() => {
+    const jobId = searchParams.get('job');
+    return jobId ? `INBOX-media_processing_jobs-${jobId}` : '';
+  });
   const filters = useMemo(() => ({
     ...(tab === 'mine' ? { assigned_to_me: 'true' } : {}),
     ...(tab === 'notifications' ? { category: 'notification', unread_only: 'true' } : {}),
@@ -111,7 +116,7 @@ export function OperationsInboxPage() {
                 <div className="workbench-pane__header"><div><h3>Accountable work queue</h3><p>{items.length} items match the active filters.</p></div></div>
                 <RecordList
                   emptyMessage="No operational work matches these filters."
-                  onSelect={(item) => { setSelectedId(item.id); mutation.reset(); }}
+                  onSelect={(item) => { setSelectedId(item.id); mutation.reset(); if (item.collection === 'media_processing_jobs') setSearchParams({ job: item.record_id }); else setSearchParams({}); }}
                   records={items}
                   selectedId={selected?.id}
                   subtitle={(item) => `${sentenceCase(item.category)} · ${item.owner || item.assigned_to || 'Unassigned'} · ${sentenceCase(item.due_state)}`}
