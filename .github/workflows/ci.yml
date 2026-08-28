@@ -45,6 +45,10 @@ jobs:
         with:
           name: master-plan-audit-evidence
           path: .runtime/project-audit-ci.json
+      - name: Audit React feature parity
+        run: python scripts/audit_feature_parity.py
+      - name: Validate browser evidence package
+        run: python scripts/validate_browser_evidence.py
       - run: python scripts/validate_deployment_contract.py
       - run: python scripts/incident_rehearsal.py
       - run: python scripts/operational_rehearsal.py
