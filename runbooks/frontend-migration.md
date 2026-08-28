@@ -205,3 +205,15 @@ contact providers, enable production, record approval, or change external
 state. The unconfigured-environment result remains intentionally blocked until
 runtime values are supplied, while provider deployment and production browser
 validation remain external gates.
+
+Pre-snap timeline validation addendum (2026-08-28): huddle, shift, motion,
+set, and cadence steps are now checked before save, review, or export for
+stable unique IDs, required labels, finite timing windows, the supported
+-5,000 ms lower bound, chronological ordering, overlap, and the snap
+boundary. Findings use explainable issue codes including
+`PRESNAP_STEP_ID_MISSING`, `PRESNAP_STEP_ID_DUPLICATE`,
+`PRESNAP_LABEL_MISSING`, `PRESNAP_WINDOW_NOT_NUMERIC`,
+`PRESNAP_START_OUT_OF_RANGE`, `PRESNAP_WINDOW_INVALID`,
+`PRESNAP_END_AFTER_SNAP`, `PRESNAP_SEQUENCE_OUT_OF_ORDER`, and
+`PRESNAP_STEPS_OVERLAP`. Valid non-overlapping sequences remain accepted and
+are available to the timeline playback and cue-navigation controls.

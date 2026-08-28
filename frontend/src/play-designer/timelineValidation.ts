@@ -57,11 +57,43 @@ function validateElementTiming(element: PlayElement, index: number, duration: nu
   return issues;
 }
 
+function validatePreSnapSequence(design: PlayDesign, snapMs: number): ValidationIssue[] {
+  const steps = design.pre_snap_sequence ?? [];
+  const issues: ValidationIssue[] = [];
+  const seenIds = new Map<string, number>();
+  let previous: { id: string; start_ms: number; end_ms: number } | undefined;
+  steps.forEach((step, index) => {
+    const path = `pre_snap_sequence[${index}]`;
+    const start = Number(step.start_ms);
+    const end = Number(step.end_ms);
+    if (!step.id?.trim()) issues.push(finding('PRESNAP_STEP_ID_MISSING', `Pre-snap step ${index + 1} has no stable ID.`, `${path}.id`, 'Give every pre-snap step a unique ID.'));
+    else if (seenIds.has(step.id)) issues.push(finding('PRESNAP_STEP_ID_DUPLICATE', `Pre-snap step ID ${step.id} is used more than once.`, `${path}.id`, 'Give every pre-snap step a unique ID.'));
+    else seenIds.set(step.id, index);
+    if (!step.label?.trim()) issues.push(finding('PRESNAP_LABEL_MISSING', `Pre-snap step ${index + 1} has no coaching label.`, `${path}.label`, 'Name the communication or movement cue so players can understand it.'));
+    if (!finite(start) || !finite(end)) {
+      issues.push(finding('PRESNAP_WINDOW_NOT_NUMERIC', `Pre-snap step ${step.label || index + 1} has a non-numeric time window.`, path, 'Enter finite millisecond values for the pre-snap step.'));
+    } else {
+      if (start < -5000) issues.push(finding('PRESNAP_START_OUT_OF_RANGE', `Pre-snap step ${step.label || index + 1} starts before the supported -5,000 ms rehearsal window.`, `${path}.start_ms`, 'Keep the pre-snap step between -5,000 ms and the snap.'));
+      if (end <= start) issues.push(finding('PRESNAP_WINDOW_INVALID', `Pre-snap step ${step.label || index + 1} ends at or before it starts.`, `${path}.end_ms`, 'Set the end time after the start time.'));
+      if (end > snapMs) issues.push(finding('PRESNAP_END_AFTER_SNAP', `Pre-snap step ${step.label || index + 1} continues after the snap at ${snapMs} ms.`, `${path}.end_ms`, 'End the pre-snap step at or before the snap, or model the post-snap work as an assignment/event.'));
+      if (previous) {
+        if (start < previous.start_ms) issues.push(finding('PRESNAP_SEQUENCE_OUT_OF_ORDER', `Pre-snap step ${step.label || index + 1} is ordered before ${previous.id} but starts later in the sequence.`, `${path}.start_ms`, 'Reorder the steps chronologically or correct their start times.'));
+        if (start < previous.end_ms) issues.push(finding('PRESNAP_STEPS_OVERLAP', `Pre-snap steps ${previous.id} and ${step.id} overlap.`, path, 'Separate the communication windows or document an intentional simultaneous action.'));
+      }
+      previous = { id: step.id, start_ms: start, end_ms: end };
+    }
+  });
+  return issues;
+}
+
 /** Validate editor timeline references and timing before a draft reaches the server. */
 export function timelineIntegrityIssues(design: PlayDesign): ValidationIssue[] {
   const duration = Number(design.timeline?.duration_ms ?? 3000);
   const safeDuration = finite(duration) && duration > 0 ? duration : 3000;
+  const declaredSnap = Number(design.timeline?.snap_ms ?? 0);
+  const snapMs = finite(declaredSnap) ? declaredSnap : 0;
   const issues: ValidationIssue[] = [];
+  issues.push(...validatePreSnapSequence(design, snapMs));
   const events = design.timeline?.events ?? [];
   const seenEventIds = new Map<string, number>();
   events.forEach((event, index) => {

@@ -23,4 +23,26 @@ describe('timeline integrity validation', () => {
     const design: PlayDesign = { ...base, elements: [{ ...base.elements![0], timing: { start_ms: 0, end_ms: 800, phases: [{ id: 'stem', label: 'Stem', start_ms: 0, end_ms: 400 }, { id: 'break', label: 'Break', start_ms: 400, end_ms: 700 }] } }], timeline: { duration_ms: 1000, events: [{ id: 'READ', kind: 'read', element_id: 'ROUTE', player_id: 'QB', start_ms: 300, end_ms: 500 }] } };
     expect(timelineIntegrityIssues(design)).toEqual([]);
   });
+
+  it('validates pre-snap sequence IDs, chronological order, overlap, and snap boundary', () => {
+    const design: PlayDesign = {
+      ...base,
+      pre_snap_sequence: [
+        { id: 'SHIFT', kind: 'shift', label: 'Shift', start_ms: -900, end_ms: -300 },
+        { id: 'MOTION', kind: 'motion', label: 'Motion', start_ms: -500, end_ms: 100 },
+        { id: 'MOTION', kind: 'set', label: '', start_ms: -250, end_ms: -100 },
+      ],
+    };
+    const codes = timelineIntegrityIssues(design).map((issue) => issue.code);
+    expect(codes).toEqual(expect.arrayContaining(['PRESNAP_STEPS_OVERLAP', 'PRESNAP_END_AFTER_SNAP', 'PRESNAP_STEP_ID_DUPLICATE', 'PRESNAP_LABEL_MISSING']));
+  });
+
+  it('accepts a chronological, non-overlapping pre-snap sequence ending at the snap', () => {
+    const design: PlayDesign = { ...base, elements: [{ ...base.elements![0], timing: { start_ms: 0, end_ms: 800, phases: [{ id: 'stem', label: 'Stem', start_ms: 0, end_ms: 350 }, { id: 'break', label: 'Break', start_ms: 350, end_ms: 700 }] } }], pre_snap_sequence: [
+      { id: 'HUDDLE', kind: 'huddle', label: 'Call the formation', start_ms: -1400, end_ms: -1000 },
+      { id: 'SHIFT', kind: 'shift', label: 'Shift and reset', start_ms: -900, end_ms: -500 },
+      { id: 'MOTION', kind: 'motion', label: 'Jet motion', start_ms: -450, end_ms: 0 },
+    ] };
+    expect(timelineIntegrityIssues(design)).toEqual([]);
+  });
 });
