@@ -249,16 +249,6 @@ export function pathsIntersect(first: Point[], second: Point[]): boolean {
   return false;
 }
 
-function timingOverlap(first: PlayElement, second: PlayElement): { start: number; end: number } | undefined {
-  const firstStart = Number(first.start_ms ?? first.timing?.start_ms ?? 0);
-  const firstEnd = Number(first.end_ms ?? first.timing?.end_ms ?? 999999);
-  const secondStart = Number(second.start_ms ?? second.timing?.start_ms ?? 0);
-  const secondEnd = Number(second.end_ms ?? second.timing?.end_ms ?? 999999);
-  const start = Math.max(firstStart, secondStart);
-  const end = Math.min(firstEnd, secondEnd);
-  return start <= end ? { start, end } : undefined;
-}
-
 export function collisionIds(elements: PlayElement[]): Set<string> {
   const collisions = new Set<string>();
   for (const collision of routeCollisions(elements)) {
@@ -271,6 +261,8 @@ export function collisionIds(elements: PlayElement[]): Set<string> {
 export interface RouteCollision {
   firstId: string;
   secondId: string;
+  firstPathLabel: string;
+  secondPathLabel: string;
   intentional: boolean;
   explanation: string;
   minimumSeparation: number;
@@ -285,26 +277,60 @@ function routeCorridor(element: PlayElement): number {
   return Number.isFinite(configured) && configured > 0 ? configured : 1.5;
 }
 
+interface RoutePathCandidate {
+  label: string;
+  points: Point[];
+  start: number;
+  end: number;
+}
+
+function routePathCandidates(element: PlayElement): RoutePathCandidate[] {
+  const start = Number(element.start_ms ?? element.timing?.start_ms ?? 0);
+  const end = Number(element.end_ms ?? element.timing?.end_ms ?? 999999);
+  const candidates: RoutePathCandidate[] = [{ label: 'Primary path', points: elementPoints(element), start, end }];
+  for (const branch of element.branches ?? []) {
+    const branchStart = Number(branch.start_ms ?? branch.timing?.start_ms ?? start);
+    const branchEnd = Number(branch.end_ms ?? branch.timing?.end_ms ?? end);
+    candidates.push({ label: branch.label || 'Alternate path', points: branch.points ?? [], start: branchStart, end: branchEnd });
+  }
+  return candidates.filter((candidate) => candidate.points.length > 1 && candidate.start <= candidate.end);
+}
+
+function pathTimingOverlap(first: RoutePathCandidate, second: RoutePathCandidate): { start: number; end: number } | undefined {
+  const start = Math.max(first.start, second.start);
+  const end = Math.min(first.end, second.end);
+  return start <= end ? { start, end } : undefined;
+}
+
 export function routeCollisions(elements: PlayElement[]): RouteCollision[] {
   const routes = elements.filter((element) => element.kind === 'route' && !element.hidden && elementPoints(element).length > 1);
   const collisions: RouteCollision[] = [];
   for (let index = 0; index < routes.length; index += 1) {
     for (let secondIndex = index + 1; secondIndex < routes.length; secondIndex += 1) {
       const first = routes[index]; const second = routes[secondIndex];
-      const overlap = timingOverlap(first, second);
-      if (!overlap) continue;
-      const minimumSeparation = pathDistance(elementPoints(first), elementPoints(second));
       const corridorThreshold = Math.max(routeCorridor(first), routeCorridor(second));
-      if (minimumSeparation > corridorThreshold) continue;
       const intentional = first.collision_intent === 'intentional' && second.collision_intent === 'intentional';
+      const candidates: Array<{ firstPath: RoutePathCandidate; secondPath: RoutePathCandidate; overlap: { start: number; end: number }; minimumSeparation: number }> = [];
+      for (const firstPath of routePathCandidates(first)) {
+        for (const secondPath of routePathCandidates(second)) {
+          const overlap = pathTimingOverlap(firstPath, secondPath);
+          if (!overlap) continue;
+          const minimumSeparation = pathDistance(firstPath.points, secondPath.points);
+          if (minimumSeparation <= corridorThreshold) candidates.push({ firstPath, secondPath, overlap, minimumSeparation });
+        }
+      }
+      const closest = candidates.sort((left, right) => left.minimumSeparation - right.minimumSeparation)[0];
+      if (!closest) continue;
+      const { firstPath, secondPath, overlap, minimumSeparation } = closest;
       const kind = minimumSeparation === 0 ? 'intersection' : 'corridor';
       const separation = minimumSeparation.toFixed(1);
       const overlapWindow = `${(overlap.start / 1000).toFixed(2)}–${(overlap.end / 1000).toFixed(2)}s`;
-      collisions.push({ firstId: first.id, secondId: second.id, intentional, minimumSeparation, corridorThreshold, kind, overlapStartMs: overlap.start, overlapEndMs: overlap.end, explanation: intentional
-        ? `Both routes are marked as an intentional crossing during ${overlapWindow}; minimum separation is ${separation} yd. Confirm spacing and timing in the teaching view.`
+      const pathContext = firstPath.label === 'Primary path' && secondPath.label === 'Primary path' ? '' : ` (${firstPath.label} vs ${secondPath.label})`;
+      collisions.push({ firstId: first.id, secondId: second.id, firstPathLabel: firstPath.label, secondPathLabel: secondPath.label, intentional, minimumSeparation, corridorThreshold, kind, overlapStartMs: overlap.start, overlapEndMs: overlap.end, explanation: intentional
+        ? `Both routes are marked as an intentional crossing${pathContext} during ${overlapWindow}; minimum separation is ${separation} yd. Confirm spacing and timing in the teaching view.`
         : kind === 'intersection'
-          ? `Routes intersect during ${overlapWindow}; separate the corridor or explicitly document the intentional crossing.`
-          : `Route corridors come within ${separation} yd during ${overlapWindow}; maintain at least ${corridorThreshold.toFixed(1)} yd or document the intentional crossing.` });
+          ? `Routes intersect${pathContext} during ${overlapWindow}; separate the corridor or explicitly document the intentional crossing.`
+          : `Route corridors come within ${separation} yd${pathContext} during ${overlapWindow}; maintain at least ${corridorThreshold.toFixed(1)} yd or document the intentional crossing.` });
     }
   }
   return collisions;

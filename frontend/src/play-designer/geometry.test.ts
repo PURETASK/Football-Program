@@ -86,7 +86,17 @@ describe('play designer geometry', () => {
       { id: 'A', kind: 'route', points: [{ x: 10, y: 20 }, { x: 90, y: 20 }], start_ms: 500, end_ms: 1500 },
       { id: 'B', kind: 'route', points: [{ x: 10, y: 21 }, { x: 90, y: 21 }], start_ms: 1000, end_ms: 2000 },
     ]);
-    expect(result[0]).toMatchObject({ kind: 'corridor', minimumSeparation: 1, overlapStartMs: 1000, overlapEndMs: 1500 });
+    expect(result[0]).toMatchObject({ kind: 'corridor', minimumSeparation: 1, firstPathLabel: 'Primary path', secondPathLabel: 'Primary path', overlapStartMs: 1000, overlapEndMs: 1500 });
     expect(result[0].explanation).toContain('corridors');
+  });
+
+  it('validates alternate route branches in their own timing windows', () => {
+    const result = routeCollisions([
+      { id: 'A', kind: 'route', points: [{ x: 10, y: 20 }, { x: 10, y: 10 }], start_ms: 0, end_ms: 1000, branches: [{ id: 'A-OPT', label: 'Alert path', condition: 'If rotation', points: [{ x: 40, y: 20 }, { x: 90, y: 20 }], start_ms: 500, end_ms: 1500 }] },
+      { id: 'B', kind: 'route', points: [{ x: 40, y: 20 }, { x: 90, y: 20 }], start_ms: 1000, end_ms: 2000 },
+    ]);
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({ firstPathLabel: 'Alert path', secondPathLabel: 'Primary path', overlapStartMs: 1000, overlapEndMs: 1500 });
+    expect(result[0].explanation).toContain('Alert path vs Primary path');
   });
 });
