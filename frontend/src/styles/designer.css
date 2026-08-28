@@ -1548,6 +1548,12 @@
 .rotation-sequence-step small, .rotation-sequence-step em { color: var(--muted); font-size: 10px; font-style: normal; }
 .rotation-sequence-step em { white-space: nowrap; color: #f1c875; }
 .rotation-sequence-step__connector { color: #70d9eb; font-size: 14px; line-height: 16px; }
+.timeline-presnap-track { display: grid; gap: 0.35rem; margin-bottom: 0.7rem; padding: 0.55rem; border: 1px solid rgb(246 204 101 / 0.18); border-radius: 9px; background: rgb(246 204 101 / 0.035); }
+.timeline-presnap-track > header { display: flex; justify-content: space-between; gap: 0.5rem; align-items: baseline; color: #f6cc65; font-size: 0.55rem; }
+.timeline-presnap-track > header div { display: grid; gap: 0.12rem; }
+.timeline-presnap-track > header small { color: #8b8a91; font-size: 0.45rem; font-weight: 500; }
+.timeline-presnap-track > header > span { color: #b8a66f; font-size: 0.44rem; }
+.timeline-track-window--presnap { background: linear-gradient(90deg, #f6cc65, #c19e3d); box-shadow: 0 0 12px rgb(246 204 101 / 0.2); }
 .designer-gap-ownership { pointer-events: none; }
 .designer-gap-link { pointer-events: auto; }
 .designer-gap-link line { stroke: rgb(110 229 187 / 0.72); stroke-width: .28; stroke-dasharray: .8 .65; }

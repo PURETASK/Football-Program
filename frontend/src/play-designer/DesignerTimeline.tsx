@@ -38,16 +38,18 @@ function speakCue(cue: PlayNarrationCue): void {
 export function DesignerTimeline({ design, selectedElement, playbackTime, onPlaybackTime, onAddMarker, onSelectElement, onUpdateElement, onUpdateTimeline }: TimelineProps) {
   const elements = design.elements ?? [];
   const markers = useMemo(() => [...(design.timeline?.markers ?? [])].sort((left, right) => left.ms - right.ms), [design.timeline?.markers]);
+  const preSnapSequence = useMemo(() => [...(design.pre_snap_sequence ?? [])].sort((left, right) => left.start_ms - right.start_ms), [design.pre_snap_sequence]);
   const narration = design.timeline?.narration ?? [];
   const events = design.timeline?.events ?? [];
   const knownStarts = [
     ...elements.map((element) => elementTiming(element).start),
     ...markers.map((marker) => marker.ms),
+    ...preSnapSequence.map((step) => step.start_ms),
     ...narration.map((cue) => cue.start_ms),
     ...events.map((event) => timelineEventStart(event)),
   ].filter(Number.isFinite);
   const timelineStart = Math.min(0, ...knownStarts);
-  const knownEnds = [Number(design.timeline?.duration_ms ?? 3000), ...elements.map((element) => elementTiming(element).end)].filter(Number.isFinite);
+  const knownEnds = [Number(design.timeline?.duration_ms ?? 3000), ...elements.map((element) => elementTiming(element).end), ...preSnapSequence.map((step) => step.end_ms)].filter(Number.isFinite);
   const duration = Math.max(1000, ...knownEnds);
   const span = Math.max(1, duration - timelineStart);
   const current = playbackTime ?? duration;
@@ -92,9 +94,10 @@ export function DesignerTimeline({ design, selectedElement, playbackTime, onPlay
   };
 
   const adjacentMarker = (direction: -1 | 1) => {
-    const candidates = direction < 0 ? [...markers].reverse() : markers;
-    const marker = candidates.find((item) => direction < 0 ? item.ms < current - 1 : item.ms > current + 1);
-    jump(marker?.ms ?? (direction < 0 ? timelineStart : duration));
+    const candidates = [...markers.map((item) => ({ ms: item.ms, id: item.id })), ...preSnapSequence.map((step) => ({ ms: step.start_ms, id: step.id }))].sort((left, right) => left.ms - right.ms);
+    const ordered = direction < 0 ? candidates.reverse() : candidates;
+    const cue = ordered.find((item) => direction < 0 ? item.ms < current - 1 : item.ms > current + 1);
+    jump(cue?.ms ?? (direction < 0 ? timelineStart : duration));
   };
 
   const togglePlayback = () => {
@@ -206,6 +209,16 @@ export function DesignerTimeline({ design, selectedElement, playbackTime, onPlay
       {activeCue ? <div className="timeline-narration-now" role="status"><span><strong>{activeCue.role ?? 'Coach'} cue</strong>{activeCue.text}</span><button type="button" aria-label="Speak current teaching cue" onClick={() => speakCue(activeCue)}><Volume2 size={15} /> Speak</button></div> : null}
 
       {expanded ? <div className="timeline-expanded-content">
+        {preSnapSequence.length ? <div className="timeline-presnap-track" role="region" aria-label="Pre-snap sequence timing tracks">
+          <header><div><strong>Pre-snap sequence</strong><small>Huddle, shift, motion, set, and cadence cues before the snap.</small></div><span>{preSnapSequence.length} steps</span></header>
+          {preSnapSequence.map((step, index) => <div className="timeline-track-row timeline-presnap-track-row" key={step.id}>
+            <button type="button" className="timeline-track-label" aria-label={`Jump to pre-snap step ${index + 1}: ${step.label}`} onClick={() => jump(step.start_ms)}><strong>{step.label}</strong><small>{step.kind.replaceAll('_', ' ')}</small></button>
+            <button type="button" className="timeline-track-lane" aria-label={`Jump to ${step.label} pre-snap cue`} onClick={() => jump(step.start_ms)}>
+              <span className="timeline-track-window timeline-track-window--presnap" style={{ left: positionPercent(step.start_ms), width: `${((step.end_ms - step.start_ms) / span) * 100}%` }} />
+              <span className="timeline-row-playhead" aria-hidden="true" style={{ left: positionPercent(current) }} />
+            </button>
+          </div>)}
+        </div> : null}
         <div className="timeline-track-list" aria-label="Assignment timing tracks">
           {!elements.length ? <p className="timeline-empty">Draw an assignment to create its synchronized timing track.</p> : elements.map((element) => {
             const timing = elementTiming(element);

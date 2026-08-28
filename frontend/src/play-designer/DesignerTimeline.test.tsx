@@ -19,15 +19,20 @@ const DESIGN: PlayDesign = {
     narration: [{ id: 'N-1', role: 'QB coach', text: 'Hold the safety with your eyes.', start_ms: 500, end_ms: 1000 }],
     events: [],
   },
+  pre_snap_sequence: [{ id: 'PRE-1', kind: 'huddle', label: 'Huddle call', start_ms: -1200, end_ms: -900, notes: 'Communicate motion alert.' }],
 };
 
 describe('DesignerTimeline', () => {
   it('renders synchronized phases and lets a coach select a track', () => {
     const onSelectElement = vi.fn();
-    render(<DesignerTimeline design={DESIGN} selectedElement={DESIGN.elements?.[0]} playbackTime={650} onPlaybackTime={vi.fn()} onAddMarker={vi.fn()} onSelectElement={onSelectElement} onUpdateTimeline={vi.fn()} />);
+    const onPlaybackTime = vi.fn();
+    render(<DesignerTimeline design={DESIGN} selectedElement={DESIGN.elements?.[0]} playbackTime={650} onPlaybackTime={onPlaybackTime} onAddMarker={vi.fn()} onSelectElement={onSelectElement} onUpdateTimeline={vi.fn()} />);
     expect(screen.getByText('Stem')).toBeInTheDocument();
     expect(screen.getByText('Hold the safety with your eyes.')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Tracks/i }));
+    expect(screen.getByRole('region', { name: 'Pre-snap sequence timing tracks' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Jump to Huddle call pre-snap cue' }));
+    expect(onPlaybackTime).toHaveBeenCalledWith(-1200);
     fireEvent.click(screen.getByRole('button', { name: 'Select post track for WR' }));
     expect(onSelectElement).toHaveBeenCalledWith('ROUTE-X');
     expect(screen.getByTitle('Break: 1.10s–1.50s')).toBeInTheDocument();
