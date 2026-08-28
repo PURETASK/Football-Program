@@ -44,6 +44,10 @@ def run_rehearsal(*, database: Path) -> dict:
     previous_secret = os.environ.get("NFL_FIDOS_AUTH_SECRET")
     os.environ["NFL_FIDOS_AUTH_SECRET"] = DEMO_SECRET
     server, repository = create_server(port=0, database_path=database)
+    # This is an ephemeral rehearsal server. Do not let an HTTP worker keep a
+    # temporary SQLite file locked after the verification request completes.
+    server.daemon_threads = True
+    server.block_on_close = False
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
