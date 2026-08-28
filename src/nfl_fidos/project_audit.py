@@ -11,13 +11,19 @@ from .master_plan_audit import audit_master_plan
 from .traceability import validate_traceability_ledger
 
 
-def _source_paths() -> tuple[Path, Path]:
+def _source_paths(repository_root: str | Path) -> tuple[Path, Path]:
+    """Resolve the checked-in plan first, with the original upload as a local fallback."""
+    root = Path(repository_root)
+    repository_markdown = root / "governance" / "master-plan" / "NFL_Football_Intelligence_OS_Master_Codex_Plan_v1.0.md"
+    repository_docx = root / "governance" / "master-plan" / "NFL_Football_Intelligence_OS_Master_Codex_Plan_v1.0.docx"
+    if repository_markdown.is_file() and repository_docx.is_file():
+        return repository_markdown, repository_docx
     return (Path(r"C:\Users\onlyw\Downloads\NFL_Football_Intelligence_OS_Master_Codex_Plan_v1.0 (1).md"), Path(r"C:\Users\onlyw\Downloads\NFL_Football_Intelligence_OS_Master_Codex_Plan_v1.0 (1).docx"))
 
 
 def run_project_audit(*, root: str | Path, markdown: str | Path | None = None, docx: str | Path | None = None, run_evals: bool = True) -> dict[str, Any]:
     repository_root = Path(root)
-    default_markdown, default_docx = _source_paths()
+    default_markdown, default_docx = _source_paths(repository_root)
     markdown_path = Path(markdown) if markdown else default_markdown
     docx_path = Path(docx) if docx else default_docx
     traceability_path = repository_root / "control" / "requirements-traceability.json"

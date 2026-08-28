@@ -37,6 +37,8 @@ class MediaWorkerRunnerTests(unittest.TestCase):
     def test_owner_can_run_worker_through_authenticated_api(self):
         secret = "media-worker-runner-api-secret-012345678901234567890"
         os.environ["NFL_FIDOS_AUTH_SECRET"] = secret
+        previous_ffprobe = os.environ.get("NFL_FIDOS_FFPROBE")
+        os.environ["NFL_FIDOS_FFPROBE"] = "ffprobe-command-not-installed-for-test"
         headers = {"Authorization":"Bearer "+issue_token(subject="OWNER-WORKER-API", role="program_owner", organization_id="ORG-WORKER-API", secret=secret)}
         with tempfile.TemporaryDirectory() as directory:
             media = Path(directory) / "game.webm"
@@ -47,9 +49,14 @@ class MediaWorkerRunnerTests(unittest.TestCase):
             MediaProcessingJobService(tenant).create_job(job_id="MEDIA-JOB-API-001", asset_id="FILM-API-001", operation="probe", payload={"file_path":str(media), "allowed_roots":[directory]}, requested_by="OWNER-WORKER-API")
             status, payload = handle_request(method="POST", path="/v1/media/worker/run", headers=headers, body={"organization_id":"ORG-WORKER-API", "worker_id":"MEDIA-WORKER-API-001", "allowed_roots":[directory], "max_jobs":1}, service=service)
             self.assertEqual(status, 200)
-            self.assertEqual(payload["data"]["status"], "partial_failure")
-            self.assertEqual(payload["data"]["failed_count"], 1)
+            self.assertEqual(payload["data"]["status"], "completed")
+            self.assertEqual(payload["data"]["completed_count"], 1)
+            self.assertEqual(payload["data"]["failed_count"], 0)
         os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
+        if previous_ffprobe is None:
+            os.environ.pop("NFL_FIDOS_FFPROBE", None)
+        else:
+            os.environ["NFL_FIDOS_FFPROBE"] = previous_ffprobe
 
 
 if __name__ == "__main__":

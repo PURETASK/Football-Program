@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 from pathlib import Path
 from typing import Any, Callable
@@ -16,6 +17,10 @@ from .tenant_repository import TenantRepository
 ProbeRunner = Callable[[list[str]], tuple[int, str, str]]
 
 
+def _configured_ffprobe(binary: str | None) -> str:
+    return binary or os.environ.get("NFL_FIDOS_FFPROBE", "ffprobe")
+
+
 def _default_runner(arguments: list[str]) -> tuple[int, str, str]:
     try:
         result = subprocess.run(arguments, capture_output=True, text=True, timeout=30, check=False)
@@ -24,7 +29,7 @@ def _default_runner(arguments: list[str]) -> tuple[int, str, str]:
         return 127, "", str(exc)
 
 
-def probe_media_file(*, file_path: str | Path, allowed_roots: list[str | Path] | None = None, ffprobe_binary: str = "ffprobe", runner: ProbeRunner | None = None) -> dict[str, Any]:
+def probe_media_file(*, file_path: str | Path, allowed_roots: list[str | Path] | None = None, ffprobe_binary: str | None = None, runner: ProbeRunner | None = None) -> dict[str, Any]:
     path = Path(file_path).resolve()
     issues: list[str] = []
     if path.suffix.lower() not in ALLOWED_EXTENSIONS:
@@ -37,7 +42,7 @@ def probe_media_file(*, file_path: str | Path, allowed_roots: list[str | Path] |
     if issues:
         return {"status":"rejected", "path":str(path), "issues":issues}
     execute = runner or _default_runner
-    code, stdout, stderr = execute([ffprobe_binary, "-v", "error", "-show_entries", "format=duration,format_name", "-of", "json", str(path)])
+    code, stdout, stderr = execute([_configured_ffprobe(ffprobe_binary), "-v", "error", "-show_entries", "format=duration,format_name", "-of", "json", str(path)])
     if code == 127:
         return {"status":"metadata_only", "path":str(path), "file_name":path.name, "size_bytes":path.stat().st_size, "tool":"ffprobe", "tool_available":False, "issues":["ffprobe is unavailable; media is cataloged without decoded duration"]}
     if code != 0:
@@ -51,7 +56,7 @@ def probe_media_file(*, file_path: str | Path, allowed_roots: list[str | Path] |
         return {"status":"failed", "path":str(path), "tool":"ffprobe", "tool_available":True, "issues":[f"invalid ffprobe output: {exc}"]}
 
 
-def index_media_file(*, file_path: str | Path, allowed_roots: list[str | Path] | None = None, ffprobe_binary: str = "ffprobe", runner: ProbeRunner | None = None) -> dict[str, Any]:
+def index_media_file(*, file_path: str | Path, allowed_roots: list[str | Path] | None = None, ffprobe_binary: str | None = None, runner: ProbeRunner | None = None) -> dict[str, Any]:
     """Build a bounded, searchable media index from authorized stream metadata."""
     path = Path(file_path).resolve()
     issues: list[str] = []
@@ -66,7 +71,7 @@ def index_media_file(*, file_path: str | Path, allowed_roots: list[str | Path] |
         return {"status":"rejected", "operation":"index", "path":str(path), "issues":issues}
     execute = runner or _default_runner
     command = [
-        ffprobe_binary,
+        _configured_ffprobe(ffprobe_binary),
         "-v", "error",
         "-show_entries", "format=duration,format_name:stream=index,codec_type,codec_name,width,height,r_frame_rate,avg_frame_rate,channels,sample_rate",
         "-of", "json",
