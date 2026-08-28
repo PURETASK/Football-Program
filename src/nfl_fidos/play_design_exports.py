@@ -69,6 +69,14 @@ def _element_id(element: dict[str, Any], index: int) -> str:
     return str(element.get("id") or f"ELEMENT-{index + 1}")
 
 
+def _defensive_alignment_label(player: dict[str, Any]) -> str | None:
+    technique = player.get("defensive_technique")
+    alignment = player.get("defensive_alignment")
+    if not technique and not alignment:
+        return None
+    return " · ".join(filter(None, [f"{technique}-tech" if technique else None, str(alignment).replace("_", " ") if alignment else None]))
+
+
 def _svg_path(points: list[dict[str, Any]]) -> str:
     return " ".join(("M" if point_index == 0 else "L") + f" {float(point.get('x', 0)):.2f} {float(point.get('y', 0)) + 4:.2f}" for point_index, point in enumerate(points))
 
@@ -184,6 +192,9 @@ def _svg(design: dict[str, Any], *, role: str | None = None, black_white: bool =
         x, y = float(point.get("x", 50)), float(point.get("y", 26.66)) + 4
         field.append(f'<circle cx="{x:.2f}" cy="{y:.2f}" r="1.45" fill="{color}" stroke="#111827" stroke-width=".35"/>')
         field.append(f'<text x="{x:.2f}" y="{y + .55:.2f}" text-anchor="middle" font-family="Arial,sans-serif" font-size="1.05" font-weight="700" fill="#111827">{html.escape(str(player.get("position") or index + 1))}</text>')
+        alignment_label = _defensive_alignment_label(player) if player.get("unit") == "defense" or design.get("unit") == "defense" else None
+        if alignment_label:
+            field.append(f'<text x="{x + 2:.2f}" y="{y - 1.25:.2f}" font-family="Arial,sans-serif" font-size=".9" font-weight="700" fill="#111827">{html.escape(alignment_label)}</text>')
     field.append(f'<rect x="1" y="1" width="98" height="3" fill="{html.escape(brand["accent_color"])}" opacity=".94"/><text x="3" y="3.25" font-family="Arial,sans-serif" font-size="1.45" font-weight="700" fill="#fff">{html.escape(brand["team_name"])} - {html.escape(str(design.get("concept") or design.get("id")))}</text>')
     field.append('</svg>')
     return "".join(field)
@@ -319,6 +330,10 @@ def _draw_field(pdf: Any, design: dict[str, Any], *, x: float, y: float, width: 
         pdf.setFillColor(colors.black)
         pdf.setFont("Helvetica-Bold", 5.5)
         pdf.drawCentredString(px, py - 2, str(player.get("position") or "P")[:5])
+        alignment_label = _defensive_alignment_label(player) if design.get("unit") == "defense" else None
+        if alignment_label:
+            pdf.setFont("Helvetica", 5.2)
+            pdf.drawString(px + 7, py + 4, alignment_label[:22])
     pdf.restoreState()
 
 
