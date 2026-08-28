@@ -1238,3 +1238,47 @@ the Play Designer quality gates pass.
 - [Yjs collaborative editor documentation](https://docs.yjs.dev/getting-started/a-collaborative-editor)
   and [offline editing documentation](https://docs.yjs.dev/getting-started/allowing-offline-editing)
   — reference patterns for awareness, shared updates, and offline recovery.
+
+### Implementation addendum — timeline integrity preflight (2026-08-28)
+
+The React Checks panel now performs a local timeline-integrity pass before a
+draft is sent to the authoritative Python API. It identifies stale assignment
+and player references, duplicate event IDs, invalid or out-of-clock event
+windows, route-branch references that no longer exist, invalid assignment
+windows, phases outside their parent assignment, and overlapping phases. These
+findings are authoring safeguards only; server legality and governed release
+decisions remain authoritative. Verification: the full frontend suite passes
+with 228 tests, TypeScript typecheck passes, and the production Vite build
+passes.
+
+### Implementation addendum — blocking relationship safeguards (2026-08-28)
+
+Offensive blocking authoring now validates reciprocal combo relationships,
+ensures combo partners are blocking/run surfaces, requires explicit protection
+threats for man/slide/scan modes, and rejects stale protection-target links.
+These checks supplement existing pull, trap, wrap, fold, insert, arc, combo,
+screen, target, and self-reference diagnostics. Verification: focused blocking
+tests pass, the full frontend suite passes with 229 tests, TypeScript typecheck
+passes, and the production Vite build passes.
+
+### Implementation addendum — timed route collision corridors (2026-08-28)
+
+Route-collision records now retain the exact primary or alternate-path geometry
+that participates in the timed overlap. The field renders a distinct corridor
+overlay, brightens it during the active playback interval, distinguishes
+intentional crossings from unresolved intersections, and exposes the same
+explanation to assistive technology. The corridor is clipped to the exact
+overlap subpath rather than implying that the entire route is in conflict.
+Verification: the full frontend suite passes with 230 tests, TypeScript
+typecheck passes, and the production Vite build passes.
+
+### Implementation addendum — first-class alternate route editing (2026-08-28)
+
+Alternate route branches are now independent editable paths on the canvas.
+Branch handles support pointer drag, keyboard nudging, and direct double-click
+handle insertion without moving the parent route. Branch-specific route family,
+stem depth, break type/depth, and finish direction metadata remain synchronized
+with the edited geometry, timing window, branch condition, collision model,
+teaching view, and export pipeline. Verification: the full frontend suite passes
+with 231 tests and 46 test files, TypeScript typecheck passes, and the
+production Vite build passes.
