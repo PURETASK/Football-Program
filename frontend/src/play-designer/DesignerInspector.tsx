@@ -35,7 +35,7 @@ import type {
 import type { EditorSelection } from './editorState';
 import { DesignerSectionGuide } from './DesignerSectionGuide';
 import { PositionToolkit } from './PositionToolkit';
-import { DEFENSIVE_GAP_OPTIONS, defensiveGapOwners } from './defensiveFront';
+import { DEFENSIVE_GAP_OPTIONS, defensiveGapOwners, defensiveGapSummary } from './defensiveFront';
 import { routeCollisions } from './geometry';
 import { DEFENSIVE_ALIGNMENTS, DEFENSIVE_TECHNIQUES, defensiveAlignmentIssues, defensiveAlignmentPatch } from './defensiveAlignment';
 import { CoverageShellEditor } from './CoverageShellEditor';
@@ -148,9 +148,11 @@ function InspectorSection({ title, children }: { title: string; children: ReactN
 
 function DefensiveFrontMap({ design, onSelect }: Pick<InspectorProps, 'design' | 'onSelect'>) {
   const owners = defensiveGapOwners(design);
+  const gapSummary = defensiveGapSummary(design);
   const alignmentIssues = defensiveAlignmentIssues(design);
   return <InspectorSection title="Defensive front map">
     <p className="inspector-help">Canonical gap ownership for the current front. Select an owned gap to jump to its assignment; duplicate/conflicting ownership is marked for review.</p>
+    <div className={`front-readiness-summary front-readiness-summary--${gapSummary.status}`} role="status"><strong>{gapSummary.owned}/{gapSummary.total} gaps owned</strong><span>{gapSummary.unassigned} unassigned · {gapSummary.conflicts} conflict{gapSummary.conflicts === 1 ? '' : 's'}</span><em>{gapSummary.status === 'ready' ? 'Front ready for review' : 'Front needs review'}</em></div>
     {alignmentIssues.length ? <div className="inspector-diagnostic-list" role="alert" aria-label="Defensive alignment diagnostics"><strong>{alignmentIssues.length} alignment issue{alignmentIssues.length === 1 ? '' : 's'}</strong>{alignmentIssues.map((issue) => <button type="button" key={`${issue.code}-${issue.playerIds.join('-')}`} onClick={() => onSelect({ kind: 'player', id: issue.playerIds[0] })}>{issue.message}</button>)}</div> : null}
     <div className="defensive-front-map" role="group" aria-label="Defensive gap ownership map">
       {DEFENSIVE_GAP_OPTIONS.map(([value, label]) => {

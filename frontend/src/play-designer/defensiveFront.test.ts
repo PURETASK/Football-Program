@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { PlayDesign } from '../types';
-import { defensiveGapLinks, defensiveGapOwners, gapOwnerPatch } from './defensiveFront';
+import { defensiveGapLinks, defensiveGapOwners, defensiveGapSummary, gapOwnerPatch } from './defensiveFront';
 
 describe('defensive front ownership', () => {
   it('normalizes a gap ownership selection into canonical assignment fields', () => {
@@ -22,5 +22,13 @@ describe('defensive front ownership', () => {
     expect(links).toHaveLength(12);
     expect(links.find((link) => link.gap === 'left_a')).toEqual(expect.objectContaining({ owner: 'MIKE', elementId: 'FIT', anchor: { x: 36, y: 30 } }));
     expect(links.find((link) => link.gap === 'right_a')).toEqual(expect.objectContaining({ conflict: false, owner: undefined }));
+  });
+
+  it('summarizes front readiness for coach review', () => {
+    const design: PlayDesign = { id: 'SUMMARY', unit: 'defense', elements: [
+      { id: 'FIT', kind: 'fit', player_id: 'MIKE', gap_owner: 'left_a', responsibility: 'fit' },
+      { id: 'FIT-2', kind: 'fit', player_id: 'WILL', gap_owner: 'left_a', responsibility: 'cutback' },
+    ] };
+    expect(defensiveGapSummary(design)).toEqual({ total: 12, owned: 1, unassigned: 11, conflicts: 1, status: 'review' });
   });
 });

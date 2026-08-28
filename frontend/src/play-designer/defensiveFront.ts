@@ -21,6 +21,14 @@ export interface DefensiveGapLink {
   anchor?: { x: number; y: number };
 }
 
+export interface DefensiveGapSummary {
+  total: number;
+  owned: number;
+  unassigned: number;
+  conflicts: number;
+  status: 'ready' | 'review';
+}
+
 export function gapOwnerPatch(value: string): Partial<PlayElement> {
   const label = DEFENSIVE_GAP_OPTIONS.find(([key]) => key === value)?.[1] ?? value;
   return { gap_owner: value || undefined, gap_owner_label: value ? label : undefined, gap: value || undefined, fit_gap: value || undefined };
@@ -51,4 +59,11 @@ export function defensiveGapLinks(design: PlayDesign): DefensiveGapLink[] {
     const anchor = points.length ? points[points.length - 1] : undefined;
     return { gap, label, x: GAP_X[gap], owner: owner?.owner, elementId: owner?.elementId, conflict: owner?.conflict ?? false, anchor };
   });
+}
+
+export function defensiveGapSummary(design: PlayDesign): DefensiveGapSummary {
+  const links = defensiveGapLinks(design);
+  const owned = links.filter((link) => Boolean(link.owner));
+  const conflicts = links.filter((link) => link.conflict);
+  return { total: links.length, owned: owned.length, unassigned: links.length - owned.length, conflicts: conflicts.length, status: conflicts.length || owned.length < links.length ? 'review' : 'ready' };
 }
