@@ -1,5 +1,6 @@
 # Local runtime state, synthetic demo databases, media, and logs.
 .runtime/
+runtime/
 
 # Local secrets and environment overrides.
 .env
