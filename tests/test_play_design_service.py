@@ -50,6 +50,8 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertEqual(report["status"], "valid", report["errors"])
         self.assertGreaterEqual(report["asset_count"], 60)
         self.assertTrue({"formation", "route", "protection", "run", "front", "coverage", "pressure", "stunt", "rotation", "check", "teaching"}.issubset(set(report["categories"])))
+        terms = {asset["term"] for asset in load_asset_registry()}
+        self.assertTrue({"under", "odd", "nickel", "dime", "tampa_2", "match_3", "quarters", "overload", "green_dog", "spin_rotation", "reach", "trap", "full_slide", "screen"}.issubset(terms))
 
     def test_saved_design_can_be_captured_as_org_scoped_relative_template(self):
         service = self.service()
