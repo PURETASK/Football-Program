@@ -1,7 +1,7 @@
 import { beforeEach, expect, vi } from 'vitest';
 
 import type { AppSession, PracticePlan } from '../types';
-import { appendCollaborationComment, createCollaborationThread, createDeliveryPacket, createPilotDeliveryPackage, createPlayTemplate, evaluatePilotReadiness, exportPlayDesign, fetchAdminWorkspace, fetchCollaborationWorkspace, fetchCollaborationStream, fetchOrganizationPopulationReadiness, fetchPlayAssets, fetchPlayCollaborationStream, fetchStage25Acceptance, fetchPracticeAttendance, markCollaborationNotificationsRead, createFilmClip, createFilmObservation, createFilmVoiceNote, createGamePlanReleaseSnapshot, createPracticePlan, fetchFilmWorkspace, fetchOperationsInbox, fetchPlayRoleView, fetchPlayVersionDiff, fetchPracticeDrills, fetchScoutingTendencies, markOperationsNotificationsRead, mergePlayBranch, preflightPlayDesignExport, recordAnalyticsOutcome, recordPlayMastery, recordPracticeAttendance, registerFilmAsset, reviewGovernanceItem, selectPilotOrganization, submitPlayQuiz, submitStage25Acceptance, submitUsabilityFeedback, validatePlayDesignDraft } from './api';
+import { appendCollaborationComment, createCollaborationThread, createDeliveryPacket, createPilotDeliveryPackage, createPlayTemplate, createPlayVariants, evaluatePilotReadiness, exportPlayDesign, fetchAdminWorkspace, fetchCollaborationWorkspace, fetchCollaborationStream, fetchOrganizationPopulationReadiness, fetchPlayAssets, fetchPlayCollaborationStream, fetchStage25Acceptance, fetchPracticeAttendance, markCollaborationNotificationsRead, createFilmClip, createFilmObservation, createFilmVoiceNote, createGamePlanReleaseSnapshot, createPracticePlan, fetchFilmWorkspace, fetchOperationsInbox, fetchPlayRoleView, fetchPlayVersionDiff, fetchPracticeDrills, fetchScoutingTendencies, markOperationsNotificationsRead, mergePlayBranch, preflightPlayDesignExport, recordAnalyticsOutcome, recordPlayMastery, recordPracticeAttendance, registerFilmAsset, reviewGovernanceItem, selectPilotOrganization, submitPlayQuiz, submitStage25Acceptance, submitUsabilityFeedback, validatePlayDesignDraft } from './api';
 
 const SESSION: AppSession = {
   organizationId: 'ORG-TEST-001',
@@ -50,6 +50,16 @@ describe('operational API wiring', () => {
     expect(fetchMock.mock.calls[0][0]).toBe('/v1/playbook/designs/templates');
     expect(fetchMock.mock.calls[0][1]?.method).toBe('POST');
     expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toMatchObject({ organization_id: 'ORG-TEST-001', design_id: 'DESIGN-1', name: 'Third-down package', tags: ['third-down'] });
+  });
+
+  it('posts a bounded multi-look variant batch with explicit patches', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => response({ id: 'VARIANT-BATCH-1', count: 2, variant_ids: ['P-1', 'P-2'], variants: [], source_design_id: 'DESIGN-1', status: 'created' }, 201));
+    const batch = await createPlayVariants(SESSION, { designId: 'DESIGN-1', variants: [{ label: 'Cover 3', patch: { coverage: 'cover_3' } }, { label: 'Quarters', patch: { coverage: 'quarters' } }] });
+    expect(batch.count).toBe(2);
+    expect(fetchMock.mock.calls[0][0]).toBe('/v1/playbook/designs/variants');
+    const body = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
+    expect(body).toMatchObject({ organization_id: 'ORG-TEST-001', design_id: 'DESIGN-1' });
+    expect(body.variants).toEqual([{ label: 'Cover 3', patch: { coverage: 'cover_3' } }, { label: 'Quarters', patch: { coverage: 'quarters' } }]);
   });
 
   it('loads the complete Film Room in parallel from its five organization-scoped endpoints', async () => {
