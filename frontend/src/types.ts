@@ -67,6 +67,13 @@ export interface Point {
 export interface PlayPlayer {
   id: string;
   alignment_key?: string;
+  alignment?: {
+    on_line?: boolean;
+    eligible?: boolean;
+    number?: number;
+    reported_eligible?: boolean;
+    [key: string]: unknown;
+  };
   defensive_technique?: string;
   defensive_alignment?: string;
   position?: string;

@@ -90,6 +90,28 @@ describe('DesignerInspector assignment graph controls', () => {
     expect(props.onElement).toHaveBeenCalledWith('FIT-WLB', expect.objectContaining({ end_ms: 1800, timing: expect.objectContaining({ end_ms: 1800 }) }));
   });
 
+  it('authors snap alignment and jurisdiction-aware offensive eligibility data', () => {
+    const props = inspectorProps();
+    const offenseDesign = {
+      ...DESIGN,
+      unit: 'offense' as const,
+      players: [{ id: 'LT', position: 'LT', alignment: { on_line: true, eligible: true, number: 72 }, start: { x: 44, y: 26 } }],
+    };
+    render(<DesignerInspector {...props} design={offenseDesign} selected={[{ kind: 'player', id: 'LT' }]} />);
+
+    fireEvent.change(screen.getByLabelText('Jersey number'), { target: { value: '75' } });
+    fireEvent.blur(screen.getByLabelText('Jersey number'));
+    expect(props.onPlayer).toHaveBeenCalledWith('LT', { alignment: { on_line: true, eligible: true, number: 75 } });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Reported eligible exception' }));
+    expect(props.onPlayer).toHaveBeenCalledWith('LT', { alignment: { on_line: true, eligible: true, number: 72, reported_eligible: true } });
+  });
+
+  it('does not expose number-based exceptions for local non-NFL/NCAA profiles', () => {
+    const props = inspectorProps();
+    render(<DesignerInspector {...props} design={{ ...DESIGN, unit: 'offense', rule_profile: 'high_school' }} selected={[{ kind: 'player', id: 'LT' }]} />);
+    expect(screen.queryByRole('checkbox', { name: 'Reported eligible exception' })).not.toBeInTheDocument();
+  });
+
   it('declares coverage-shell zones for server ownership checks', () => {
     const props = inspectorProps();
     render(<DesignerInspector {...props} />);

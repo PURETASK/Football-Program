@@ -216,6 +216,9 @@ function SelectionInspector({
   if (selection.kind === 'player') {
     const player = (design.players ?? []).find((item) => item.id === selection.id);
     if (!player) return null;
+    const alignment = player.alignment ?? {};
+    const numberBasedEligibility = design.unit === 'offense' && ['nfl', 'ncaa'].includes(String(design.rule_profile ?? 'nfl'));
+    const patchAlignment = (patch: Partial<NonNullable<PlayPlayer['alignment']>>) => onPlayer(player.id, { alignment: { ...alignment, ...patch } });
     return (
       <InspectorSection title="Player">
         <div className="selected-object-heading"><span><UserRound size={15} /></span><div><strong>{player.position ?? player.role ?? player.id}</strong><small>{player.id}</small></div></div>
@@ -225,6 +228,19 @@ function SelectionInspector({
           <CommitInput label="Field X" type="number" min={0} max={100} value={player.start?.x} onCommit={(value) => onPlayer(player.id, { start: { x: Number(value), y: player.start?.y ?? 26 } })} />
           <CommitInput label="Field Y" type="number" min={0} max={53} value={player.start?.y} onCommit={(value) => onPlayer(player.id, { start: { x: player.start?.x ?? 50, y: Number(value) } })} />
         </div>
+        <fieldset className="player-legality-editor">
+          <legend>Player alignment and eligibility</legend>
+          <p>Record the snap-time alignment used by the rule validator and teaching views. The server remains the authority for legality.</p>
+          <div className="inspector-form inspector-form--two inspector-form--nested">
+            <CommitInput label="Jersey number" type="number" min={0} max={99} value={alignment.number as number | undefined} onCommit={(value) => patchAlignment({ number: value === '' ? undefined : Number(value) })} />
+            <label className="inspector-field"><span>Snap alignment</span><select value={alignment.on_line === true ? 'on_line' : alignment.on_line === false ? 'backfield' : ''} onChange={(event) => patchAlignment({ on_line: event.target.value === '' ? undefined : event.target.value === 'on_line' })}><option value="">Unspecified</option><option value="on_line">On line</option><option value="backfield">Backfield</option></select></label>
+          </div>
+          <label className="inspector-check"><input type="checkbox" checked={alignment.eligible === true} onChange={(event) => patchAlignment({ eligible: event.target.checked })} /><span>Eligible at snap</span></label>
+          {numberBasedEligibility ? <>
+            <label className="inspector-check"><input type="checkbox" checked={alignment.reported_eligible === true} onChange={(event) => patchAlignment({ reported_eligible: event.target.checked })} /><span>Reported eligible exception</span></label>
+            <small className="inspector-help">NFL/NCAA numbers 50–79 require this explicit exception when the player is declared eligible.</small>
+          </> : null}
+        </fieldset>
         {design.unit === 'defense' ? <fieldset className="defensive-alignment-editor">
           <legend>Front technique and alignment</legend>
           <p>Set the defender’s technique and relationship to the adjacent offensive surface.</p>
