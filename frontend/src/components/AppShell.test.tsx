@@ -39,4 +39,22 @@ describe('AppShell', () => {
     expect(screen.getByLabelText('Search navigation and plays')).toHaveFocus();
     expect(within(dialog).getByRole('link', { name: 'Playbook' })).toHaveAttribute('href', '/playbook');
   });
+
+  it('exposes and closes the responsive navigation through the keyboard', async () => {
+    const user = userEvent.setup();
+    renderApp(<App />);
+    const openButton = screen.getByRole('button', { name: 'Open navigation' });
+    expect(openButton).toHaveAttribute('aria-controls', 'primary-navigation');
+    expect(openButton).toHaveAttribute('aria-expanded', 'false');
+
+    await user.click(openButton);
+    expect(openButton).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getAllByRole('button', { name: 'Close navigation' })).toHaveLength(2);
+    expect(screen.getByRole('complementary', { name: 'Primary navigation' })).toHaveClass('sidebar--open');
+
+    await user.keyboard('{Escape}');
+    expect(openButton).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('complementary', { name: 'Primary navigation' })).not.toHaveClass('sidebar--open');
+    expect(document.querySelector('.sidebar-scrim')).not.toBeInTheDocument();
+  });
 });

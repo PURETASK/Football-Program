@@ -89,10 +89,19 @@ export function AppShell() {
     return () => window.removeEventListener('keydown', handleCommandShortcut);
   }, []);
 
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const handleMenuEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+    window.addEventListener('keydown', handleMenuEscape);
+    return () => window.removeEventListener('keydown', handleMenuEscape);
+  }, [menuOpen]);
+
   return (
     <div className="app-frame">
       <a className="skip-link" href="#app-content">Skip to main content</a>
-      <aside className={menuOpen ? 'sidebar sidebar--open' : 'sidebar'} aria-label="Primary navigation">
+      <aside id="primary-navigation" className={menuOpen ? 'sidebar sidebar--open' : 'sidebar'} aria-label="Primary navigation">
         <div className="sidebar__top">
           <BrandMark />
           <button className="icon-button sidebar__close" type="button" aria-label="Close navigation" onClick={() => setMenuOpen(false)}>
@@ -141,7 +150,7 @@ export function AppShell() {
       <div className="app-stage">
         <header className="topbar">
           <div className="topbar__left">
-            <button className="icon-button topbar__menu" type="button" aria-label="Open navigation" onClick={() => setMenuOpen(true)}>
+            <button className="icon-button topbar__menu" type="button" aria-label="Open navigation" aria-controls="primary-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}>
               <Menu size={20} />
             </button>
             <div className="topbar__season">
