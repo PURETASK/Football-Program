@@ -203,3 +203,11 @@ child editor. The comparison is rendered from canonical players and element
 geometry, so it remains inspectable and does not introduce an image as a
 second source of truth. Full element-level diffing and variant-specific
 transformation remain open.
+
+Element-level variant diffing is now implemented in the review rail. Each
+source/child comparison reports changed metadata fields plus added, removed,
+changed, and unchanged assignment counts; changed assignment records retain
+their exact field names. This is a deterministic comparison of structured
+play records and is separate from the visual diagrams, giving staff an
+explainable review signal before they open or approve a child. Full side-by-
+side field-level expansion and variant-specific transformations remain open.
