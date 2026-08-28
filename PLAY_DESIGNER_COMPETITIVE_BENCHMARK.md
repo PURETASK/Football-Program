@@ -221,3 +221,9 @@ assignment transformations and provider-grade release certification remain
 open. Changed assignment fields now also show their structured before/after
 values, preserving the exact semantic delta for review rather than requiring
 staff to infer it from the diagrams.
+
+Merge conflicts now have the same level of review detail. Each server-reported
+conflict path is an accessible expandable item showing the base, target, and
+branch values plus the server explanation when supplied. This makes an
+overlapping edit actionable for staff while keeping the merge paused for an
+authorized human decision.

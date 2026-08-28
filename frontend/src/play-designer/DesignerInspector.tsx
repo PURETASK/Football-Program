@@ -104,6 +104,12 @@ const TAB_GUIDANCE: Record<InspectorTab, { title: string; description: string }>
   review: { title: 'Review and history', description: 'Add linked comments, request a decision, publish or branch the call, and inspect immutable version evidence.' },
 };
 
+function reviewValue(value: unknown): string {
+  if (value === undefined) return 'Not present';
+  if (typeof value === 'string') return value;
+  try { return JSON.stringify(value); } catch { return String(value); }
+}
+
 function CommitInput({
   label,
   value,
@@ -431,7 +437,7 @@ function ReviewPanel({
         <p className="inspector-help">Merge a reviewed branch into this target only after the server confirms its immutable merge base and expected revision.</p>
         <label className="inspector-field"><span>Branch ID to merge</span><input value={mergeBranchId} onChange={(event) => setMergeBranchId(event.target.value)} placeholder="Existing branch ID" /></label>
         <button className="review-branch-button" type="button" disabled={dirty || actionBusy || !mergeBranchId.trim()} onClick={() => onMerge(mergeBranchId.trim())}><GitCompareArrows size={14} /> Guarded merge</button>
-          {mergeConflict?.status === 'conflict' ? <div className="merge-conflict-card review-warning" role="alert"><strong>Merge paused for human resolution</strong><span>{mergeConflict.conflicts?.length ?? 0} conflict path{mergeConflict.conflicts?.length === 1 ? '' : 's'} found. Review each branch change before retrying.</span>{mergeConflict.conflicts?.slice(0, 6).map((item, index) => <code key={`${item.path ?? 'conflict'}-${index}`}>{item.path ?? 'unidentified path'}</code>)}</div> : null}
+          {mergeConflict?.status === 'conflict' ? <div className="merge-conflict-card review-warning" role="alert"><strong>Merge paused for human resolution</strong><span>{mergeConflict.conflicts?.length ?? 0} conflict path{mergeConflict.conflicts?.length === 1 ? '' : 's'} found. Review each branch change before retrying.</span>{mergeConflict.conflicts?.slice(0, 6).map((item, index) => <details className="merge-conflict-card__item" key={`${item.path ?? 'conflict'}-${index}`}><summary><code>{item.path ?? 'unidentified path'}</code></summary><div className="merge-conflict-card__values"><span><strong>Base</strong>{reviewValue(item.base)}</span><span><strong>Target</strong>{reviewValue(item.target)}</span><span><strong>Branch</strong>{reviewValue(item.branch)}</span>{item.message ? <small>{item.message}</small> : null}</div></details>)}</div> : null}
       </InspectorSection>
       <InspectorSection title={`Comments · ${comments.length}`}>
         <label className="comment-composer"><span className="sr-only">Add review comment</span><textarea value={comment} onChange={(event) => setComment(event.target.value)} rows={3} placeholder={selectedElementId ? 'Comment on the selected assignment…' : 'Add a staff review note…'} /><button type="button" disabled={!comment.trim() || actionBusy} onClick={submitComment}><Send size={14} /> Send</button></label>

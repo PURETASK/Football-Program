@@ -119,4 +119,15 @@ describe('DesignerInspector assignment graph controls', () => {
     expect(props.onSelect).toHaveBeenCalledWith({ kind: 'element', id: 'FIT-WLB' });
     expect(props.onTab).toHaveBeenCalledWith('inspect');
   });
+
+  it('expands exact base, target, and branch values for a merge conflict', () => {
+    const props = inspectorProps();
+    render(<DesignerInspector {...props} tab="review" mergeConflict={{ status: 'conflict', branch_id: 'BR-1', conflicts: [{ path: 'elements.FIT-WLB.type', base: 'fit', target: 'spill', branch: 'box', message: 'Both branches changed the assignment.' }] }} />);
+    expect(screen.getByText('Merge paused for human resolution')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('elements.FIT-WLB.type'));
+    expect(screen.getByText('Base')).toBeVisible();
+    expect(screen.getByText('spill')).toBeVisible();
+    expect(screen.getByText('box')).toBeVisible();
+    expect(screen.getByText('Both branches changed the assignment.')).toBeVisible();
+  });
 });
