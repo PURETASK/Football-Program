@@ -616,6 +616,7 @@ export interface PlayCollaborationEvent {
 }
 
 export interface ExportArtifact {
+  artifact_id?: string;
   filename: string;
   mime_type: string;
   content_base64: string;
@@ -640,6 +641,13 @@ export interface ExportArtifact {
   layout?: string;
   role?: string;
   validation?: { status?: string; issues?: ValidationIssue[] };
+  page_size?: string;
+  page_count?: number;
+  printer_safe?: boolean;
+  black_white?: boolean;
+  accessibility?: { has_alt_text?: boolean; has_accessible_text?: boolean; role?: string };
+  source_lock?: { status?: string; issues?: ValidationIssue[] };
+  integrity?: { status?: string; issues?: ValidationIssue[]; sha256?: string; bytes?: number };
 }
 
 export interface ExportPreflight {
@@ -652,6 +660,11 @@ export interface ExportPreflight {
   validation: { status: string; issues: ValidationIssue[] };
   source_manifest_hash: string;
   source_manifest: NonNullable<ExportArtifact['source_manifest']>;
+  page_size?: string;
+  page_count?: number;
+  printer_safe?: boolean;
+  accessibility?: { has_alt_text?: boolean; has_accessible_text?: boolean; role?: string };
+  source_lock?: { status?: string; issues?: ValidationIssue[] };
 }
 
 export interface ApiEnvelope<T> {
