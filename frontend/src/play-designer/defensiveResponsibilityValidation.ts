@@ -1,4 +1,5 @@
 import type { PlayDesign, PlayElement, ValidationIssue } from '../types';
+import { timelineEventKind } from './timelineEvents';
 
 const REPLACEMENT_ROLES = new Set(['rush_replace', 'drop_replace', 'rotate_replace']);
 const RUSH_KINDS = new Set(['rush', 'stunt']);
@@ -31,7 +32,7 @@ export function defensiveResponsibilityIssues(design: PlayDesign): ValidationIss
           if (role === 'rush_replace' && (!RUSH_KINDS.has(element.kind) || !COVERAGE_KINDS.has(partner.kind))) findings.push(issue('EXCHANGE_ROLE_MISMATCH', 'Rush → replace expects a rush-side assignment paired with a coverage replacement.', `elements[${index}].exchange_role`, 'Use a rush/stunt assignment with a coverage or rotation partner.'));
           if (role === 'drop_replace' && (!COVERAGE_KINDS.has(element.kind) || !RUSH_KINDS.has(partner.kind))) findings.push(issue('EXCHANGE_ROLE_MISMATCH', 'Drop → replace expects a coverage-side assignment paired with a rush replacement.', `elements[${index}].exchange_role`, 'Use a coverage/rotation assignment with a rush/stunt partner.'));
           if (REPLACEMENT_ROLES.has(role) && !partner.rotation_to_zone && !partner.zone) findings.push(issue('REPLACEMENT_OWNER_MISSING', `The ${role.replace('_', ' ')} exchange has no replacement zone on ${partner.id}.`, `elements[${partnerIndex}].rotation_to_zone`, 'Assign the partner’s replacement zone before approval.', 'error'));
-          if (!timelineEvents.some((event) => (event.kind === 'exchange' || event.kind === 'rotation') && (event.element_id === element.id || event.element_id === partner.id))) findings.push(issue('EXCHANGE_TIMELINE_MISSING', `The ${element.id} ↔ ${partner.id} exchange has no synchronized exchange or rotation timeline cue.`, `elements[${index}].exchange_with`, 'Add an Exchange or Rotation cue in the timeline at the post-snap trigger.', 'warning'));
+          if (!timelineEvents.some((event) => (timelineEventKind(event) === 'exchange' || timelineEventKind(event) === 'rotation') && (event.element_id === element.id || event.element_id === partner.id))) findings.push(issue('EXCHANGE_TIMELINE_MISSING', `The ${element.id} ↔ ${partner.id} exchange has no synchronized exchange or rotation timeline cue.`, `elements[${index}].exchange_with`, 'Add an Exchange or Rotation cue in the timeline at the post-snap trigger.', 'warning'));
         }
       }
     }
@@ -39,7 +40,7 @@ export function defensiveResponsibilityIssues(design: PlayDesign): ValidationIss
       const previous = seenSequence.get(element.rotation_sequence);
       if (previous !== undefined) findings.push(issue('ROTATION_SEQUENCE_DUPLICATE', `Rotation sequence ${element.rotation_sequence} is also used by elements[${previous}].`, `elements[${index}].rotation_sequence`, 'Give each post-snap rotation step a unique sequence number.'));
       else seenSequence.set(element.rotation_sequence, index);
-      if (!timelineEvents.some((event) => (event.kind === 'rotation' || event.kind === 'exchange') && event.element_id === element.id)) findings.push(issue('ROTATION_TIMELINE_MISSING', `${element.id} has a rotation sequence but no synchronized timeline cue.`, `elements[${index}].rotation_sequence`, 'Add a Rotation cue and attach it to this assignment.', 'warning'));
+      if (!timelineEvents.some((event) => (timelineEventKind(event) === 'rotation' || timelineEventKind(event) === 'exchange') && event.element_id === element.id)) findings.push(issue('ROTATION_TIMELINE_MISSING', `${element.id} has a rotation sequence but no synchronized timeline cue.`, `elements[${index}].rotation_sequence`, 'Add a Rotation cue and attach it to this assignment.', 'warning'));
     }
   });
 

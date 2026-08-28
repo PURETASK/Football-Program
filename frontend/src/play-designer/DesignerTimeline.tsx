@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, CircleHelp, Flag, Pause, Play, Plus, RotateCcw,
 
 import type { PlayDesign, PlayElement, PlayNarrationCue, PlayTimeline } from '../types';
 import { defaultTimelinePhases, elementTiming, phaseAtTime } from './timelineModel';
+import { timelineEventEnd, timelineEventKind, timelineEventStart } from './timelineEvents';
 
 interface TimelineProps {
   design: PlayDesign;
@@ -42,7 +43,7 @@ export function DesignerTimeline({ design, selectedElement, playbackTime, onPlay
     ...elements.map((element) => elementTiming(element).start),
     ...markers.map((marker) => marker.ms),
     ...narration.map((cue) => cue.start_ms),
-    ...events.map((event) => Number(event.start_ms ?? event.ms ?? 0)),
+    ...events.map((event) => timelineEventStart(event)),
   ].filter(Number.isFinite);
   const timelineStart = Math.min(0, ...knownStarts);
   const knownEnds = [Number(design.timeline?.duration_ms ?? 3000), ...elements.map((element) => elementTiming(element).end)].filter(Number.isFinite);
@@ -253,10 +254,10 @@ export function DesignerTimeline({ design, selectedElement, playbackTime, onPlay
           <section><header><div><strong>Ball and synchronized events</strong><small>Bind ball travel, handoffs, QB reads, exchanges, and rotations to canonical assignment timing.</small></div><div className="timeline-event-actions"><button type="button" aria-label="Ball on selected path" disabled={!selectedElement} onClick={addBallEvent}><Plus size={14} /> Ball</button><button type="button" disabled={!selectedElement} onClick={() => addSynchronizedEvent('handoff')}><Plus size={14} /> Handoff</button><button type="button" disabled={!selectedElement} onClick={() => addSynchronizedEvent('read')}><Plus size={14} /> QB read</button><button type="button" disabled={!selectedElement} onClick={() => addSynchronizedEvent('exchange')}><Plus size={14} /> Exchange</button><button type="button" disabled={!selectedElement} onClick={() => addSynchronizedEvent('rotation')}><Plus size={14} /> Rotation</button></div></header>
             {selectedElement?.branches?.length ? <div className="timeline-path-selector" role="group" aria-label="Timeline route path"><span>Attach cues to</span><button type="button" className={!selectedBranchId ? 'is-selected' : ''} onClick={() => setSelectedBranchId(null)}>Primary path</button>{selectedElement.branches.map((branch) => <button type="button" className={selectedBranchId === branch.id ? 'is-selected' : ''} key={branch.id} onClick={() => setSelectedBranchId(branch.id)}>{branch.label}</button>)}</div> : null}
             <div className="timeline-event-list">{events.map((event, index) => <div className="timeline-event-row" key={event.id ?? `${event.kind}-${index}`}>
-              <select aria-label={`Synchronized event ${index + 1} kind`} value={event.kind ?? 'cue'} onChange={(input) => updateEvent(index, { kind: input.target.value })}>{MARKER_KINDS.map((kind) => <option value={kind} key={kind}>{kind}</option>)}</select>
+              <select aria-label={`Synchronized event ${index + 1} kind`} value={timelineEventKind(event)} onChange={(input) => updateEvent(index, { kind: input.target.value })}>{MARKER_KINDS.map((kind) => <option value={kind} key={kind}>{kind}</option>)}</select>
               <input aria-label={`Synchronized event ${index + 1} label`} value={event.label ?? ''} placeholder="Event label" onChange={(input) => updateEvent(index, { label: input.target.value })} />
-              <input aria-label={`Synchronized event ${index + 1} start`} type="number" value={Number(event.start_ms ?? event.ms ?? 0)} onChange={(input) => updateEvent(index, { start_ms: Number(input.target.value), ms: Number(input.target.value) })} />
-              <input aria-label={`Synchronized event ${index + 1} end`} type="number" value={Number(event.end_ms ?? event.start_ms ?? event.ms ?? 0)} onChange={(input) => updateEvent(index, { end_ms: Number(input.target.value) })} />
+              <input aria-label={`Synchronized event ${index + 1} start`} type="number" value={timelineEventStart(event)} onChange={(input) => updateEvent(index, { start_ms: Number(input.target.value), ms: Number(input.target.value) })} />
+              <input aria-label={`Synchronized event ${index + 1} end`} type="number" value={timelineEventEnd(event, duration)} onChange={(input) => updateEvent(index, { end_ms: Number(input.target.value) })} />
               <button type="button" aria-label={`Delete ${event.label ?? 'timeline event'}`} onClick={() => updateTimeline({ events: events.filter((_, eventIndex) => eventIndex !== index) })}><Trash2 size={12} /></button>
             </div>)}{!events.length ? <small>No synchronized events yet.</small> : null}</div>
           </section>

@@ -26,6 +26,7 @@ import { defensiveGapLinks } from './defensiveFront';
 import { defensiveExchangeLinks } from './defensiveExchanges';
 import { defensiveAlignmentLabel } from './defensiveAlignment';
 import { branchProgress } from './routeBranches';
+import { timelineEventEnd, timelineEventKind, timelineEventStart } from './timelineEvents';
 
 interface CanvasProps {
   design: PlayDesign;
@@ -212,9 +213,9 @@ export function PlayDesignerCanvas({
   const animatedBallPoint = useMemo(() => {
     if (playbackTime === null) return ballPoint;
     const event = (design.timeline?.events ?? []).find((item) => {
-      if (!['ball', 'handoff'].includes(item.kind ?? '')) return false;
-      const start = Number(item.start_ms ?? item.ms ?? 0);
-      const end = Number(item.end_ms ?? duration);
+      if (!['ball', 'handoff'].includes(timelineEventKind(item))) return false;
+      const start = timelineEventStart(item);
+      const end = timelineEventEnd(item, duration);
       return playbackTime >= start && playbackTime <= end;
     });
     if (!event?.element_id) return ballPoint;
@@ -222,8 +223,8 @@ export function PlayDesignerCanvas({
     const points = element ? elementPoints(element) : [];
     if (!element || points.length < 2) return ballPoint;
     const timing = elementTiming(element, duration);
-    const start = Number(event.start_ms ?? timing.start);
-    const end = Math.max(start + 1, Number(event.end_ms ?? timing.end));
+    const start = timelineEventStart(event) || timing.start;
+    const end = timelineEventEnd(event, timing.end);
     const progress = Math.max(0, Math.min(1, (playbackTime - start) / (end - start)));
     return positionAlongPath(points, progress) ?? ballPoint;
   }, [ballPoint, design.timeline?.events, duration, elements, playbackTime]);
