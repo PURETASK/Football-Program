@@ -38,7 +38,13 @@ jobs:
       - run: python scripts/run_evals.py
       - run: python scripts/validate_control_plane.py
       - name: Audit master plan conformance
-        run: python scripts/project_audit.py --skip-evals
+        run: python scripts/project_audit.py --skip-evals --output .runtime/project-audit-ci.json
+      - name: Upload master plan audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: master-plan-audit-evidence
+          path: .runtime/project-audit-ci.json
       - run: python scripts/validate_deployment_contract.py
       - run: python scripts/incident_rehearsal.py
       - run: python scripts/operational_rehearsal.py
