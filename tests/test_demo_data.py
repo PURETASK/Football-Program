@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).parents[1] / "src"))
 from nfl_fidos.demo_data import DEMO_ORGANIZATION_ID, DEMO_SEED_ID, find_demo_records, purge_demo_data, seed_demo_data
 from nfl_fidos.repository import JsonRepository
 from nfl_fidos.sqlite_repository import SqliteRepository
+from scripts.stage0_rehearsal import build_rehearsal_report
 
 
 class DemoDataTests(unittest.TestCase):
@@ -77,6 +78,27 @@ class DemoDataTests(unittest.TestCase):
                     purge_demo_data(repository, database_path=database, organization_id="ORG-REAL")
             finally:
                 repository.close()
+
+    def test_stage0_rehearsal_report_is_ready_without_fabricating_approval(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "control").mkdir()
+            source_root = Path(__file__).parents[1] / "control"
+            for name in ("stage-0a-registry.json", "stage-0-gap-audit.json"):
+                (root / "control" / name).write_text((source_root / name).read_text(encoding="utf-8"), encoding="utf-8")
+            database = root / "stage0.sqlite3"
+            repository = SqliteRepository(database)
+            try:
+                seed = seed_demo_data(repository, database_path=database, generate_media=False)
+            finally:
+                repository.close()
+            report = build_rehearsal_report(root=root, database=database, seed=seed)
+            self.assertEqual(report["status"], "ready_for_owner_review")
+            self.assertTrue(report["rehearsal"]["synthetic"])
+            self.assertGreaterEqual(report["rehearsal"]["persisted_operating_component_count"], 13)
+            self.assertFalse(report["safety"]["owner_approval_recorded"])
+            self.assertFalse(report["safety"]["production_implementation_allowed"])
+            self.assertFalse(report["safety"]["activation_performed"])
 
 
 if __name__ == "__main__":
