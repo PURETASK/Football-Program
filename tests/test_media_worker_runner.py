@@ -82,6 +82,24 @@ class MediaWorkerRunnerTests(unittest.TestCase):
         else:
             os.environ["NFL_FIDOS_FFPROBE"] = previous_ffprobe
 
+    def test_authorized_reader_can_fetch_job_outputs_and_batch_history(self):
+        secret = "media-job-detail-api-secret-012345678901234567890"
+        os.environ["NFL_FIDOS_AUTH_SECRET"] = secret
+        headers = {"Authorization": "Bearer " + issue_token(subject="ANALYST-JOB-DETAIL", role="analyst", organization_id="ORG-JOB-DETAIL", secret=secret)}
+        with tempfile.TemporaryDirectory() as directory:
+            repository = JsonRepository(Path(directory) / "state.json")
+            service = FootballIntelligenceService(repository)
+            tenant = TenantRepository(repository, organization_id="ORG-JOB-DETAIL", actor="ANALYST-JOB-DETAIL")
+            MediaProcessingJobService(tenant).create_job(job_id="MEDIA-JOB-DETAIL-001", asset_id="FILM-DETAIL-001", operation="probe", payload={}, requested_by="ANALYST-JOB-DETAIL")
+            tenant.put("media_processing_outputs", "MEDIA-OUTPUT-DETAIL-001", {"organization_id": "ORG-JOB-DETAIL", "job_id": "MEDIA-JOB-DETAIL-001", "result": {"status": "metadata_only"}}, actor="WORKER", reason="fixture")
+            tenant.put("media_worker_batches", "MEDIA-WORKER-BATCH-DETAIL-001", {"organization_id": "ORG-JOB-DETAIL", "results": [{"job_id": "MEDIA-JOB-DETAIL-001", "status": "completed"}]}, actor="WORKER", reason="fixture")
+            status, payload = handle_request(method="GET", path="/v1/media/jobs/MEDIA-JOB-DETAIL-001?organization_id=ORG-JOB-DETAIL", headers=headers, service=service)
+            self.assertEqual(status, 200)
+            self.assertEqual(payload["data"]["job"]["id"], "MEDIA-JOB-DETAIL-001")
+            self.assertEqual(len(payload["data"]["outputs"]), 1)
+            self.assertEqual(len(payload["data"]["batches"]), 1)
+        os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
+
 
 if __name__ == "__main__":
     unittest.main()

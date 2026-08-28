@@ -1,7 +1,7 @@
 import { beforeEach, expect, vi } from 'vitest';
 
 import type { AppSession, PracticePlan } from '../types';
-import { appendCollaborationComment, createCollaborationThread, createDeliveryPacket, createPilotDeliveryPackage, createPlayTemplate, createPlayVariants, evaluatePilotReadiness, exportPlayDesign, fetchAdminWorkspace, fetchCollaborationWorkspace, fetchCollaborationStream, fetchOrganizationPopulationReadiness, fetchPlayAssets, fetchPlayCollaborationStream, fetchStage25Acceptance, fetchPracticeAttendance, markCollaborationNotificationsRead, createFilmClip, createFilmObservation, createFilmVoiceNote, createGamePlanReleaseSnapshot, createPracticePlan, fetchFilmWorkspace, fetchMediaProcessingJobs, fetchOperationsInbox, fetchPlayRoleView, fetchPlayVersionDiff, fetchPracticeDrills, fetchScoutingTendencies, markOperationsNotificationsRead, mergePlayBranch, preflightPlayDesignExport, recordAnalyticsOutcome, recordPlayMastery, recordPracticeAttendance, registerFilmAsset, reviewGovernanceItem, selectPilotOrganization, submitPlayQuiz, submitStage25Acceptance, submitUsabilityFeedback, validatePlayDesignDraft } from './api';
+import { appendCollaborationComment, createCollaborationThread, createDeliveryPacket, createPilotDeliveryPackage, createPlayTemplate, createPlayVariants, evaluatePilotReadiness, exportPlayDesign, fetchAdminWorkspace, fetchCollaborationWorkspace, fetchCollaborationStream, fetchOrganizationPopulationReadiness, fetchPlayAssets, fetchPlayCollaborationStream, fetchStage25Acceptance, fetchPracticeAttendance, markCollaborationNotificationsRead, createFilmClip, createFilmObservation, createFilmVoiceNote, createGamePlanReleaseSnapshot, createPracticePlan, fetchFilmWorkspace, fetchMediaProcessingJob, fetchMediaProcessingJobs, fetchOperationsInbox, fetchPlayRoleView, fetchPlayVersionDiff, fetchPracticeDrills, fetchScoutingTendencies, markOperationsNotificationsRead, mergePlayBranch, preflightPlayDesignExport, recordAnalyticsOutcome, recordPlayMastery, recordPracticeAttendance, registerFilmAsset, reviewGovernanceItem, selectPilotOrganization, submitPlayQuiz, submitStage25Acceptance, submitUsabilityFeedback, validatePlayDesignDraft } from './api';
 
 const SESSION: AppSession = {
   organizationId: 'ORG-TEST-001',
@@ -97,6 +97,15 @@ describe('operational API wiring', () => {
     expect(path).toContain('/v1/media/jobs?');
     expect(path).toContain('organization_id=ORG-TEST-001');
     expect(path).toContain('status=retryable');
+  });
+
+  it('loads a single media job with persisted outputs and batch history', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => response({ job: { id: 'MEDIA-JOB-1' }, outputs: [{ id: 'MEDIA-OUTPUT-1' }], batches: [{ id: 'MEDIA-BATCH-1' }] }));
+    const detail = await fetchMediaProcessingJob(SESSION, 'MEDIA-JOB-1');
+    expect(detail.job.id).toBe('MEDIA-JOB-1');
+    expect(detail.outputs).toHaveLength(1);
+    expect(detail.batches).toHaveLength(1);
+    expect(String(fetchMock.mock.calls[0][0])).toBe('/v1/media/jobs/MEDIA-JOB-1?organization_id=ORG-TEST-001');
   });
 
   it('loads persisted pilot and usability governance records into the Admin workspace', async () => {

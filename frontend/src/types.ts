@@ -782,6 +782,12 @@ export interface MediaProcessingJobsData {
   jobs: MediaProcessingJob[];
 }
 
+export interface MediaProcessingJobDetailData {
+  job: MediaProcessingJob;
+  outputs: FootballRecord[];
+  batches: FootballRecord[];
+}
+
 export interface PracticePeriod extends FootballRecord {
   type: string;
   objective: string;

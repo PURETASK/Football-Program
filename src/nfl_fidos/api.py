@@ -2113,6 +2113,20 @@ def handle_request(*, method: str, path: str, body: dict[str, Any] | None = None
         parts = parsed.path.strip("/").split("/")
         job_id = parts[3] if len(parts) > 3 else ""
         action_name = parts[4] if len(parts) > 4 else ""
+        if method.upper() == "GET" and job_id and not action_name:
+            organization_id = query.get("organization_id", [""])[0]
+            if not organization_id:
+                return 400, _response("error", None, "organization_id query parameter is required")
+            principal, denial = _authenticated(headers, action="read_film", organization_id=organization_id)
+            if denial:
+                return denial
+            tenant = TenantRepository(service.repository, organization_id=principal.organization_id, actor=principal.subject)
+            job = tenant.get("media_processing_jobs", job_id)
+            if job is None:
+                return 404, _response("error", None, "Unknown media job")
+            outputs = [record for record in tenant.list("media_processing_outputs") if record.get("job_id") == job_id]
+            batches = [record for record in tenant.list("media_worker_batches") if any(item.get("job_id") == job_id for item in record.get("results", []))]
+            return 200, _response("ok", {"organization_id": principal.organization_id, "job": job, "outputs": outputs, "batches": batches})
         if not job_id or action_name not in {"claim", "complete", "fail"}:
             return 404, _response("error", None, "Unknown media job route")
         if "organization_id" not in body:
