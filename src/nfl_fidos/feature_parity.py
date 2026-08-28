@@ -8,6 +8,7 @@ retirement decision remains an explicit human governance action.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -37,6 +38,7 @@ def audit_feature_parity(
     seen_ids: set[str] = set()
     seen_anchors: set[str] = set()
     states = {"migrated": 0, "consolidated": 0, "deferred": 0}
+    discovered_legacy_anchors = set(re.findall(r'<section\s+id="([^"]+)"', legacy))
 
     for entry in entries:
         entry_id = entry.get("id")
@@ -70,6 +72,12 @@ def audit_feature_parity(
         errors.append("legacy retirement decision must remain not_authorized")
     if not entries:
         errors.append("parity manifest contains no entries")
+    unmapped_legacy_anchors = sorted(discovered_legacy_anchors - seen_anchors)
+    if unmapped_legacy_anchors:
+        errors.append("legacy anchors are not mapped: " + ", ".join(unmapped_legacy_anchors))
+    manifest_anchors_not_in_legacy = sorted(seen_anchors - discovered_legacy_anchors)
+    if manifest_anchors_not_in_legacy:
+        errors.append("manifest anchors are not present in legacy source: " + ", ".join(manifest_anchors_not_in_legacy))
 
     complete_mapping = not errors and states["deferred"] == 0
     return {
@@ -78,10 +86,12 @@ def audit_feature_parity(
         "legacy_source": str(legacy_path),
         "react_route_source": str(react_app_path),
         "entry_count": len(entries),
+        "discovered_legacy_anchor_count": len(discovered_legacy_anchors),
+        "unmapped_legacy_anchors": unmapped_legacy_anchors,
+        "manifest_anchors_not_in_legacy": manifest_anchors_not_in_legacy,
         "state_counts": states,
         "errors": errors,
         "warnings": warnings,
         "retirement_authorized": False,
         "next_human_action": "Review every mapped surface for behavioral parity before separately authorizing legacy dashboard retirement.",
     }
-

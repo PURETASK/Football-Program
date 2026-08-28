@@ -41,6 +41,19 @@ class FeatureParityTests(unittest.TestCase):
             self.assertEqual(report["status"], "blocked")
             self.assertEqual(report["state_counts"]["deferred"], 1)
 
+    def test_new_legacy_anchor_without_manifest_entry_is_blocked(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            manifest = root / "manifest.json"
+            manifest.write_text(json.dumps({"retirement_decision": "not_authorized", "entries": [{"id": "P-1", "legacy_anchor": "today", "react_route_token": "index", "react_file": "App.tsx", "migration_state": "migrated"}]}), encoding="utf-8")
+            legacy = root / "legacy.html"
+            legacy.write_text('<section id="today"></section><section id="new-section"></section>', encoding="utf-8")
+            react = root / "App.tsx"
+            react.write_text('<Route index element={null} />', encoding="utf-8")
+            report = audit_feature_parity(manifest_path=manifest, legacy_path=legacy, react_app_path=react)
+            self.assertEqual(report["status"], "blocked")
+            self.assertEqual(report["unmapped_legacy_anchors"], ["new-section"])
+
 
 if __name__ == "__main__":
     unittest.main()
