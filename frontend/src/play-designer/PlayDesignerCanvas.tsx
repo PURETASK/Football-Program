@@ -747,7 +747,10 @@ export function PlayDesignerCanvas({
                 <circle className="designer-player__selection" r="3.25" />
                 {design.unit === 'defense' ? <path className="designer-player__shape" d="M-1.7,-1.7 L1.7,-1.7 L1.7,1.7 L-1.7,1.7 Z" /> : <circle className="designer-player__shape" r="1.85" />}
                 <text y=".63">{(player.position ?? player.role ?? '?').slice(0, 3)}</text>
-                {design.unit === 'defense' && (player.defensive_technique || player.defensive_alignment) ? <title>{`${player.position ?? player.role ?? 'Defender'} · ${defensiveAlignmentLabel(player)}`}</title> : null}
+                {design.unit === 'defense' && (player.defensive_technique || player.defensive_alignment) ? <>
+                  <title>{`${player.position ?? player.role ?? 'Defender'} · ${defensiveAlignmentLabel(player)}`}</title>
+                  <text className="designer-player__alignment-label" x="3.2" y="-2.6" aria-hidden="true">{defensiveAlignmentLabel(player)}</text>
+                </> : null}
               </g>
             );
           })}

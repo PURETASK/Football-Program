@@ -75,6 +75,12 @@ describe('PlayDesignerCanvas', () => {
     expect(screen.getByText('COMPARE')).toBeInTheDocument();
   });
 
+  it('shows defensive technique and relationship labels beside front players', () => {
+    const callbacks = props();
+    render(<PlayDesignerCanvas {...callbacks} design={{ ...DESIGN, unit: 'defense', players: [{ id: 'DT', position: 'DT', start: { x: 42, y: 22 }, defensive_technique: '3', defensive_alignment: 'outside_eye' }], elements: [] }} />);
+    expect(screen.getByText('3-tech · outside eye')).toBeInTheDocument();
+  });
+
   it('renders the canonical ball and movable line context', () => {
     const callbacks = props();
     render(<PlayDesignerCanvas {...callbacks} design={{ ...DESIGN, field_context: { hash: 'left', ball_x: 38, ball_y: 20, line_of_scrimmage_y: 20 } }} />);

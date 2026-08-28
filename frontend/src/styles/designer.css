@@ -720,6 +720,7 @@
 .designer-player:focus .designer-player__selection { fill: rgb(76 214 250 / 0.13); stroke: rgb(76 214 250 / 0.55); }
 .designer-player.is-selected .designer-player__selection { fill: rgb(76 214 250 / 0.16); stroke: #62dfff; stroke-width: 0.72; }
 .designer-player text { fill: #07111f; font-family: var(--font-ui); font-size: 1.16px; font-weight: 950; pointer-events: none; text-anchor: middle; }
+.designer-player__alignment-label { fill: #ffe0a3 !important; font-size: 1.05px !important; font-weight: 750 !important; text-anchor: start !important; paint-order: stroke; stroke: #07111f; stroke-width: .24px; stroke-linejoin: round; }
 
 .designer-handles circle { fill: #fff; stroke: #19bce9; stroke-width: 0.5; vector-effect: non-scaling-stroke; cursor: move; }
 .designer-handles circle:focus { outline: none; fill: #66dffc; stroke: #fff; }
