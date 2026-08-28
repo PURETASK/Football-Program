@@ -35,6 +35,8 @@ jobs:
           path: python-test.log
       - run: python scripts/run_evals.py
       - run: python scripts/validate_control_plane.py
+      - name: Audit master plan conformance
+        run: python scripts/project_audit.py --skip-evals
       - run: python scripts/validate_deployment_contract.py
       - run: python scripts/incident_rehearsal.py
       - run: python scripts/operational_rehearsal.py

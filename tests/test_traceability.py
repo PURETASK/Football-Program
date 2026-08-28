@@ -19,7 +19,7 @@ class TraceabilityTests(unittest.TestCase):
         ledger = json.loads((root / "control" / "requirements-traceability.json").read_text(encoding="utf-8"))
         result = validate_traceability_ledger(ledger, root=root)
         self.assertEqual(result["status"], "valid")
-        self.assertEqual(result["evidence_reference_count"], 479)
+        self.assertEqual(result["evidence_reference_count"], 480)
         self.assertEqual(result["missing_evidence"], [])
 
 
