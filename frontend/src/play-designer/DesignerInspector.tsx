@@ -166,19 +166,24 @@ function DefensiveFrontMap({ design, onSelect }: Pick<InspectorProps, 'design' |
   </InspectorSection>;
 }
 
-function DefensiveAlignmentMap({ design, onSelect }: Pick<InspectorProps, 'design' | 'onSelect'>) {
+function DefensiveAlignmentMap({ design, onSelect, onPlayer }: Pick<InspectorProps, 'design' | 'onSelect' | 'onPlayer'>) {
   const players = (design.players ?? []).filter((player) => Boolean(player.start));
+  const [drag, setDrag] = useState<{ id: string; pointerId: number } | null>(null);
   const activate = (id: string, event: KeyboardEvent<SVGGElement>) => {
     if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelect({ kind: 'player', id }); }
   };
+  const eventPoint = (event: { clientX: number; clientY: number; currentTarget: SVGSVGElement }): Point => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    return { x: Math.max(0, Math.min(100, ((event.clientX - bounds.left) / Math.max(1, bounds.width)) * 100)), y: Math.max(0, Math.min(53, ((event.clientY - bounds.top) / Math.max(1, bounds.height)) * 54)) };
+  };
   return <InspectorSection title="Defensive alignment board">
-    <p className="inspector-help">Select a defender to edit technique, alignment relationship, and assignment details. The board keeps the front picture visible while you author individual players.</p>
-    <svg className="defensive-alignment-board" viewBox="0 0 100 54" role="group" aria-label="Interactive defensive alignment board">
+    <p className="inspector-help">Drag a defender to adjust the visual front, or select one to edit technique, alignment relationship, and assignment details. The board keeps the front picture visible while you author individual players.</p>
+    <svg className="defensive-alignment-board" viewBox="0 0 100 54" role="group" aria-label="Interactive defensive alignment board" onPointerMove={(event) => { if (!drag || drag.pointerId !== event.pointerId) return; onPlayer(drag.id, { start: eventPoint(event) }); }} onPointerUp={(event) => { if (drag?.pointerId === event.pointerId) setDrag(null); }} onPointerCancel={(event) => { if (drag?.pointerId === event.pointerId) setDrag(null); }}>
       <rect x="0.5" y="0.5" width="99" height="53" rx="1.5" className="defensive-alignment-board__field" />
       <line x1="0" y1="27" x2="100" y2="27" className="defensive-alignment-board__line" />
       <text x="2" y="25" className="defensive-alignment-board__label">DEFENSIVE SIDE</text>
       <text x="2" y="31" className="defensive-alignment-board__label">LINE OF SCRIMMAGE</text>
-      {players.map((player) => <g key={player.id} role="button" tabIndex={0} aria-label={`${player.position ?? player.role ?? player.id}: ${defensiveAlignmentLabel(player)}`} className="defensive-alignment-board__player" transform={`translate(${player.start!.x} ${player.start!.y})`} onClick={() => onSelect({ kind: 'player', id: player.id })} onKeyDown={(event) => activate(player.id, event)}>
+      {players.map((player) => <g key={player.id} role="button" tabIndex={0} aria-label={`${player.position ?? player.role ?? player.id}: ${defensiveAlignmentLabel(player)}`} className="defensive-alignment-board__player" transform={`translate(${player.start!.x} ${player.start!.y})`} onClick={() => { if (!drag) onSelect({ kind: 'player', id: player.id }); }} onKeyDown={(event) => activate(player.id, event)} onPointerDown={(event) => { if (player.locked || event.button !== 0) return; event.stopPropagation(); const svg = event.currentTarget.ownerSVGElement; if (!svg) return; if (typeof svg.setPointerCapture === 'function') svg.setPointerCapture(event.pointerId); setDrag({ id: player.id, pointerId: event.pointerId }); onSelect({ kind: 'player', id: player.id }); }}>
         <circle r="3.1" />
         <text y="0.9" textAnchor="middle">{player.position ?? player.role ?? player.id}</text>
         <title>{defensiveAlignmentLabel(player)}</title>
@@ -646,7 +651,7 @@ export function DesignerInspector(props: InspectorProps) {
               </div>
               <p className="inspector-help">Hash and line changes translate every unlocked player and assignment together. Locked objects stay fixed for deliberate exceptions.</p>
             </InspectorSection>
-            {props.design.unit === 'defense' ? <DefensiveAlignmentMap design={props.design} onSelect={props.onSelect} /> : null}
+            {props.design.unit === 'defense' ? <DefensiveAlignmentMap design={props.design} onSelect={props.onSelect} onPlayer={props.onPlayer} /> : null}
             {props.design.unit === 'defense' ? <DefensiveFrontMap design={props.design} onSelect={props.onSelect} /> : null}
             {props.design.unit === 'defense' ? <RotationSequencePanel design={props.design} onSelect={props.onSelect} /> : null}
             <SelectionInspector {...props} />

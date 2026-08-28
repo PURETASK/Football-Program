@@ -214,6 +214,18 @@ describe('DesignerInspector assignment graph controls', () => {
     expect(props.onSelect).toHaveBeenCalledWith({ kind: 'player', id: 'DE' });
   });
 
+  it('drags an unlocked defender to a new front location', () => {
+    const props = inspectorProps();
+    const design = { ...DESIGN, unit: 'defense' as const, players: [{ id: 'DE', position: 'DE', start: { x: 30, y: 18 }, defensive_technique: '5', defensive_alignment: 'outside_eye', alignment_key: '5T' }] };
+    render(<DesignerInspector {...props} design={design} selected={[]} />);
+    const board = screen.getByRole('group', { name: 'Interactive defensive alignment board' });
+    const defender = screen.getByRole('button', { name: 'DE: 5-tech · outside eye' });
+    vi.spyOn(board, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, width: 100, height: 54, right: 100, bottom: 54, x: 0, y: 0, toJSON: () => ({}) });
+    fireEvent.pointerDown(defender, { pointerId: 7, button: 0, clientX: 30, clientY: 18 });
+    fireEvent.pointerMove(board, { pointerId: 7, clientX: 62, clientY: 24 });
+    expect(props.onPlayer).toHaveBeenCalledWith('DE', { start: { x: 62, y: 24 } });
+  });
+
   it('declares coverage-shell zones for server ownership checks', () => {
     const props = inspectorProps();
     render(<DesignerInspector {...props} />);
