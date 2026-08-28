@@ -100,6 +100,13 @@ describe('PlayDesignerCanvas', () => {
     expect(screen.getByRole('img', { name: 'Coverage shell movement: SS to Flat left, step 2' })).toBeInTheDocument();
   });
 
+  it('reveals a shell movement vector on its assignment timeline', () => {
+    const callbacks = props();
+    render(<PlayDesignerCanvas {...callbacks} playbackTime={500} design={{ ...DESIGN, unit: 'defense', coverage_zones: ['flat_left'], elements: [{ id: 'ROTATE', kind: 'rotation', player_id: 'SS', rotation_to_zone: 'flat_left', zone: 'flat_left', start_ms: 0, end_ms: 1000, points: [{ x: 70, y: 12 }, { x: 14, y: 22 }] }] }} />);
+    const movement = screen.getByRole('img', { name: 'Coverage shell movement: SS to Flat left' });
+    expect(movement.querySelector('path')).toHaveAttribute('stroke-dashoffset', '0.5');
+  });
+
   it('renders the canonical ball and movable line context', () => {
     const callbacks = props();
     render(<PlayDesignerCanvas {...callbacks} design={{ ...DESIGN, field_context: { hash: 'left', ball_x: 38, ball_y: 20, line_of_scrimmage_y: 20 } }} />);
