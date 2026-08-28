@@ -406,3 +406,13 @@ IDs, and the non-authorized retirement decision. The local structural result is
 `retirement_authorized` remains false. Behavioral parity review, deployment
 validation, accessibility evidence, and the separately authorized legacy
 dashboard retirement decision remain open.
+
+Authenticated synthetic Play Designer rehearsal addendum (2026-08-28):
+`scripts/play_designer_http_rehearsal.py` now starts an ephemeral local HTTP
+server with the documented demo secret and reads the seeded organization
+through the real authenticated API routes. Workspace loading, version history,
+NFL legality, QB player view rendering, and immutable published-release
+metadata all passed for `PD-DEMO-OFF-DAGGER`. The rehearsal shuts down its
+server and reports `external_state_changed: false`; it is local synthetic
+evidence only and does not replace browser, deployment, pilot, or owner
+authorization evidence.

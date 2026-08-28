@@ -56,6 +56,22 @@ Paste these values into the dashboard’s Film Room authentication fields:
 
 Useful demo entry points include `PD-DEMO-OFF-DAGGER` (published offense), `PD-DEMO-DEF-COVER3` (review-pending defense), `PD-DEMO-OFF-DAGGER-COUNTER` (branch), `PLAYER-DEMO-QB-1`, `OPP-DEMO-LIONS`, and `WEEK-1`.
 
+For a repeatable authenticated Play Designer HTTP rehearsal that is isolated
+from any already-running local server, use:
+
+```powershell
+$env:PYTHONPATH = (Resolve-Path '.\\src').Path
+python scripts/play_designer_http_rehearsal.py
+```
+
+This starts an ephemeral local server with the documented synthetic secret,
+reads the seeded workspace, versions, legality report, QB player view, and
+release-bundle integrity record, then shuts the server down. It is read-only
+and reports explicit non-production safety flags. A 503 from an already-running
+server usually indicates that process was started with a different
+`NFL_FIDOS_AUTH_SECRET`; the isolated rehearsal avoids changing or terminating
+that process.
+
 ## Inspect without changing anything
 
 ```powershell
