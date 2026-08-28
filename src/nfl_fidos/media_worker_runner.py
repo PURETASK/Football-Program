@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from typing import Any
 
 from .media_jobs import JOB_OPERATIONS
@@ -34,11 +35,22 @@ class MediaWorkerRunner:
         for job in selected:
             try:
                 result = process_media_job(repository=self.repository, job_id=job["id"], worker_id=worker_id, allowed_roots=allowed_roots, runner=runner)
-                results.append({"job_id":job["id"], "status":result.get("status"), "output_refs":result.get("output_refs", []), "issues":result.get("issues", [])})
+                results.append({
+                    "job_id": job["id"],
+                    "asset_id": job.get("asset_id"),
+                    "operation": job.get("operation"),
+                    "attempt": result.get("attempt", job.get("attempt")),
+                    "status": result.get("status"),
+                    "output_refs": result.get("output_refs", []),
+                    "issues": result.get("issues", []),
+                    "last_error": result.get("last_error"),
+                })
             except (OSError, TypeError, ValueError, KeyError) as exc:
-                results.append({"job_id":job["id"], "status":"runner_error", "output_refs":[], "issues":[str(exc)]})
+                results.append({"job_id":job["id"], "asset_id":job.get("asset_id"), "operation":job.get("operation"), "attempt":job.get("attempt"), "status":"runner_error", "output_refs":[], "issues":[str(exc)], "last_error":{"code":"MEDIA-WORKER-RUNNER-ERROR", "message":str(exc)}})
         completed = sum(item["status"] == "completed" for item in results)
         failed = sum(item["status"] in {"failed", "retryable", "runner_error"} for item in results)
+        operation_counts = Counter(str(item.get("operation") or "unknown") for item in results)
+        status_counts = Counter(str(item.get("status") or "unknown") for item in results)
         batch_id = f"MEDIA-WORKER-BATCH-{worker_id.removeprefix('MEDIA-WORKER-')}-{len(self.repository.list('media_worker_batches')) + 1:06d}"
-        report = {"id":batch_id, "organization_id":self.repository.organization_id, "worker_id":worker_id, "actor":actor, "max_jobs":max_jobs, "selected_count":len(selected), "completed_count":completed, "failed_count":failed, "results":results, "status":"completed" if not failed else "partial_failure", "approved_roots":allowed_roots, "external_state_changed":False, "human_review_required":bool(failed)}
+        report = {"id":batch_id, "organization_id":self.repository.organization_id, "worker_id":worker_id, "actor":actor, "max_jobs":max_jobs, "selected_count":len(selected), "completed_count":completed, "failed_count":failed, "operation_counts":dict(operation_counts), "status_counts":dict(status_counts), "results":results, "status":"completed" if not failed else "partial_failure", "approved_roots":allowed_roots, "external_state_changed":False, "human_review_required":bool(failed), "next_action":"retry_or_review_failed_jobs" if failed else "none"}
         return self.repository.put("media_worker_batches", batch_id, report, actor=actor, reason="media_worker_batch_reported")

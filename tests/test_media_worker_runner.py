@@ -23,8 +23,32 @@ class MediaWorkerRunnerTests(unittest.TestCase):
             report = MediaWorkerRunner(tenant).run_batch(worker_id="MEDIA-WORKER-001", actor="OWNER", allowed_roots=[directory], runner=lambda args: (0, '{"format":{"duration":"5.0","format_name":"mp4"}}', ""))
             self.assertEqual(report["status"], "completed")
             self.assertEqual(report["completed_count"], 1)
+            self.assertEqual(report["operation_counts"], {"probe": 1})
+            self.assertEqual(report["status_counts"], {"completed": 1})
+            self.assertEqual(report["results"][0]["asset_id"], "FILM-RUNNER-001")
             self.assertFalse(report["external_state_changed"])
             self.assertEqual(repository.get("media_processing_jobs", "MEDIA-JOB-RUNNER-001")["status"], "completed")
+
+    def test_runner_report_explains_retryable_operation_failure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            media = root / "game.mp4"
+            media.write_bytes(b"fixture")
+            tenant = TenantRepository(JsonRepository(root / "state.json"), organization_id="ORG-WORKER-RUNNER", actor="OWNER")
+            MediaProcessingJobService(tenant).create_job(
+                job_id="MEDIA-JOB-RUNNER-FAIL",
+                asset_id="FILM-RUNNER-FAIL",
+                operation="thumbnail",
+                payload={"file_path": str(media), "output_path": str(root / "thumb.jpg"), "allowed_roots": [str(root)]},
+                requested_by="OWNER",
+                max_attempts=2,
+            )
+            report = MediaWorkerRunner(tenant).run_batch(worker_id="MEDIA-WORKER-001", actor="OWNER", allowed_roots=[str(root)], runner=lambda args: (127, "", "ffmpeg unavailable"))
+            self.assertEqual(report["status"], "partial_failure")
+            self.assertEqual(report["operation_counts"], {"thumbnail": 1})
+            self.assertEqual(report["status_counts"], {"retryable": 1})
+            self.assertEqual(report["next_action"], "retry_or_review_failed_jobs")
+            self.assertEqual(report["results"][0]["last_error"]["code"], "MEDIA-THUMBNAIL-FAILED")
 
     def test_runner_requires_approved_root_and_worker_prefix(self):
         with tempfile.TemporaryDirectory() as directory:
