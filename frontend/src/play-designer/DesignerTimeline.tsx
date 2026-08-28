@@ -223,6 +223,22 @@ export function DesignerTimeline({ design, selectedElement, playbackTime, onPlay
           })}
         </div>
 
+        {events.length ? <div className="timeline-event-track-list" role="region" aria-label="Synchronized event timing tracks">
+          {events.map((event, index) => {
+            const start = timelineEventStart(event);
+            const end = timelineEventEnd(event, duration);
+            const kind = timelineEventKind(event);
+            const label = event.label || kind;
+            return <div className="timeline-track-row timeline-event-track-row" key={event.id ?? `${kind}-${index}`}>
+              <button type="button" className="timeline-track-label" aria-label={`Select synchronized ${kind} event ${index + 1}`} onClick={() => event.element_id && onSelectElement?.(event.element_id)}><strong>{label}</strong><small>{kind.replaceAll('_', ' ')}</small></button>
+              <button type="button" className="timeline-track-lane" aria-label={`Jump to ${label} event`} onClick={() => jump(start)}>
+                <span className={`timeline-track-window timeline-track-window--event timeline-track-window--${kind}`} style={{ left: positionPercent(start), width: `${((end - start) / span) * 100}%` }} />
+                <span className="timeline-row-playhead" aria-hidden="true" style={{ left: positionPercent(current) }} />
+              </button>
+            </div>;
+          })}
+        </div> : null}
+
         {selectedElement && onUpdateElement ? <section className="timeline-phase-editor" aria-label="Selected assignment phase timing">
           <header><div><strong>Edit selected assignment phases</strong><small>Retiming a phase updates the authored teaching sequence without changing the assignment window.</small></div><span>{selectedElement.type ?? selectedElement.kind}</span></header>
           <div className="timeline-editor-list timeline-editor-list--phases">

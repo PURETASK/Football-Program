@@ -88,4 +88,12 @@ describe('DesignerTimeline', () => {
     fireEvent.change(screen.getByLabelText('Synchronized event 1 start'), { target: { value: '800' } });
     expect(onUpdateTimeline).toHaveBeenCalledWith(expect.objectContaining({ events: [expect.objectContaining({ id: 'READ-EVENT', start_ms: 800, ms: 800 })] }));
   });
+
+  it('renders synchronized events as timing lanes beside assignment tracks', () => {
+    const design = { ...DESIGN, timeline: { ...DESIGN.timeline, events: [{ id: 'BR-EVENT', kind: 'block_exchange', label: 'Combo exchange', element_id: 'ROUTE-X', start_ms: 300, end_ms: 700 }] } };
+    render(<DesignerTimeline design={design} selectedElement={design.elements?.[0]} playbackTime={350} onPlaybackTime={vi.fn()} onAddMarker={vi.fn()} onSelectElement={vi.fn()} onUpdateTimeline={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: /Tracks/i }));
+    expect(screen.getByRole('region', { name: 'Synchronized event timing tracks' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Jump to Combo exchange event' })).toBeInTheDocument();
+  });
 });

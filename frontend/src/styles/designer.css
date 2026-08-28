@@ -854,6 +854,12 @@
 .timeline-track-window--coverage,
 .timeline-track-window--rush,
 .timeline-track-window--stunt { border-color: rgb(255 134 111 / 0.36); background: rgb(255 134 111 / 0.14); }
+.timeline-event-track-list { display: grid; gap: 0.2rem; margin-top: 0.35rem; padding: 0.5rem; border: 1px solid rgb(170 145 255 / 0.15); border-radius: 11px; background: rgb(170 145 255 / 0.035); }
+.timeline-event-track-list::before { content: 'Synchronized event cues'; padding: 0 0.45rem 0.2rem; color: #9a8cce; font-size: 0.45rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.timeline-event-track-row { min-height: 32px; }
+.timeline-event-track-row .timeline-track-window { border-color: rgb(170 145 255 / 0.42); background: rgb(170 145 255 / 0.2); }
+.timeline-event-track-row .timeline-track-window--block_exchange,
+.timeline-event-track-row .timeline-track-window--rush_exchange { border-color: rgb(255 134 111 / 0.5); background: rgb(255 134 111 / 0.2); }
 .timeline-track-phase { display: block; min-width: 1px; border-right: 1px solid rgb(255 255 255 / 0.3); }
 .timeline-row-playhead { position: absolute; top: 0; bottom: 0; width: 1px; background: #61dcfa; box-shadow: 0 0 5px rgb(97 220 250 / 0.5); }
 .timeline-empty { margin: 0; padding: 1rem; color: #61778f; font-size: 0.55rem; text-align: center; }
