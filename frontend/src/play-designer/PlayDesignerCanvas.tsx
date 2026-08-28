@@ -626,7 +626,7 @@ export function PlayDesignerCanvas({
             if (!box) return null;
             const label = `${link.owner} to ${box.label}${link.sequence !== undefined ? `, step ${link.sequence}` : ''}`;
             const midpoint = { x: (link.from.x + link.to.x) / 2, y: (link.from.y + link.to.y) / 2 };
-            return <g key={link.id} className="designer-coverage-shell__link" role="img" aria-label={`Coverage shell movement: ${label}`}>
+            return <g key={link.id} className={`designer-coverage-shell__link${link.conflict ? ' is-conflict' : ''}`} role="img" aria-label={`Coverage shell movement: ${label}${link.conflict ? '; conflict: multiple owners' : ''}`}>
               <path d={smoothPathData([link.from, midpoint, link.to])} markerEnd={`url(#${markerPrefix}-coverage)`} />
             </g>;
           })}

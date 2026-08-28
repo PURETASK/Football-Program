@@ -17,6 +17,7 @@ export interface CoverageShellLink {
   from: Point;
   to: Point;
   sequence?: number;
+  conflict: boolean;
 }
 
 const BOXES: Record<string, CoverageShellBox> = {
@@ -67,6 +68,7 @@ export function coverageShellOwners(design: Pick<PlayDesign, 'elements'>): Map<s
 
 /** Build explicit owner-to-destination vectors for the visual coverage shell. */
 export function coverageShellLinks(design: PlayDesign): CoverageShellLink[] {
+  const owners = coverageShellOwners(design);
   return (design.elements ?? []).flatMap((element) => {
     if (element.kind !== 'coverage' && element.kind !== 'rotation') return [];
     const zone = element.kind === 'rotation' ? element.rotation_to_zone ?? element.zone : element.zone;
@@ -83,6 +85,7 @@ export function coverageShellLinks(design: PlayDesign): CoverageShellLink[] {
       from,
       to,
       sequence: element.kind === 'rotation' && element.rotation_sequence !== undefined ? element.rotation_sequence : undefined,
+      conflict: (owners.get(zone)?.length ?? 0) > 1,
     }];
   });
 }
