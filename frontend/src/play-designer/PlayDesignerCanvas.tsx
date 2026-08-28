@@ -722,7 +722,7 @@ export function PlayDesignerCanvas({
                   strokeWidth={Number(element.stroke_width ?? 0.26)}
                 />
                 {(element.branches ?? []).map((branch) => { const branchReveal = playbackTime === null ? 1 : branchProgress(branch, playbackTime, duration); return <path key={branch.id} className="designer-route-branch" d={smoothPathData(branch.points)} fill="none" markerEnd={marker ? `url(#${markerPrefix}-${marker})` : undefined} pathLength="1" strokeDasharray={playbackTime === null ? undefined : 1} strokeDashoffset={playbackTime === null ? undefined : 1 - branchReveal} aria-label={`${branch.label}: ${branch.condition}`} />; })}
-                {collision ? <g className="designer-collision-badge" aria-label={`${collision.kind === 'intersection' ? 'Route intersection' : 'Route corridor conflict'}: ${collision.explanation}`}><circle cx={points.at(-1)?.x ?? 0} cy={points.at(-1)?.y ?? 0} r="1.25" /><text x={(points.at(-1)?.x ?? 0) - 0.42} y={(points.at(-1)?.y ?? 0) + 0.48}>!</text></g> : null}
+              {collision ? <g className={`designer-collision-badge${collision.intentional ? ' is-intentional' : ''}`} aria-label={`${collision.kind === 'intersection' ? 'Route intersection' : 'Route corridor conflict'}: ${collision.explanation}`}><title>{collision.explanation}</title><circle cx={points.at(-1)?.x ?? 0} cy={points.at(-1)?.y ?? 0} r="1.25" /><text x={(points.at(-1)?.x ?? 0) - 0.42} y={(points.at(-1)?.y ?? 0) + 0.48}>{collision.intentional ? 'i' : '!'}</text></g> : null}
               </g>
             );
           })}

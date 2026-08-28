@@ -270,6 +270,7 @@ export interface RouteCollision {
   kind: 'intersection' | 'corridor';
   overlapStartMs: number;
   overlapEndMs: number;
+  coachNote?: string;
 }
 
 function routeCorridor(element: PlayElement): number {
@@ -326,11 +327,13 @@ export function routeCollisions(elements: PlayElement[]): RouteCollision[] {
       const separation = minimumSeparation.toFixed(1);
       const overlapWindow = `${(overlap.start / 1000).toFixed(2)}–${(overlap.end / 1000).toFixed(2)}s`;
       const pathContext = firstPath.label === 'Primary path' && secondPath.label === 'Primary path' ? '' : ` (${firstPath.label} vs ${secondPath.label})`;
+      const coachNote = [first.collision_note, second.collision_note].filter((note): note is string => typeof note === 'string' && note.trim().length > 0).join(' · ') || undefined;
+      const noteContext = coachNote ? ` Coach note: ${coachNote}` : '';
       collisions.push({ firstId: first.id, secondId: second.id, firstPathLabel: firstPath.label, secondPathLabel: secondPath.label, intentional, minimumSeparation, corridorThreshold, kind, overlapStartMs: overlap.start, overlapEndMs: overlap.end, explanation: intentional
-        ? `Both routes are marked as an intentional crossing${pathContext} during ${overlapWindow}; minimum separation is ${separation} yd. Confirm spacing and timing in the teaching view.`
+        ? `Both routes are marked as an intentional crossing${pathContext} during ${overlapWindow}; minimum separation is ${separation} yd. Confirm spacing and timing in the teaching view.${noteContext}`
         : kind === 'intersection'
-          ? `Routes intersect${pathContext} during ${overlapWindow}; separate the corridor or explicitly document the intentional crossing.`
-          : `Route corridors come within ${separation} yd${pathContext} during ${overlapWindow}; maintain at least ${corridorThreshold.toFixed(1)} yd or document the intentional crossing.` });
+          ? `Routes intersect${pathContext} during ${overlapWindow}; separate the corridor or explicitly document the intentional crossing.${noteContext}`
+          : `Route corridors come within ${separation} yd${pathContext} during ${overlapWindow}; maintain at least ${corridorThreshold.toFixed(1)} yd or document the intentional crossing.${noteContext}`, coachNote });
     }
   }
   return collisions;

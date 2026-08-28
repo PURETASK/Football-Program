@@ -22,4 +22,13 @@ describe('route collision explanations', () => {
     expect(result).toHaveLength(1);
     expect(result[0]).toMatchObject({ kind: 'corridor', corridorThreshold: 2, minimumSeparation: 2 });
   });
+
+  it('carries coach rationale into the explainable collision record', () => {
+    const result = routeCollisions([
+      { id: 'A', kind: 'route', collision_note: 'Switch release is called on the Mike key.', points: [{ x: 10, y: 10 }, { x: 90, y: 40 }] },
+      { id: 'B', kind: 'route', collision_note: 'Alert the X if the safety drives.', points: [{ x: 90, y: 10 }, { x: 10, y: 40 }] },
+    ]);
+    expect(result[0].coachNote).toContain('Switch release is called on the Mike key.');
+    expect(result[0].explanation).toContain('Coach note:');
+  });
 });
