@@ -193,3 +193,15 @@ assignments, partner-aware exchange fields, timing markers, coaching points,
 situation tags, and companion-layer metadata. Template loading and materializer
 tests confirm these entries are available to the organization-scoped editor;
 organization-specific templates remain separately persisted and governed.
+
+Local runtime readiness addendum (2026-08-28): a browser smoke pass against the
+running local application verified Film Room rendering, Playbook routing, and
+the protected Play Designer organization-session boundary with no console
+errors. A second readiness pass using disposable local-only authentication and
+observability configuration reported `ready`: database integrity and
+migrations, the 97-evaluation suite, security posture, Play Designer quality,
+monitoring registration, and scheduler bounds all passed. The pass did not
+contact providers, enable production, record approval, or change external
+state. The unconfigured-environment result remains intentionally blocked until
+runtime values are supplied, while provider deployment and production browser
+validation remain external gates.
