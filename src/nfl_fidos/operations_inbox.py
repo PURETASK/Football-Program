@@ -133,6 +133,7 @@ def _record_item(
     forced_item_type: str | None = None,
 ) -> dict[str, Any] | None:
     metadata = COLLECTION_METADATA.get(collection, {"category": "task", "item_type": "workflow", "deep_link": "/"})
+    origin_category = metadata["category"]
     category = forced_category or metadata["category"]
     if category not in ROLE_CATEGORIES.get(role, {category}):
         return None
@@ -154,7 +155,7 @@ def _record_item(
     title = _text(record.get("title") or record.get("name") or record.get("label") or record.get("subject"))
     if not title:
         title = f"{category.replace('_', ' ').title()} {record_id}"
-    if forced_category == "review":
+    if forced_category == "review" and not title.lower().startswith("review "):
         title = f"Review {title}"
     deep_link = _text(record.get("deep_link"), metadata["deep_link"])
     priority = _priority(record, due_state=due_state, status=status)
@@ -164,6 +165,7 @@ def _record_item(
         "record_id": record_id,
         "item_type": forced_item_type or metadata["item_type"],
         "category": category,
+        "origin_category": origin_category,
         "title": title,
         "description": _text(record.get("description") or record.get("summary") or record.get("rationale")),
         "status": status,
@@ -180,13 +182,18 @@ def _record_item(
         "deep_link": deep_link,
         "action_label": _text(record.get("action_label"), "Open details"),
         "can_act": bool(record.get("can_act", role in {"coach_staff", "analyst", "program_owner", "performance_staff"})),
+        "operation": _text(record.get("operation")) or None,
+        "asset_id": _text(record.get("asset_id")) or None,
+        "attempt": record.get("attempt"),
+        "last_error": record.get("last_error"),
+        "next_action": _text(record.get("next_action")) or None,
         "created_at": _text(record.get("created_at") or record.get("_saved_at")),
         "updated_at": _text(record.get("updated_at") or record.get("_saved_at")),
     }
 
 
 def _matches(item: dict[str, Any], filters: dict[str, str]) -> bool:
-    for key in ("category", "status", "urgency", "due_state"):
+    for key in ("category", "origin_category", "status", "urgency", "due_state"):
         value = filters.get(key)
         if value and value != "all" and item.get(key) != value:
             return False

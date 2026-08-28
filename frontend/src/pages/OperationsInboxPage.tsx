@@ -21,7 +21,7 @@ import type { OperationsInboxItem } from '../types';
 import { WorkspacePage } from './WorkspacePage';
 import { INBOX_WORKSPACE } from './workspaceDefinitions';
 
-type InboxTab = 'all' | 'mine' | 'notifications' | 'reviews';
+type InboxTab = 'all' | 'mine' | 'notifications' | 'reviews' | 'media';
 
 function dueLabel(item: OperationsInboxItem): string {
   if (!item.due_at) return sentenceCase(item.due_state);
@@ -42,6 +42,7 @@ export function OperationsInboxPage() {
     ...(tab === 'mine' ? { assigned_to_me: 'true' } : {}),
     ...(tab === 'notifications' ? { category: 'notification', unread_only: 'true' } : {}),
     ...(tab === 'reviews' ? { category: 'review' } : {}),
+    ...(tab === 'media' ? { origin_category: 'media' } : {}),
   }), [tab]);
   const inboxQuery = useOperationsInboxQuery(filters);
   const mutation = useMutation({
@@ -80,6 +81,7 @@ export function OperationsInboxPage() {
             { id: 'mine', label: 'Assigned to me' },
             { id: 'notifications', label: 'Unread notifications', count: data?.counts.unread_notifications },
             { id: 'reviews', label: 'Reviews' },
+            { id: 'media', label: 'Media processing', count: data?.counts.by_category.media },
           ]}
         />
         <WorkbenchState connected={Boolean(session)} error={inboxQuery.error} loading={inboxQuery.isLoading}>
@@ -125,6 +127,9 @@ export function OperationsInboxPage() {
                       { label: 'Due state', value: dueLabel(selected) },
                       { label: 'Owner', value: selected.owner || 'Unassigned' },
                       { label: 'Assigned to me', value: selected.assigned_to_me ? 'Yes' : 'No' },
+                      ...(selected.operation ? [{ label: 'Operation', value: selected.operation }] : []),
+                      ...(selected.asset_id ? [{ label: 'Asset', value: selected.asset_id }] : []),
+                      ...(selected.attempt !== undefined ? [{ label: 'Attempt', value: String(selected.attempt) }] : []),
                     ]}
                     note={selected.description || 'Open the owning workspace to inspect the full authoritative record.'}
                     status={selected.status}
@@ -138,6 +143,7 @@ export function OperationsInboxPage() {
                       <div><p className="eyebrow">Blockers and findings</p><ul className="evidence-stack">{selected.blockers.length ? selected.blockers.map((blocker, index) => <li key={index}><strong>Finding {index + 1}</strong><span>{compactValue(blocker)}</span></li>) : <li><strong>No blockers listed</strong><span>Continue in the owning workspace.</span></li>}</ul></div>
                       <div><p className="eyebrow">Evidence references</p><ul className="evidence-stack">{selected.evidence_refs.length ? selected.evidence_refs.map((ref) => <li key={ref}><strong>{ref}</strong><span>Supporting organization evidence</span></li>) : <li><strong>No evidence references</strong><span>Evidence may be available in the owning system.</span></li>}</ul></div>
                     </div>
+                    {selected.last_error ? <div className="approval-boundary"><strong>{selected.last_error.code || 'Media processing error'}</strong> · {selected.last_error.message || 'Review this job in Film Room.'}{selected.next_action ? ` Next action: ${sentenceCase(selected.next_action)}.` : ''}</div> : null}
                   </RecordInspector>
                 ) : <div className="record-list__empty">No operational item selected.</div>}
               </div>

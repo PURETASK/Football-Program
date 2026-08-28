@@ -59,6 +59,24 @@ class OperationsInboxTests(unittest.TestCase):
         self.assertEqual(result["items"][0]["deep_link"], "/game-plan")
         self.assertTrue(result["items"][0]["assigned_to_me"])
 
+    def test_media_job_inbox_item_exposes_processing_guidance(self):
+        self.put("media_processing_jobs", "MEDIA-JOB-INBOX-1", {
+            "asset_id": "FILM-ASSET-INBOX-1", "operation": "thumbnail", "status": "retryable",
+            "attempt": 1, "last_error": {"code": "MEDIA-THUMBNAIL-FAILED", "message": "ffmpeg unavailable"},
+            "next_action": "retry_or_review_failed_jobs", "output_refs": [],
+        })
+
+        result = build_operations_inbox(repository=self.tenant, role="program_owner", actor="OWNER-INBOX", filters={"origin_category": "media"}, now=self.now)
+
+        self.assertEqual(result["count"], 1)
+        item = result["items"][0]
+        self.assertEqual(item["operation"], "thumbnail")
+        self.assertEqual(item["origin_category"], "media")
+        self.assertEqual(item["category"], "review")
+        self.assertEqual(item["asset_id"], "FILM-ASSET-INBOX-1")
+        self.assertEqual(item["last_error"]["code"], "MEDIA-THUMBNAIL-FAILED")
+        self.assertEqual(item["next_action"], "retry_or_review_failed_jobs")
+
     def test_api_filters_and_marks_notifications_read(self):
         secret = "operations-inbox-api-secret-012345678901234567890"
         os.environ["NFL_FIDOS_AUTH_SECRET"] = secret

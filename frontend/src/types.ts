@@ -999,6 +999,7 @@ export interface AnalyticsWorkspaceData {
 export interface DeliveryTask extends FootballRecord {
   title: string;
   category: string;
+  origin_category?: string;
   owner?: string;
   assigned_to?: string;
   due_at?: string;
@@ -1125,6 +1126,11 @@ export interface OperationsInboxItem extends FootballRecord {
   deep_link: string;
   action_label: string;
   can_act: boolean;
+  operation?: string | null;
+  asset_id?: string | null;
+  attempt?: number;
+  last_error?: { code?: string; message?: string };
+  next_action?: string | null;
   human_review_required?: boolean;
   can_approve?: boolean;
 }
