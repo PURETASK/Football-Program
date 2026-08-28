@@ -351,6 +351,22 @@ class PlayDesignServiceTests(unittest.TestCase):
         event = collaboration.record_event(design_id=saved["id"], event_type="comment_resolved", actor="coach", payload={"comment_id": root["id"]})
         self.assertEqual(collaboration.events(design_id=saved["id"])[0]["id"], event["id"])
 
+    def test_collaboration_event_retries_are_idempotent_and_sequences_remain_monotonic(self):
+        service = self.service()
+        candidate = design()
+        candidate["elements"][0]["id"] = "E-EVENT-RETRY"
+        saved = service.save(design=candidate, actor="coach")
+        collaboration = PlayDesignCollaborationService(service.repository)
+        first = collaboration.record_event(design_id=saved["id"], event_type="design_saved", actor="coach", payload={"revision": 1}, idempotency_key="MUTATION-001")
+        retry = collaboration.record_event(design_id=saved["id"], event_type="design_saved", actor="coach", payload={"revision": 1}, idempotency_key="MUTATION-001")
+        second = collaboration.record_event(design_id=saved["id"], event_type="comment_added", actor="coach", payload={"comment_id": "COMMENT-1"}, idempotency_key="MUTATION-002")
+        self.assertEqual(retry["id"], first["id"])
+        self.assertEqual(len(collaboration.events(design_id=saved["id"])), 2)
+        self.assertLess(first["sequence"], second["sequence"])
+        self.assertEqual([item["sequence"] for item in collaboration.events(design_id=saved["id"])], [1, 2])
+        with self.assertRaisesRegex(ValueError, "different collaboration event"):
+            collaboration.record_event(design_id=saved["id"], event_type="comment_resolved", actor="coach", payload={"comment_id": "COMMENT-1"}, idempotency_key="MUTATION-002")
+
     def test_legality_report_requires_owner_approved_expiring_override(self):
         service = self.service()
         candidate = design()

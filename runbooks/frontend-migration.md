@@ -241,3 +241,10 @@ allowlisted fields, bumps the parent version, refreshes inherited snapshots
 through descendants, preserves local child assignments, marks affected active
 packages for review, and records the propagated IDs. System templates remain
 immutable through this workflow.
+
+Collaboration retry addendum (2026-08-28): Play Designer collaboration events
+support an optional actor-scoped idempotency key. Identical retries return the
+original event and sequence, while a reused key with a different type or
+payload is rejected. Combined with the monotonic SSE replay cursor, this
+prevents retry duplication and preserves a deterministic gap/replay boundary;
+multi-browser and production transport validation remain required.

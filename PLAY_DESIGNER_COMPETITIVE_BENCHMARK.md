@@ -158,6 +158,15 @@ stable, explicit conflict path. This is stronger local merge evidence, but it
 does not replace network, transport-ordering, browser, or production-scale
 multi-client validation.
 
+Collaboration retry addendum — 2026-08-28: Play Designer collaboration events
+now accept an optional actor-scoped idempotency key. A retried identical event
+returns the original sequence and event identity; reusing a key with a
+different event type or payload is rejected. This gives offline outbox and
+retry adapters a deterministic server boundary while preserving monotonic
+replay ordering. Client SSE consumers continue to reject duplicates and hold
+gaps for replay. Network partition, multi-browser, and production transport
+ordering tests remain external acceptance work.
+
 Repository verification for this reconciliation: the frontend suite passes
 163 tests across 42 files, the Python suite passes 598 tests, TypeScript
 typecheck and the production build pass, and GitHub Actions validates the

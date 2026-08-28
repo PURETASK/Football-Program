@@ -75,9 +75,17 @@ class PlayDesignCollaborationService:
         output = [item for item in self.repository.list("play_design_presence") if item.get("design_id") == design_id and item.get("status") == "active" and float(item.get("expires_at", 0)) > current]
         return sorted(output, key=lambda item: item.get("last_seen_at", ""))
 
-    def record_event(self, *, design_id: str, event_type: str, actor: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    def record_event(self, *, design_id: str, event_type: str, actor: str, payload: dict[str, Any] | None = None, idempotency_key: str | None = None) -> dict[str, Any]:
         self._require_design(design_id)
+        if idempotency_key is not None and not isinstance(idempotency_key, str):
+            raise ValueError("idempotency_key must be a string")
         events = [item for item in self.repository.list("play_design_collaboration_events") if item.get("design_id") == design_id]
+        if idempotency_key:
+            existing = next((item for item in events if item.get("idempotency_key") == idempotency_key and item.get("actor") == actor), None)
+            if existing is not None:
+                if existing.get("event_type") != event_type or existing.get("payload", {}) != (payload or {}):
+                    raise ValueError("idempotency_key was already used for a different collaboration event")
+                return deepcopy(existing)
         sequence = max((int(item.get("sequence", 0)) for item in events), default=0) + 1
         event = {
             "id": f"COLLAB-EVENT-{design_id}-{sequence:06d}",
@@ -89,6 +97,8 @@ class PlayDesignCollaborationService:
             "payload": deepcopy(payload or {}),
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
+        if idempotency_key:
+            event["idempotency_key"] = idempotency_key
         return self.repository.put("play_design_collaboration_events", event["id"], event, actor=actor, reason=f"play_design_collaboration_{event_type}")
 
     def events(self, *, design_id: str, since_sequence: int = 0) -> list[dict[str, Any]]:
