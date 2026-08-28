@@ -211,6 +211,35 @@ class PlayCreationTests(unittest.TestCase):
         self.assertEqual(result["profile_count"], 5)
         self.assertEqual(result["issues"], [])
 
+    def test_local_rule_constraints_make_youth_profile_explicit_and_explainable(self):
+        candidate = design()
+        candidate["rule_profile"] = "youth"
+        candidate["local_rule_constraints"] = {"players_on_field": 8, "minimum_line_players": 5, "max_motion_at_snap": 1, "allow_blocking": True, "qb_direct_run_allowed": True}
+        candidate["local_rule_source_ref"] = "ORG-LEAGUE-RULEBOOK-2026"
+        findings = validate_advanced_legality(candidate)
+        codes = {issue["code"] for issue in findings}
+        self.assertIn("LEGALITY-PLAYER-COUNT", codes)
+        self.assertNotIn("LEGALITY-LOCAL-RULE-SOURCE", codes)
+        player_count = next(issue for issue in findings if issue["code"] == "LEGALITY-PLAYER-COUNT")
+        self.assertEqual(player_count["expected"], 8)
+        self.assertEqual(player_count["rule_profile"], "youth")
+
+    def test_local_rule_constraints_reject_unknown_or_malformed_fields(self):
+        candidate = design()
+        candidate["rule_profile"] = "high_school"
+        candidate["local_rule_constraints"] = {"players_on_field": "eleven", "unsupported_rule": True}
+        codes = {issue["code"] for issue in validate_advanced_legality(candidate)}
+        self.assertIn("LEGALITY-LOCAL-CONSTRAINT-FIELD", codes)
+        self.assertIn("LEGALITY-LOCAL-CONSTRAINT-TYPE", codes)
+
+    def test_no_contact_profiles_only_reject_explicit_contact_assignments(self):
+        candidate = design()
+        candidate["rule_profile"] = "youth"
+        candidate["local_rule_constraints"] = {"players_on_field": 11, "allow_blocking": None}
+        candidate["local_rule_source_ref"] = "ORG-YOUTH-RULEBOOK"
+        candidate["elements"].append({"id": "CONTACT-1", "kind": "annotation", "assignment_type": "contact", "player_id": "P1", "points": [{"x": 10, "y": 30}, {"x": 12, "y": 28}]})
+        self.assertNotIn("LEGALITY-FLAG-CONTACT", {issue["code"] for issue in validate_advanced_legality(candidate)})
+
 
 if __name__ == "__main__":
     unittest.main()

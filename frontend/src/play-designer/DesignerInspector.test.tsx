@@ -43,6 +43,18 @@ function inspectorProps() {
 }
 
 describe('DesignerInspector assignment graph controls', () => {
+  it('exposes local adoption constraints for jurisdiction-dependent profiles', () => {
+    const props = inspectorProps();
+    render(<DesignerInspector {...props} design={{ ...DESIGN, rule_profile: 'youth' }} />);
+    fireEvent.change(screen.getByLabelText('Rule profile'), { target: { value: 'youth' } });
+    fireEvent.change(screen.getByLabelText('Local rule source reference'), { target: { value: 'LEAGUE-RULEBOOK-2026' } });
+    fireEvent.blur(screen.getByLabelText('Local rule source reference'));
+    expect(props.onMeta).toHaveBeenCalledWith({ local_rule_source_ref: 'LEAGUE-RULEBOOK-2026' });
+    fireEvent.change(screen.getByLabelText('Players on field'), { target: { value: '8' } });
+    fireEvent.blur(screen.getByLabelText('Players on field'));
+    expect(props.onMeta).toHaveBeenCalledWith({ local_rule_constraints: { players_on_field: 8 } });
+  });
+
   it('authors targets, prerequisites, exclusivity, and synchronized timing', async () => {
     const props = inspectorProps();
     render(<DesignerInspector {...props} />);

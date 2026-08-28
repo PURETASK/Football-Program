@@ -8,6 +8,7 @@ program-owner-approved override may be attached.
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -119,6 +120,34 @@ def _timing_overlap(first: dict[str, Any], second: dict[str, Any]) -> bool:
     return max(first_start, second_start) <= min(first_end, second_end)
 
 
+def _effective_profile_configuration(design: dict[str, Any], profile: str, source: dict[str, Any], issues: list[dict[str, Any]]) -> dict[str, Any]:
+    """Apply validated organization/local constraints to profiles that require adoption rules."""
+    configuration = deepcopy(RULE_PROFILE_CATALOG[profile])
+    overrides = design.get("local_rule_constraints")
+    if overrides is None:
+        return configuration
+    if not isinstance(overrides, dict):
+        issues.append(_finding("LEGALITY-LOCAL-CONSTRAINTS", "Local rule constraints must be an object keyed by supported profile fields.", "local_rule_constraints", profile=profile, source=source, severity="error", observed=type(overrides).__name__, expected="object"))
+        return configuration
+    allowed = {"players_on_field", "minimum_line_players", "max_motion_at_snap", "allow_blocking", "min_rush_distance_yards", "qb_direct_run_allowed"}
+    unknown = sorted(set(overrides) - allowed)
+    if unknown:
+        issues.append(_finding("LEGALITY-LOCAL-CONSTRAINT-FIELD", "Local rule constraints contain unsupported fields.", "local_rule_constraints", profile=profile, source=source, severity="error", observed=unknown, expected=sorted(allowed)))
+    for key in sorted(set(overrides) & allowed):
+        value = overrides[key]
+        if key == "allow_blocking" or key == "qb_direct_run_allowed":
+            if not isinstance(value, bool):
+                issues.append(_finding("LEGALITY-LOCAL-CONSTRAINT-TYPE", f"Local constraint {key} must be boolean.", f"local_rule_constraints.{key}", profile=profile, source=source, severity="error", observed=value, expected="boolean"))
+                continue
+        elif value is not None and (not isinstance(value, int) or isinstance(value, bool) or value < 0):
+            issues.append(_finding("LEGALITY-LOCAL-CONSTRAINT-TYPE", f"Local constraint {key} must be a non-negative integer or null.", f"local_rule_constraints.{key}", profile=profile, source=source, severity="error", observed=value, expected="non-negative integer or null"))
+            continue
+        configuration[key] = value
+    if configuration.get("requires_local_rules") and not design.get("local_rule_source_ref"):
+        issues.append(_finding("LEGALITY-LOCAL-RULE-SOURCE", "This profile has local adoption variants; provide the adopting league, state, or organization rulebook reference before final validation.", "local_rule_source_ref", profile=profile, source=source, severity="warning", expected="approved local rule source", observed=None))
+    return configuration
+
+
 def validate_advanced_legality(design: dict[str, Any], *, rule_profile: str | None = None) -> list[dict[str, Any]]:
     profile = rule_profile or design.get("rule_profile", "nfl")
     if profile not in RULE_PROFILE_CATALOG:
@@ -127,6 +156,7 @@ def validate_advanced_legality(design: dict[str, Any], *, rule_profile: str | No
     configuration = RULE_PROFILE_CATALOG[profile]
     source = configuration["source"]
     issues: list[dict[str, Any]] = []
+    configuration = _effective_profile_configuration(design, profile, source, issues)
     players = [item for item in design.get("players", []) if isinstance(item, dict)]
     elements = [item for item in design.get("elements", []) if isinstance(item, dict)]
     explicit_field_count = design.get("players_on_field")
@@ -138,9 +168,6 @@ def validate_advanced_legality(design: dict[str, Any], *, rule_profile: str | No
         issues.append(_finding("LEGALITY-PLAYER-COUNT", "Tackle profile requires the configured number of players in the formation.", "players", profile=profile, source=source, severity="error", expected=configuration["players_on_field"], observed=len(players), overrideable=False))
     if profile == "flag" and len(players) != configuration["players_on_field"]:
         issues.append(_finding("LEGALITY-FLAG-PLAYER-COUNT", "The selected flag profile requires the configured number of players in the formation.", "players", profile=profile, source=source, severity="error", expected=configuration["players_on_field"], observed=len(players), overrideable=False))
-    if configuration.get("requires_local_rules") and not design.get("local_rule_source_ref"):
-        issues.append(_finding("LEGALITY-LOCAL-RULE-SOURCE", "Youth validation requires the adopting league or state rulebook reference.", "local_rule_source_ref", profile=profile, source=source, severity="warning", expected="approved local rule source", observed=None))
-
     alignments = [item.get("alignment", {}) for item in players if isinstance(item.get("alignment"), dict)]
     explicit_line = [item for item in alignments if item.get("on_line") is True]
     if explicit_line and configuration["minimum_line_players"] is not None and len(explicit_line) < configuration["minimum_line_players"]:
@@ -193,16 +220,17 @@ def validate_advanced_legality(design: dict[str, Any], *, rule_profile: str | No
         if motion_end < motion_start:
             issues.append(_finding("LEGALITY-MOTION-TIMING", "Motion end timing occurs before its start timing.", f"elements[{index}].timing", profile=profile, source=source, severity="error", observed={"start_ms": motion_start, "end_ms": motion_end}, expected="end_ms >= start_ms"))
 
-    if not configuration["allow_blocking"]:
+    if configuration["allow_blocking"] is False:
         for index, element in enumerate(elements):
-            if element.get("kind") in {"block", "stunt", "fit"} or element.get("assignment_type") in {"block", "screen"}:
+            if element.get("kind") in {"block", "stunt", "fit"} or element.get("assignment_type") in {"block", "screen", "contact"}:
                 issues.append(_finding("LEGALITY-FLAG-CONTACT", "Blocking, stunts, and contact assignments are not legal in the selected flag profile.", f"elements[{index}]", profile=profile, source=source, severity="error", observed=element.get("kind"), expected="non-contact assignment", overrideable=False))
             if element.get("kind") == "rush" and element.get("rush_distance_yards") is not None:
                 rush_distance = _number(element.get("rush_distance_yards"), -1)
                 if rush_distance < float(configuration["min_rush_distance_yards"]):
                     issues.append(_finding("LEGALITY-FLAG-RUSH-DISTANCE", "Declared flag rusher is inside the minimum rush distance or has a malformed distance value.", f"elements[{index}].rush_distance_yards", profile=profile, source=source, severity="error", observed=element.get("rush_distance_yards"), expected=f">={configuration['min_rush_distance_yards']} yards", overrideable=False))
-            if element.get("kind") == "run" and any(player.get("id") == element.get("player_id") and str(player.get("position", "")).upper() in {"QB", "QUARTERBACK"} for player in players):
-                issues.append(_finding("LEGALITY-FLAG-QB-RUN", "The snap receiver is declared running across the line in the flag profile.", f"elements[{index}].player_id", profile=profile, source=source, severity="error", observed=element.get("player_id"), expected="handoff, pitch, or forward pass", overrideable=False))
+            if element.get("kind") == "run" and not configuration.get("qb_direct_run_allowed", True) and any(player.get("id") == element.get("player_id") and str(player.get("position", "")).upper() in {"QB", "QUARTERBACK"} for player in players):
+                code = "LEGALITY-FLAG-QB-RUN" if profile == "flag" else "LEGALITY-QB-DIRECT-RUN"
+                issues.append(_finding(code, "The selected rule profile does not allow the quarterback to be the direct runner in this play model.", f"elements[{index}].player_id", profile=profile, source=source, severity="error", observed=element.get("player_id"), expected="handoff, pitch, or forward pass", overrideable=False))
 
     for index, first in enumerate(elements):
         for second_index in range(index + 1, len(elements)):

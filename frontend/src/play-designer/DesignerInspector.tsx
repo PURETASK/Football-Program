@@ -496,6 +496,12 @@ function ReviewPanel({
 
 export function DesignerInspector(props: InspectorProps) {
   const guidance = TAB_GUIDANCE[props.tab];
+  const selectedRuleProfile = String(props.design.rule_profile ?? 'nfl');
+  const localRuleProfile = ['high_school', 'youth', 'flag'].includes(selectedRuleProfile);
+  const localRuleConstraints = props.design.local_rule_constraints && typeof props.design.local_rule_constraints === 'object'
+    ? props.design.local_rule_constraints as Record<string, unknown>
+    : {};
+  const commitLocalRuleConstraint = (key: string, value: unknown) => props.onMeta({ local_rule_constraints: { ...localRuleConstraints, [key]: value } });
   return (
     <aside className="designer-inspector" aria-label="Play inspector" data-tutorial={props.tab === 'review' ? 'review' : 'inspector'}>
       <div className="inspector-tabs" role="tablist" aria-label="Designer panels">
@@ -529,7 +535,17 @@ export function DesignerInspector(props: InspectorProps) {
                     </div>
                   </fieldset>
                 </> : null}
-                <label className="inspector-field"><span>Rule profile</span><select value={props.design.rule_profile ?? 'nfl'} onChange={(event) => props.onMeta({ rule_profile: event.target.value })}>{RULE_PROFILES.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+                <label className="inspector-field"><span>Rule profile</span><select value={selectedRuleProfile} onChange={(event) => props.onMeta({ rule_profile: event.target.value })}>{RULE_PROFILES.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+                {localRuleProfile ? <fieldset className="rule-profile-editor">
+                  <legend>Local adoption rules</legend>
+                  <p className="inspector-help">High school, youth, and flag rules vary by jurisdiction. Record the local source and explicit constraints so the validator can check this call without silently assuming a universal rulebook.</p>
+                  <CommitInput label="Local rule source reference" value={props.design.local_rule_source_ref as string | undefined} onCommit={(value) => props.onMeta({ local_rule_source_ref: value })} />
+                  <div className="inspector-form inspector-form--two inspector-form--nested">
+                    <CommitInput label="Players on field" type="number" min={1} max={11} value={localRuleConstraints.players_on_field as number | undefined} onCommit={(value) => commitLocalRuleConstraint('players_on_field', value === '' ? null : Number(value))} />
+                    <CommitInput label="Max motion at snap" type="number" min={0} max={11} value={localRuleConstraints.max_motion_at_snap as number | undefined} onCommit={(value) => commitLocalRuleConstraint('max_motion_at_snap', value === '' ? null : Number(value))} />
+                  </div>
+                  <label className="inspector-field"><span>Blocking/contact model</span><select value={localRuleConstraints.allow_blocking === false ? 'false' : localRuleConstraints.allow_blocking === true ? 'true' : ''} onChange={(event) => commitLocalRuleConstraint('allow_blocking', event.target.value === '' ? null : event.target.value === 'true')}><option value="">Not specified locally</option><option value="true">Blocking allowed</option><option value="false">No blocking/contact</option></select></label>
+                </fieldset> : null}
               </div>
             </InspectorSection>
             <InspectorSection title="Field and alignment">
