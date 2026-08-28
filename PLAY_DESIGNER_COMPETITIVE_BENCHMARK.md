@@ -145,3 +145,18 @@ typecheck and the production build pass, and GitHub Actions validates the
 master-plan audit plus the production-configured container runtime. Those
 results prove the local and CI foundation; they do not prove production
 deployment, real organization adoption, or owner approval.
+
+## Partial stencil capture addendum — 2026-08-28
+
+The reusable-template workflow now supports a deliberate selection scope. A
+coach can multi-select assignment elements in the canonical editor, open the
+template library, choose **Capture only the selected assignments**, and save a
+relative organization-scoped stencil. The API accepts `element_ids`, filters
+the immutable source snapshot to that selection, retains only relationships
+inside the captured subset, records `capture_scope=selection`, and preserves
+the selected source IDs for provenance. Full-play capture remains the default.
+The stencil still re-enters the normal template materializer, so it receives
+slot-relative geometry, player binding, namespaced timing, undo, validation,
+save, version, collaboration, teaching, and export behavior. This closes the
+basic partial-capture path; inherited parent stencils, multi-look batch
+variant generation, and visual inheritance/override diffing remain open.

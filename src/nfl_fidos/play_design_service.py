@@ -247,8 +247,8 @@ class PlayDesignService:
         templates = [*system_templates, *organization_templates]
         return [deepcopy(template) for template in templates if not unit or template.get("unit") == unit]
 
-    def create_template(self, design_id: str, *, name: str, actor: str, description: str = "", tags: list[str] | None = None, template_kind: str = "custom", layer: str = "complete_call") -> dict[str, Any]:
-        """Capture a saved play as a reusable organization-scoped template."""
+    def create_template(self, design_id: str, *, name: str, actor: str, description: str = "", tags: list[str] | None = None, template_kind: str = "custom", layer: str = "complete_call", element_ids: list[str] | None = None) -> dict[str, Any]:
+        """Capture a saved play or selected assignment stencil as a reusable template."""
         design = self.repository.get("play_designs", design_id)
         if design is None:
             raise KeyError(f"Unknown play design: {design_id}")
@@ -256,7 +256,8 @@ class PlayDesignService:
         if template_kind not in {"complete_call", "concept_layer", "protection_layer", "coverage_layer", "pressure_layer", "custom"}:
             raise ValueError("Unknown template_kind")
         players = {player.get("id"): player for player in design.get("players", []) if isinstance(player, dict) and player.get("id")}
-        source_elements = [element for element in design.get("elements", []) if isinstance(element, dict)]
+        requested_ids = {str(item) for item in (element_ids or []) if str(item).strip()}
+        source_elements = [element for element in design.get("elements", []) if isinstance(element, dict) and (not requested_ids or str(element.get("id")) in requested_ids)]
         if not source_elements:
             raise ValueError("A reusable template requires at least one assignment")
         key_by_id = {str(element.get("id")): f"A-{index + 1:02d}" for index, element in enumerate(source_elements) if element.get("id")}
@@ -306,7 +307,7 @@ class PlayDesignService:
             "version": "1.0.0",
             "status": "active",
             "scope": "organization",
-            "description": str(description or f"Reusable template captured from {design.get('name') or design_id}."),
+            "description": str(description or f"Reusable {'stencil' if requested_ids else 'template'} captured from {design.get('name') or design_id}."),
             "tags": sorted({str(tag).strip() for tag in (tags or []) if str(tag).strip()}),
             "situations": [],
             "expected_companion_layers": [],
@@ -316,6 +317,8 @@ class PlayDesignService:
             "source_design_id": design_id,
             "source_snapshot_id": design.get("latest_snapshot_id"),
             "source_checksum": design.get("checksum"),
+            "source_element_ids": sorted(requested_ids) if requested_ids else None,
+            "capture_scope": "selection" if requested_ids else "full_play",
             "alignment": deepcopy(alignment_presets.get((unit, alignment_category, str(alignment_term)))),
         }
         return self.repository.put("play_design_templates", template_id, template, actor=actor, reason="play_design_template_created")

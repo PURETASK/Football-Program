@@ -43,6 +43,27 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertEqual(template["assignments"][0]["points"][0], {"dx": 0.0, "dy": 0.0})
         self.assertIn(template["id"], {item["id"] for item in service.templates()})
 
+    def test_selected_assignments_can_be_captured_as_a_partial_stencil(self):
+        temporary = tempfile.NamedTemporaryFile(suffix=".json", delete=False)
+        temporary.close()
+        path = Path(temporary.name)
+        path.unlink()
+        repository = JsonRepository(path)
+        service = PlayDesignService(TenantRepository(repository, organization_id="ORG-TEST", actor="coach"))
+        saved = service.save({
+            "id": "DESIGN-STENCIL-1", "name": "Trips flood", "unit": "offense", "formation": "shotgun_trips",
+            "players": [{"id": "X", "alignment_key": "X", "position": "WR", "start": {"x": 10, "y": 32}}],
+            "elements": [
+                {"id": "E-ROUTE", "kind": "route", "type": "go", "player_id": "X", "points": [{"x": 10, "y": 32}, {"x": 10, "y": 10}]},
+                {"id": "E-NOTE", "kind": "annotation", "type": "clear", "depends_on": ["E-ROUTE"], "points": [{"x": 20, "y": 20}]},
+            ],
+        }, actor="coach")
+        stencil = service.create_template(saved["id"], name="Selected clear-out", actor="coach", template_kind="concept_layer", layer="route_concept", element_ids=["E-ROUTE"])
+        self.assertEqual(stencil["capture_scope"], "selection")
+        self.assertEqual(stencil["source_element_ids"], ["E-ROUTE"])
+        self.assertEqual([item["key"] for item in stencil["assignments"]], ["A-01"])
+        self.assertEqual(stencil["assignments"][0]["slot"], "X")
+
     def test_registry_returns_authoritative_compatibility_and_alignment_presets(self):
         service = self.service()
         assets = service.assets(unit="offense", context_formation="shotgun_trips", personnel="11", rule_profile="nfl")

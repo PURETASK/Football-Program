@@ -68,10 +68,13 @@ class PlayDesignApiTests(unittest.TestCase):
         owner = {"Authorization": "Bearer " + issue_token(subject="OWNER-DESIGN-API", role="program_owner", organization_id="ORG-DESIGN-API", secret=secret)}
         with tempfile.TemporaryDirectory() as directory:
             service = FootballIntelligenceService(JsonRepository(Path(directory) / "state.json"))
-            body = {"organization_id": "ORG-DESIGN-API", "design": design()}
+            api_design = design()
+            api_design["elements"][0]["id"] = "E-API-POST"
+            body = {"organization_id": "ORG-DESIGN-API", "design": api_design}
             status, payload = handle_request(method="POST", path="/v1/playbook/designs", headers=coach, body=body, service=service)
             self.assertEqual(status, 201)
             design_id = payload["data"]["id"]
+            source_element_id = payload["data"]["elements"][0]["id"]
             status, payload = handle_request(method="GET", path="/v1/playbook/designs/assets?organization_id=ORG-DESIGN-API&unit=defense", headers=coach, service=service)
             self.assertEqual(status, 200)
             self.assertTrue(any(item["term"] == "cover_3" for item in payload["data"]["assets"]))
@@ -89,6 +92,10 @@ class PlayDesignApiTests(unittest.TestCase):
             status, custom_template = handle_request(method="POST", path="/v1/playbook/designs/templates", headers=coach, body={"organization_id":"ORG-DESIGN-API", "design_id":design_id, "name":"API custom concept", "tags":["install"]}, service=service)
             self.assertEqual(status, 201)
             self.assertEqual(custom_template["data"]["scope"], "organization")
+            status, selected_template = handle_request(method="POST", path="/v1/playbook/designs/templates", headers=coach, body={"organization_id":"ORG-DESIGN-API", "design_id":design_id, "name":"API selected stencil", "element_ids":[source_element_id]}, service=service)
+            self.assertEqual(status, 201)
+            self.assertEqual(selected_template["data"]["capture_scope"], "selection")
+            self.assertEqual(selected_template["data"]["source_element_ids"], [source_element_id])
             status, _ = handle_request(method="POST", path="/v1/playbook/designs/request-review", headers=coach, body={"organization_id":"ORG-DESIGN-API", "design_id":design_id, "decision_ref":"DEC-REVIEW-API"}, service=service)
             self.assertEqual(status, 200)
             status, _ = handle_request(method="POST", path="/v1/playbook/designs/comments", headers=coach, body={"organization_id":"ORG-DESIGN-API", "design_id":design_id, "text":"Check the key."}, service=service)

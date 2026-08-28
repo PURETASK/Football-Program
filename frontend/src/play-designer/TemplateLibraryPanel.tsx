@@ -7,7 +7,8 @@ interface TemplateLibraryPanelProps {
   templates: PlayTemplate[];
   design: PlayDesign;
   onApply: (template: PlayTemplate, mode: 'replace' | 'layer') => void;
-  onSave?: (input: { name: string; description: string; tags: string[] }) => Promise<void>;
+  onSave?: (input: { name: string; description: string; tags: string[]; elementIds?: string[] }) => Promise<void>;
+  selectedElementIds?: string[];
 }
 
 function titleCase(value: string): string {
@@ -34,7 +35,7 @@ function TemplatePreview({ template }: { template: PlayTemplate }) {
   );
 }
 
-export function TemplateLibraryPanel({ templates, design, onApply, onSave }: TemplateLibraryPanelProps) {
+export function TemplateLibraryPanel({ templates, design, onApply, onSave, selectedElementIds = [] }: TemplateLibraryPanelProps) {
   const [search, setSearch] = useState('');
   const [kind, setKind] = useState('all');
   const [replaceConfirmation, setReplaceConfirmation] = useState<string | null>(null);
@@ -42,6 +43,7 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave }: Tem
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
   const [templateTags, setTemplateTags] = useState('');
+  const [captureSelection, setCaptureSelection] = useState(false);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const deferredSearch = useDeferredValue(search);
   const kinds = useMemo(() => [...new Set(templates.map((template) => template.template_kind ?? 'custom'))].sort(), [templates]);
@@ -66,7 +68,7 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave }: Tem
     if (!onSave || !templateName.trim()) return;
     setSaveState('saving');
     try {
-      await onSave({ name: templateName.trim(), description: templateDescription.trim(), tags: templateTags.split(',').map((tag) => tag.trim()).filter(Boolean) });
+      await onSave({ name: templateName.trim(), description: templateDescription.trim(), tags: templateTags.split(',').map((tag) => tag.trim()).filter(Boolean), ...(captureSelection && selectedElementIds.length ? { elementIds: selectedElementIds } : {}) });
       setSaveState('saved');
       setTemplateName('');
       setTemplateDescription('');
@@ -114,7 +116,8 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave }: Tem
           <label><span>Template name</span><input value={templateName} onChange={(event) => setTemplateName(event.target.value)} placeholder="Third-down package" /></label>
           <label><span>Description</span><textarea rows={2} value={templateDescription} onChange={(event) => setTemplateDescription(event.target.value)} placeholder="When and how staff should use this package." /></label>
           <label><span>Tags</span><input value={templateTags} onChange={(event) => setTemplateTags(event.target.value)} placeholder="third-down, boundary, install-2" /></label>
-          <button type="button" disabled={!templateName.trim() || saveState === 'saving'} onClick={() => void save()}>{saveState === 'saving' ? 'Saving...' : 'Capture template'}</button>
+          {selectedElementIds.length ? <label className="template-capture__scope"><input type="checkbox" checked={captureSelection} onChange={(event) => setCaptureSelection(event.target.checked)} /> Capture only the {selectedElementIds.length} selected assignment{selectedElementIds.length === 1 ? '' : 's'} as a reusable stencil</label> : null}
+          <button type="button" disabled={!templateName.trim() || saveState === 'saving'} onClick={() => void save()}>{saveState === 'saving' ? 'Saving...' : captureSelection && selectedElementIds.length ? 'Capture selected stencil' : 'Capture template'}</button>
           {saveState === 'error' ? <span role="alert">The template could not be saved.</span> : null}
         </div> : null}
       </section> : null}

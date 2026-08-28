@@ -453,9 +453,9 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
     dispatch({ type: 'update_meta', patch: { timeline: { ...state.present.timeline, markers } } });
   };
 
-  const captureTemplate = async (input: { name: string; description: string; tags: string[] }) => {
+  const captureTemplate = async (input: { name: string; description: string; tags: string[]; elementIds?: string[] }) => {
     if (!session || !state.present._revision) throw new Error('Save the play before capturing a reusable template.');
-    await createPlayTemplate(session, { designId: state.present.id, ...input, templateKind: 'custom', layer: 'complete_call' });
+    await createPlayTemplate(session, { designId: state.present.id, ...input, templateKind: input.elementIds?.length ? 'custom' : 'complete_call', layer: input.elementIds?.length ? 'concept_layer' : 'complete_call' });
     await queryClient.invalidateQueries({ queryKey: ['play-templates', session.organizationId] });
     setActionMessage(`Template "${input.name}" captured from the immutable play snapshot.`);
   };
@@ -520,6 +520,7 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
             onChoose={chooseAsset}
             onApplyTemplate={applyTemplate}
             onSaveTemplate={captureTemplate}
+            selectedElementIds={state.selected.filter((selection): selection is { kind: 'element'; id: string } => selection.kind === 'element').map((selection) => selection.id)}
           />
         </Suspense>
         <main id="designer-canvas" className="designer-canvas-stage" data-tutorial="canvas">

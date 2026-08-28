@@ -42,4 +42,16 @@ describe('TemplateLibraryPanel', () => {
     await user.click(screen.getByRole('button', { name: 'Capture template' }));
     expect(onSave).toHaveBeenCalledWith({ name: 'Boundary package', description: 'Use on third down.', tags: ['third-down', 'boundary'] });
   });
+
+  it('captures only selected assignments as a reusable stencil', async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<TemplateLibraryPanel templates={[]} design={DESIGN} selectedElementIds={['E-1']} onApply={vi.fn()} onSave={onSave} />);
+
+    await user.click(screen.getByRole('button', { name: 'Save current play as template' }));
+    await user.type(screen.getByLabelText('Template name'), 'Clear-out stencil');
+    await user.click(screen.getByRole('checkbox', { name: /Capture only the 1 selected assignment/ }));
+    await user.click(screen.getByRole('button', { name: 'Capture selected stencil' }));
+    expect(onSave).toHaveBeenCalledWith({ name: 'Clear-out stencil', description: '', tags: [], elementIds: ['E-1'] });
+  });
 });
