@@ -60,6 +60,21 @@ def build_rehearsal_report(*, root: Path, database: Path, seed: dict[str, Any]) 
             "persisted_operating_component_count": len(components),
             "population_readiness": readiness,
         },
+        "synthetic_walkthroughs": [
+            {"workspace": "Play Designer", "entry_point": "PD-DEMO-OFF-DAGGER", "purpose": "Review offensive design, assignments, validation, teaching steps, and published-state rendering."},
+            {"workspace": "Play Designer", "entry_point": "PD-DEMO-DEF-COVER3", "purpose": "Review defensive front, coverage, pressure, rotation, assignments, and review-pending workflow."},
+            {"workspace": "Play Designer", "entry_point": "PD-DEMO-OFF-DAGGER-COUNTER", "purpose": "Review branch/counter relationships and version-aware playbook navigation."},
+            {"workspace": "Player Learning", "entry_point": "PLAYER-DEMO-QB-1", "purpose": "Review player assignment, lesson, mastery evidence, and practice linkage."},
+            {"workspace": "Scouting", "entry_point": "OPP-DEMO-LIONS", "purpose": "Review opponent tendencies with sample-size and synthetic-provenance labels."},
+            {"workspace": "Game Week", "entry_point": "WEEK-1", "purpose": "Review a synthetic weekly plan, installation priorities, approvals, and delivery records."},
+        ],
+        "stage0_evidence_summary": {
+            "registry_and_gap_audit_present": True,
+            "operating_components_persisted": len(components),
+            "population_readiness_status": readiness["status"],
+            "owner_review_packet_status": packet["review_status"],
+            "approval_boundary": "Synthetic data demonstrates the workflow only; it cannot satisfy real owner approval or authorize stage advancement.",
+        },
         "seed": seed,
         "stage0_owner_packet": packet,
         "safety": {
@@ -78,6 +93,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--database", type=Path, default=None, help="SQLite or JSON path; defaults to NFL_FIDOS_DATABASE or .runtime/nfl_fidos.sqlite3")
     parser.add_argument("--no-media", action="store_true", help="Skip optional FFmpeg synthetic clip generation")
     parser.add_argument("--dry-run", action="store_true", help="Do not seed; report existing synthetic records and Stage 0 evidence")
+    parser.add_argument("--output", type=Path, default=None, help="Also write the JSON owner-review rehearsal report to this local path")
     args = parser.parse_args(argv)
     database = (args.database or default_database_path()).expanduser().resolve()
 
@@ -92,7 +108,15 @@ def main(argv: list[str] | None = None) -> int:
         if close:
             close()
 
-    print(json.dumps(build_rehearsal_report(root=ROOT, database=database, seed=seed), indent=2, sort_keys=True))
+    report = build_rehearsal_report(root=ROOT, database=database, seed=seed)
+    serialized = json.dumps(report, indent=2, sort_keys=True)
+    if args.output:
+        output = args.output.expanduser().resolve()
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(serialized + "\n", encoding="utf-8")
+        report["report_output"] = str(output)
+        serialized = json.dumps(report, indent=2, sort_keys=True)
+    print(serialized)
     return 0
 
 

@@ -96,6 +96,8 @@ class DemoDataTests(unittest.TestCase):
             self.assertEqual(report["status"], "ready_for_owner_review")
             self.assertTrue(report["rehearsal"]["synthetic"])
             self.assertGreaterEqual(report["rehearsal"]["persisted_operating_component_count"], 13)
+            self.assertEqual(report["stage0_evidence_summary"]["population_readiness_status"], "ready_for_bundle")
+            self.assertGreaterEqual(len(report["synthetic_walkthroughs"]), 6)
             self.assertFalse(report["safety"]["owner_approval_recorded"])
             self.assertFalse(report["safety"]["production_implementation_allowed"])
             self.assertFalse(report["safety"]["activation_performed"])

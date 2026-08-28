@@ -20,6 +20,16 @@ python scripts/seed_demo_data.py --replace --confirm RESEED-SYNTHETIC-DEMO-DATA
 
 Use `--no-media` when FFmpeg is unavailable. Without that option, the script attempts to create a tiny local synthetic MP4 under `.runtime/nfl-fidos-demo-media/`. No network source or provider is called.
 
+To create a durable Stage 0 owner-review artifact containing the synthetic walkthrough map, population-readiness result, and explicit approval boundary:
+
+```powershell
+$env:PYTHONPATH = (Resolve-Path '.\\src').Path
+python scripts/stage0_rehearsal.py --no-media --output .\\runtime\\stage0-owner-review.json
+```
+
+This report is review evidence only. It does not record owner approval,
+advance the stage, activate production, or contact an external provider.
+
 ## Open the authenticated dashboard
 
 Set a local secret in the same PowerShell session used to run the server:
