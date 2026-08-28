@@ -1414,6 +1414,13 @@
 .defensive-alignment-editor { display: grid; gap: 8px; margin: 4px 0 0; padding: 10px; border: 1px solid rgb(255 181 71 / 0.22); border-radius: 12px; background: rgb(255 181 71 / 0.05); }
 .defensive-alignment-editor legend { padding: 0 4px; color: #ffd28c; font-weight: 700; }
 .defensive-alignment-editor p { color: var(--muted); font-size: 11px; line-height: 1.45; }
+.player-legality-editor { display: grid; gap: 8px; margin: 4px 0 0; padding: 10px; border: 1px solid rgb(120 166 255 / 0.24); border-radius: 12px; background: linear-gradient(145deg, rgb(67 116 214 / 0.1), rgb(76 214 250 / 0.035)); }
+.player-legality-editor legend { padding: 0 4px; color: #b7d4ff; font-weight: 800; }
+.player-legality-editor p { color: var(--muted); font-size: 11px; line-height: 1.45; }
+.player-legality-editor .inspector-help { margin: 0; color: #7893b4; font-size: 10px; line-height: 1.4; }
+.inspector-check { display: flex; min-height: 34px; align-items: center; gap: 8px; padding: 0 8px; border: 1px solid rgb(255 255 255 / 0.07); border-radius: 8px; color: #b9cce1; background: rgb(255 255 255 / 0.025); cursor: pointer; font-size: 11px; font-weight: 700; }
+.inspector-check:hover { border-color: rgb(76 214 250 / 0.24); background: rgb(76 214 250 / 0.055); }
+.inspector-check input { width: 15px; height: 15px; accent-color: #56d8f6; }
 .offensive-blocking-editor { display: grid; gap: 8px; margin: 4px 0 0; padding: 10px; border: 1px solid rgb(95 220 160 / 0.22); border-radius: 12px; background: rgb(95 220 160 / 0.05); }
 .offensive-blocking-editor legend { padding: 0 4px; color: #a7f2c7; font-weight: 700; }
 .offensive-blocking-editor p { color: var(--muted); font-size: 11px; line-height: 1.45; }
