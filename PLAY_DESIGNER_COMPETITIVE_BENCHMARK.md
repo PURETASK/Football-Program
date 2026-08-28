@@ -255,3 +255,16 @@ are rejected before persistence, and the normalized recipe is retained in
 allows a coordinator to express a controlled answer adjustment without
 silently inventing football semantics; server legality and human approval still
 govern the resulting child designs.
+
+## Template lineage review addendum — 2026-08-28
+
+The Concepts panel now exposes a pre-application inheritance review for child
+packages with a resolved parent. It compares stable assignment keys and
+semantic fields, then reports inherited-unchanged assignments, local child
+additions, and exact overridden fields such as route type, landmark, timing,
+protection, or coverage. The disclosure is keyboard reachable and uses the
+same resolved assignment model that drives preview and materialization, so the
+review cannot drift into a second visual-only representation. This closes the
+local visual inheritance/override explanation gap; parent-change propagation,
+network-scale administration, and production pilot evidence remain external
+acceptance work.

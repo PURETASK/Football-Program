@@ -217,3 +217,11 @@ boundary. Findings use explainable issue codes including
 `PRESNAP_END_AFTER_SNAP`, `PRESNAP_SEQUENCE_OUT_OF_ORDER`, and
 `PRESNAP_STEPS_OVERLAP`. Valid non-overlapping sequences remain accepted and
 are available to the timeline playback and cue-navigation controls.
+
+Template lineage review addendum (2026-08-28): child packages with a parent
+now expose a keyboard-reachable disclosure that compares resolved assignment
+keys and semantic fields before application. Staff can see inherited-unchanged
+assignments, child additions, and exact local override fields; the report is
+derived from the same resolver used by preview and materialization. This is a
+local review aid and does not propagate parent edits or bypass organization
+approval, legality, version, or release controls.

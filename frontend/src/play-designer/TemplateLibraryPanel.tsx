@@ -2,7 +2,7 @@ import { useDeferredValue, useMemo, useState } from 'react';
 import { BookmarkPlus, Check, Layers3, Search, ShieldAlert, Sparkles } from 'lucide-react';
 
 import type { PlayDesign, PlayTemplate } from '../types';
-import { resolveTemplateAssignments } from './templateMaterializer';
+import { diffTemplateInheritance, resolveTemplateAssignments } from './templateMaterializer';
 import { diffPlayVariant } from './variantDiff';
 
 interface TemplateLibraryPanelProps {
@@ -27,6 +27,10 @@ function diffDetailValue(value: unknown): string {
   if (value === undefined) return '—';
   if (typeof value === 'string') return value;
   try { return JSON.stringify(value); } catch { return String(value); }
+}
+
+function fieldLabel(value: string): string {
+  return value.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function DesignPreview({ design, label }: { design: PlayDesign; label: string }) {
@@ -143,12 +147,15 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave, onCre
           const sameFormation = !template.formation || template.formation === design.formation;
           const layerCompatible = sameFormation && template.unit === design.unit;
           const confirming = replaceConfirmation === template.id;
+          const parent = template.parent_template_id ? templates.find((candidate) => candidate.id === template.parent_template_id) : undefined;
+          const inheritanceDiff = parent ? diffTemplateInheritance(parent, template) : undefined;
           return <article className="template-card" key={template.id}>
             <TemplatePreview template={template} />
             <header><span><strong>{template.name}</strong><small>{titleCase(template.template_kind ?? 'custom')} · {template.scope ?? 'system'} · v{template.version ?? '1.0.0'}</small></span><span className={`template-status template-status--${template.status ?? 'active'}`}>{template.status ?? 'active'}</span></header>
             <p>{template.description ?? 'Reusable organization football package.'}</p>
             <div className="template-card__meta"><span>{template.formation ?? template.front ?? 'Any look'}</span><span>{template.personnel ?? 'Open personnel'}</span><span>{resolveTemplateAssignments(template).length} assignments</span>{template.inherited_assignments?.length ? <span>{template.inherited_assignments.length} inherited</span> : null}<span>{template.assignments?.length ?? 0} local</span></div>
             {template.parent_template_id ? <small className="template-companion"><Layers3 size={12} /> Inherits from {templates.find((parent) => parent.id === template.parent_template_id)?.name ?? template.parent_template_id}</small> : null}
+            {inheritanceDiff ? <details className="template-inheritance-details"><summary>Inspect inheritance and overrides</summary><div className="template-inheritance-details__body"><span>{inheritanceDiff.inherited.length} inherited unchanged</span><span>{inheritanceDiff.overridden.length} overridden</span><span>{inheritanceDiff.added.length} child additions</span>{inheritanceDiff.overridden.length ? <ul>{inheritanceDiff.overridden.map((item) => <li key={item.key}><code>{item.key}</code><small>Overrides: {item.fields.map(fieldLabel).join(', ')}</small></li>)}</ul> : null}{inheritanceDiff.added.length ? <small>Added assignments: {inheritanceDiff.added.join(', ')}</small> : null}</div></details> : null}
             {template.tags?.length ? <div className="template-tags">{template.tags.slice(0, 4).map((tag) => <span key={tag}>{tag}</span>)}</div> : null}
             {template.expected_companion_layers?.length ? <small className="template-companion"><Layers3 size={12} /> Pair with: {template.expected_companion_layers.map(titleCase).join(', ')}</small> : <small className="template-companion"><Check size={12} /> Complete package</small>}
             {confirming ? <div className="template-replace-warning" role="alert"><ShieldAlert size={14} /><span>This replaces the current {design.elements?.length ?? 0} assignments. Click again to confirm.</span></div> : null}

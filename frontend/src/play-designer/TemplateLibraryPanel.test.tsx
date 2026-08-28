@@ -69,6 +69,16 @@ describe('TemplateLibraryPanel', () => {
     expect(onSave).toHaveBeenCalledWith({ name: 'Boundary variation', description: '', tags: [], parentTemplateId: 'TPL-PARENT' });
   });
 
+  it('explains inherited assignments and child field overrides before application', async () => {
+    const parent: PlayTemplate = { ...TEMPLATE, id: 'TPL-PARENT', name: 'Base route family' };
+    const child: PlayTemplate = { ...TEMPLATE, id: 'TPL-CHILD', name: 'Boundary variation', parent_template_id: parent.id, inherited_assignments: parent.assignments, assignments: [{ ...TEMPLATE.assignments![0], type: 'corner', landmark: 'boundary' }] };
+    render(<TemplateLibraryPanel templates={[parent, child]} design={DESIGN} onApply={vi.fn()} />);
+
+    await userEvent.setup().click(screen.getByText('Inspect inheritance and overrides'));
+    expect(screen.getByText('1 overridden')).toBeVisible();
+    expect(screen.getByText('Overrides: Type, Landmark')).toBeVisible();
+  });
+
   it('expands field-level changes for a generated variant', async () => {
     const user = userEvent.setup();
     const variant: PlayDesign = { ...DESIGN, id: 'PD-VARIANT', coverage: 'cover_3', elements: [{ ...DESIGN.elements![0], type: 'corner' }, { id: 'E-2', kind: 'route', type: 'flat', points: [{ x: 20, y: 32 }, { x: 30, y: 28 }] }] };

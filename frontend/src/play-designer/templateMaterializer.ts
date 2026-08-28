@@ -46,6 +46,38 @@ export function resolveTemplateAssignments(template: PlayTemplate): Array<{ assi
   return [...resolved.values()];
 }
 
+export interface TemplateInheritanceDiff {
+  inherited: string[];
+  overridden: Array<{ key: string; fields: string[] }>;
+  added: string[];
+}
+
+/** Compare a child package's resolved assignments with its direct parent for lineage review. */
+export function diffTemplateInheritance(parent: PlayTemplate, child: PlayTemplate): TemplateInheritanceDiff {
+  const parentAssignments = new Map(resolveTemplateAssignments(parent).map(({ assignment }) => [assignment.key, assignment]));
+  const childAssignments = new Map(resolveTemplateAssignments(child).map(({ assignment, origin }) => [assignment.key, { assignment, origin }]));
+  const inherited: string[] = [];
+  const overridden: Array<{ key: string; fields: string[] }> = [];
+  const added: string[] = [];
+  for (const [key, item] of childAssignments) {
+    const parentAssignment = parentAssignments.get(key);
+    if (!parentAssignment) {
+      added.push(key);
+      continue;
+    }
+    if (item.origin !== 'local') {
+      inherited.push(key);
+      continue;
+    }
+    const fields = [...new Set([...Object.keys(parentAssignment), ...Object.keys(item.assignment)])]
+      .filter((field) => field !== 'key')
+      .filter((field) => JSON.stringify(parentAssignment[field as keyof PlayTemplateAssignment]) !== JSON.stringify(item.assignment[field as keyof PlayTemplateAssignment]));
+    if (fields.length) overridden.push({ key, fields });
+    else inherited.push(key);
+  }
+  return { inherited, overridden, added };
+}
+
 /** Materialize a reusable slot-relative package into this team's canonical play record. */
 export function applyPlayTemplate(design: PlayDesign, template: PlayTemplate, mode: 'replace' | 'layer' = 'replace'): PlayDesign {
   if (template.unit !== design.unit) return design;
