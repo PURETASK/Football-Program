@@ -354,7 +354,7 @@ function SelectionInspector({
           <label className="inspector-field"><span>Crossing intent</span><select value={element.collision_intent ?? 'review'} onChange={(event) => onElement(element.id, { collision_intent: event.target.value })}><option value="review">Needs review</option><option value="intentional">Intentional crossing</option><option value="avoid">Avoid crossing</option></select></label>
           <CommitInput label="Clearance corridor (yd)" type="number" min={0.25} max={10} value={element.collision_corridor_yards ?? 1.5} onCommit={(value) => onElement(element.id, { collision_corridor_yards: Math.max(0.25, Math.min(10, Number(value))) })} />
           <CommitInput label="Crossing explanation" value={element.collision_note} onCommit={(value) => onElement(element.id, { collision_note: value })} />
-          {collisionPairs.map((pair) => <small key={`${pair.firstId}-${pair.secondId}`} className={pair.intentional ? 'route-collision-note is-intentional' : 'route-collision-note'}>{pair.explanation}</small>)}
+          {collisionPairs.map((pair) => <small key={`${pair.firstId}-${pair.secondId}`} className={pair.intentional ? 'route-collision-note is-intentional' : 'route-collision-note'}>{pair.explanation} · Review window {`${(pair.overlapStartMs / 1000).toFixed(2)}–${(pair.overlapEndMs / 1000).toFixed(2)}s`}</small>)}
         </fieldset> : null}
         <Suspense fallback={<div className="assignment-fields-loading">Loading structured assignment controls…</div>}>
           <AssignmentGraphFields design={design} element={element} onElement={onElement} />

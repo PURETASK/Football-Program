@@ -83,10 +83,10 @@ describe('play designer geometry', () => {
 
   it('flags near-miss routes when their teaching corridors overlap', () => {
     const result = routeCollisions([
-      { id: 'A', kind: 'route', points: [{ x: 10, y: 20 }, { x: 90, y: 20 }] },
-      { id: 'B', kind: 'route', points: [{ x: 10, y: 21 }, { x: 90, y: 21 }] },
+      { id: 'A', kind: 'route', points: [{ x: 10, y: 20 }, { x: 90, y: 20 }], start_ms: 500, end_ms: 1500 },
+      { id: 'B', kind: 'route', points: [{ x: 10, y: 21 }, { x: 90, y: 21 }], start_ms: 1000, end_ms: 2000 },
     ]);
-    expect(result[0]).toMatchObject({ kind: 'corridor', minimumSeparation: 1 });
+    expect(result[0]).toMatchObject({ kind: 'corridor', minimumSeparation: 1, overlapStartMs: 1000, overlapEndMs: 1500 });
     expect(result[0].explanation).toContain('corridors');
   });
 });
