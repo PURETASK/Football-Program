@@ -29,3 +29,14 @@ jobs:
       - run: python scripts/incident_rehearsal.py
       - run: python scripts/operational_rehearsal.py
       - run: python -m compileall -q src scripts
+
+  container:
+    name: Build production container
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image without publishing
+        run: docker build --pull --tag nfl-fidos:ci .
+      - name: Inspect image metadata
+        run: docker image inspect nfl-fidos:ci --format '{{.Id}} {{.Size}}'

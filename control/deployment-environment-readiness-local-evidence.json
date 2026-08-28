@@ -12,5 +12,5 @@
   "activation_performed":false,
   "external_state_changed":false,
   "production_implementation_allowed":false,
-  "limitations":["This is local readiness validation only","Production secret-manager, provider registration, deployment infrastructure, and Stage 0 owner approval remain required","Docker was not available in the workstation environment, so image build execution remains pending"]
+  "limitations":["This is local readiness validation only","Production secret-manager, provider registration, deployment infrastructure, and Stage 0 owner approval remain required","Docker is not installed in the workstation environment; the GitHub Actions container job is the authoritative image-build execution gate"]
 }
