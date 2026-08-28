@@ -72,4 +72,16 @@ describe('DesignerTimeline', () => {
     fireEvent.click(screen.getByRole('button', { name: 'QB read' }));
     expect(onUpdateTimeline).toHaveBeenCalledWith(expect.objectContaining({ events: expect.arrayContaining([expect.objectContaining({ kind: 'read', branch_id: 'BR-1', label: expect.stringContaining('Convert out') })]) }));
   });
+
+  it('allows coaches to retime a selected phase and edit synchronized event timing', () => {
+    const onUpdateElement = vi.fn();
+    const onUpdateTimeline = vi.fn();
+    const design = { ...DESIGN, timeline: { ...DESIGN.timeline, events: [{ id: 'READ-EVENT', kind: 'read', label: 'Boundary safety', start_ms: 700, end_ms: 1100, element_id: 'ROUTE-X' }] } };
+    render(<DesignerTimeline design={design} selectedElement={design.elements?.[0]} playbackTime={700} onPlaybackTime={vi.fn()} onAddMarker={vi.fn()} onSelectElement={vi.fn()} onUpdateElement={onUpdateElement} onUpdateTimeline={onUpdateTimeline} />);
+    fireEvent.click(screen.getByRole('button', { name: /Tracks/i }));
+    fireEvent.change(screen.getByLabelText('Stem start milliseconds'), { target: { value: '450' } });
+    expect(onUpdateElement).toHaveBeenCalledWith('ROUTE-X', expect.objectContaining({ timing: expect.objectContaining({ phases: expect.arrayContaining([expect.objectContaining({ id: 'stem', start_ms: 450 })]) }) }));
+    fireEvent.change(screen.getByLabelText('Synchronized event 1 start'), { target: { value: '800' } });
+    expect(onUpdateTimeline).toHaveBeenCalledWith(expect.objectContaining({ events: [expect.objectContaining({ id: 'READ-EVENT', start_ms: 800, ms: 800 })] }));
+  });
 });

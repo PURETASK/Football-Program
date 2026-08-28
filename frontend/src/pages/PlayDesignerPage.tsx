@@ -604,6 +604,7 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
               onPlaybackTime={setPlaybackTime}
               onAddMarker={addMarker}
               onSelectElement={(id) => dispatch({ type: 'select', selection: { kind: 'element', id } })}
+              onUpdateElement={(id, patch) => dispatch({ type: 'update_element', id, patch })}
               onUpdateTimeline={(timeline) => dispatch({ type: 'update_meta', patch: { timeline } })}
             />
           </Suspense>

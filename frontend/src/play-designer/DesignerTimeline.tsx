@@ -11,6 +11,7 @@ interface TimelineProps {
   onPlaybackTime: (value: number | null) => void;
   onAddMarker: (ms: number) => void;
   onSelectElement?: (id: string) => void;
+  onUpdateElement?: (id: string, patch: Partial<PlayElement>) => void;
   onUpdateTimeline?: (timeline: PlayTimeline) => void;
 }
 
@@ -32,7 +33,7 @@ function speakCue(cue: PlayNarrationCue): void {
   window.speechSynthesis.speak(new SpeechSynthesisUtterance(cue.text));
 }
 
-export function DesignerTimeline({ design, selectedElement, playbackTime, onPlaybackTime, onAddMarker, onSelectElement, onUpdateTimeline }: TimelineProps) {
+export function DesignerTimeline({ design, selectedElement, playbackTime, onPlaybackTime, onAddMarker, onSelectElement, onUpdateElement, onUpdateTimeline }: TimelineProps) {
   const elements = design.elements ?? [];
   const markers = useMemo(() => [...(design.timeline?.markers ?? [])].sort((left, right) => left.ms - right.ms), [design.timeline?.markers]);
   const narration = design.timeline?.narration ?? [];
@@ -125,6 +126,25 @@ export function DesignerTimeline({ design, selectedElement, playbackTime, onPlay
     updateTimeline({ narration: narration.map((cue) => cue.id === id ? { ...cue, ...patch } : cue) });
   };
 
+  const updateEvent = (index: number, patch: Partial<NonNullable<PlayTimeline['events']>[number]>) => {
+    updateTimeline({ events: events.map((event, eventIndex) => eventIndex === index ? { ...event, ...patch } : event) });
+  };
+
+  const updateSelectedPhase = (phaseId: string, field: 'start_ms' | 'end_ms', value: number) => {
+    if (!selectedElement || !onUpdateElement) return;
+    const timing = elementTiming(selectedElement);
+    const phases = selectedElement.timing?.phases?.length ? selectedElement.timing.phases : defaultTimelinePhases(selectedElement.kind, timing.start, timing.end);
+    const index = phases.findIndex((phase) => phase.id === phaseId);
+    if (index < 0) return;
+    const next = phases.map((phase, phaseIndex) => {
+      if (phaseIndex !== index) return phase;
+      const nextStart = field === 'start_ms' ? Math.min(Math.max(timing.start, Math.round(value)), phase.end_ms - 1) : phase.start_ms;
+      const nextEnd = field === 'end_ms' ? Math.max(Math.min(timing.end, Math.round(value)), phase.start_ms + 1) : phase.end_ms;
+      return { ...phase, start_ms: nextStart, end_ms: nextEnd };
+    });
+    onUpdateElement(selectedElement.id, { timing: { ...selectedElement.timing, start_ms: timing.start, end_ms: timing.end, phases: next } });
+  };
+
   const addNarration = () => {
     const start = Math.max(timelineStart, Math.round(current));
     updateTimeline({ narration: [...narration, { id: `NARRATION-${Date.now().toString(36).toUpperCase()}`, role: 'coach', text: 'Explain the key, timing, and finish.', start_ms: start, end_ms: Math.min(duration, start + 900), branch_id: selectedBranchId ?? undefined }] });
@@ -201,6 +221,17 @@ export function DesignerTimeline({ design, selectedElement, playbackTime, onPlay
           })}
         </div>
 
+        {selectedElement && onUpdateElement ? <section className="timeline-phase-editor" aria-label="Selected assignment phase timing">
+          <header><div><strong>Edit selected assignment phases</strong><small>Retiming a phase updates the authored teaching sequence without changing the assignment window.</small></div><span>{selectedElement.type ?? selectedElement.kind}</span></header>
+          <div className="timeline-editor-list timeline-editor-list--phases">
+            {(selectedElement.timing?.phases?.length ? selectedElement.timing.phases : defaultTimelinePhases(selectedElement.kind, elementTiming(selectedElement).start, elementTiming(selectedElement).end)).map((phase) => <div className="timeline-editor-row" key={phase.id}>
+              <strong>{phase.label ?? phase.id}</strong>
+              <label><span className="sr-only">{phase.label ?? phase.id} start milliseconds</span><input aria-label={`${phase.label ?? phase.id} start milliseconds`} type="number" value={phase.start_ms} onChange={(event) => updateSelectedPhase(phase.id, 'start_ms', Number(event.target.value))} /></label>
+              <label><span className="sr-only">{phase.label ?? phase.id} end milliseconds</span><input aria-label={`${phase.label ?? phase.id} end milliseconds`} type="number" value={phase.end_ms} onChange={(event) => updateSelectedPhase(phase.id, 'end_ms', Number(event.target.value))} /></label>
+            </div>)}
+          </div>
+        </section> : null}
+
         <div className="timeline-cue-editor">
           <section><header><div><strong>Markers and pauses</strong><small>Step through reads, rotations, exchanges, and deliberate teaching pauses.</small></div><button type="button" onClick={() => onAddMarker(current)}><Plus size={14} /> Marker</button></header>
             <div className="timeline-editor-list">{(design.timeline?.markers ?? []).map((marker) => <div className="timeline-editor-row" key={marker.id}>
@@ -221,7 +252,13 @@ export function DesignerTimeline({ design, selectedElement, playbackTime, onPlay
           </section>
           <section><header><div><strong>Ball and synchronized events</strong><small>Bind ball travel, handoffs, QB reads, exchanges, and rotations to canonical assignment timing.</small></div><div className="timeline-event-actions"><button type="button" aria-label="Ball on selected path" disabled={!selectedElement} onClick={addBallEvent}><Plus size={14} /> Ball</button><button type="button" disabled={!selectedElement} onClick={() => addSynchronizedEvent('handoff')}><Plus size={14} /> Handoff</button><button type="button" disabled={!selectedElement} onClick={() => addSynchronizedEvent('read')}><Plus size={14} /> QB read</button><button type="button" disabled={!selectedElement} onClick={() => addSynchronizedEvent('exchange')}><Plus size={14} /> Exchange</button><button type="button" disabled={!selectedElement} onClick={() => addSynchronizedEvent('rotation')}><Plus size={14} /> Rotation</button></div></header>
             {selectedElement?.branches?.length ? <div className="timeline-path-selector" role="group" aria-label="Timeline route path"><span>Attach cues to</span><button type="button" className={!selectedBranchId ? 'is-selected' : ''} onClick={() => setSelectedBranchId(null)}>Primary path</button>{selectedElement.branches.map((branch) => <button type="button" className={selectedBranchId === branch.id ? 'is-selected' : ''} key={branch.id} onClick={() => setSelectedBranchId(branch.id)}>{branch.label}</button>)}</div> : null}
-            <div className="timeline-event-chips">{events.map((event, index) => <span key={event.id ?? `${event.kind}-${index}`}><strong>{event.kind ?? 'event'}</strong>{event.label ?? event.element_id ?? 'Timeline event'}<button type="button" aria-label={`Delete ${event.label ?? 'timeline event'}`} onClick={() => updateTimeline({ events: events.filter((_, eventIndex) => eventIndex !== index) })}><Trash2 size={12} /></button></span>)}{!events.length ? <small>No synchronized events yet.</small> : null}</div>
+            <div className="timeline-event-list">{events.map((event, index) => <div className="timeline-event-row" key={event.id ?? `${event.kind}-${index}`}>
+              <select aria-label={`Synchronized event ${index + 1} kind`} value={event.kind ?? 'cue'} onChange={(input) => updateEvent(index, { kind: input.target.value })}>{MARKER_KINDS.map((kind) => <option value={kind} key={kind}>{kind}</option>)}</select>
+              <input aria-label={`Synchronized event ${index + 1} label`} value={event.label ?? ''} placeholder="Event label" onChange={(input) => updateEvent(index, { label: input.target.value })} />
+              <input aria-label={`Synchronized event ${index + 1} start`} type="number" value={Number(event.start_ms ?? event.ms ?? 0)} onChange={(input) => updateEvent(index, { start_ms: Number(input.target.value), ms: Number(input.target.value) })} />
+              <input aria-label={`Synchronized event ${index + 1} end`} type="number" value={Number(event.end_ms ?? event.start_ms ?? event.ms ?? 0)} onChange={(input) => updateEvent(index, { end_ms: Number(input.target.value) })} />
+              <button type="button" aria-label={`Delete ${event.label ?? 'timeline event'}`} onClick={() => updateTimeline({ events: events.filter((_, eventIndex) => eventIndex !== index) })}><Trash2 size={12} /></button>
+            </div>)}{!events.length ? <small>No synchronized events yet.</small> : null}</div>
           </section>
         </div>
       </div> : null}
