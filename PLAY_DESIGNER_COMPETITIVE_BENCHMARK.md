@@ -316,3 +316,12 @@ state, existing release identity, ready-for-review children, and aggregate
 ready/blocked counts. The Concepts panel surfaces that count beside each saved
 review set. This gives staff an explainable pre-approval gate without turning
 batch generation into an automatic publish operation.
+
+Governed variant review addendum — 2026-08-28: a ready persisted batch can now
+be submitted as one review request through
+`POST /v1/playbook/designs/variants/request-review`. The service validates all
+children before mutating any of them, transitions every valid draft child to
+`under_review` with a shared decision reference, records the batch request, and
+emits collaboration events for each child. Any missing, invalid, or already
+transitioned child blocks the whole request, preserving atomic review intent;
+owner publishing remains a separate per-design authorization boundary.
