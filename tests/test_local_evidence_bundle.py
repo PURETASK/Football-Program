@@ -15,6 +15,9 @@ class LocalEvidenceBundleTests(unittest.TestCase):
         self.assertFalse(bundle["project_audit"]["completion_claimed"])
         self.assertEqual(bundle["stage0_owner_packet"]["review_status"], "ready_for_owner_review")
         self.assertFalse(bundle["stage0_owner_packet"]["safety"]["approval_recorded"])
+        self.assertEqual(bundle["synthetic_pilot_rehearsal"]["status"], "passed")
+        self.assertFalse(bundle["synthetic_pilot_rehearsal"]["live_pilot"])
+        self.assertFalse(bundle["synthetic_pilot_rehearsal"]["external_state_changed"])
 
 
 if __name__ == "__main__":

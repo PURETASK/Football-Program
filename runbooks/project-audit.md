@@ -22,8 +22,10 @@ python scripts/build_local_evidence_bundle.py `
   --output .\\runtime\\local-evidence-bundle.json
 ```
 
-The bundle is valid only when every included check passes. It always preserves
+The bundle is valid only when every included check passes. It includes the
+Stage 0 owner-review packet and a synthetic Stage 24 pilot/rollback rehearsal
+in addition to the project, parity, and browser evidence. It always preserves
 non-activating safety flags and does not replace owner approval, deployment
-evidence, or moderated pilot evidence.
+evidence, or a moderated real-user pilot.
 
 The command reports `foundation_verified` only when those checks pass. It always reports remaining stage work and sets `completion_claimed=false`; it cannot record owner approval, advance the stage, enable production, deploy services, or substitute for real organization/provider/pilot evidence.

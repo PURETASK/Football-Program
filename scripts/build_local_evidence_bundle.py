@@ -10,6 +10,10 @@ from nfl_fidos.browser_evidence import validate_browser_evidence
 from nfl_fidos.feature_parity import audit_feature_parity
 from nfl_fidos.project_audit import run_project_audit
 from nfl_fidos.stage0_owner_packet import build_stage0_owner_packet
+try:
+    from scripts.pilot_rehearsal import run_rehearsal
+except ModuleNotFoundError:  # Direct execution places the scripts directory on sys.path.
+    from pilot_rehearsal import run_rehearsal
 
 
 def build_bundle(*, root: Path, run_evals: bool = True) -> dict:
@@ -20,6 +24,7 @@ def build_bundle(*, root: Path, run_evals: bool = True) -> dict:
     registry = json.loads((root / "control" / "stage-0a-registry.json").read_text(encoding="utf-8"))
     gap_audit = json.loads((root / "control" / "stage-0-gap-audit.json").read_text(encoding="utf-8"))
     stage0_owner_packet = build_stage0_owner_packet(registry=registry, gap_audit=gap_audit)
+    pilot_rehearsal = run_rehearsal(run_evaluations=False)
     checks = {
         "project_audit": project["status"] == "foundation_verified",
         "feature_parity": parity["status"] == "ready_for_human_review" and not parity["errors"],
@@ -27,6 +32,7 @@ def build_bundle(*, root: Path, run_evals: bool = True) -> dict:
         "production_disabled": project["control"]["production_implementation_allowed"] is False,
         "completion_not_claimed": project["completion_claimed"] is False,
         "stage0_owner_packet_ready": stage0_owner_packet["review_status"] == "ready_for_owner_review",
+        "synthetic_pilot_rollback_rehearsed": pilot_rehearsal["status"] == "passed" and pilot_rehearsal["rollback"]["external_state_changed"] is False,
     }
     return {
         "bundle_id": "LOCAL-EVIDENCE-BUNDLE-NFL-FIDOS-001",
@@ -36,6 +42,7 @@ def build_bundle(*, root: Path, run_evals: bool = True) -> dict:
         "feature_parity": parity,
         "browser_evidence": browser,
         "stage0_owner_packet": stage0_owner_packet,
+        "synthetic_pilot_rehearsal": pilot_rehearsal,
         "safety": {
             "external_state_changed": False,
             "production_implementation_allowed": False,
