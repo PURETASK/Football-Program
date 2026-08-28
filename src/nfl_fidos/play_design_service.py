@@ -879,6 +879,33 @@ class PlayDesignService:
         batch["review_request"] = {**(batch.get("review_request") or {}), "state": "approved_for_release", "approver": actor, "decision_ref": decision, "approved_at": approved_at}
         return self.repository.put("play_design_variant_batches", batch_id, batch, actor=actor, reason="play_design_variant_batch_approved")
 
+    def create_variant_release_bundle(self, batch_id: str, *, actor: str, decision_ref: str) -> dict[str, Any]:
+        """Freeze an owner-approved batch into a hashed release manifest without publishing children."""
+        batch = self.repository.get("play_design_variant_batches", batch_id)
+        if batch is None:
+            raise KeyError(f"Unknown variant batch: {batch_id}")
+        decision = _clean_required_text(decision_ref, "decision_ref")
+        if batch.get("status") != "approved_for_release":
+            raise ValueError("Only an owner-approved variant batch can create a release bundle")
+        bundle_id = f"VARIANT-RELEASE-{batch_id}"
+        if self.repository.get("play_design_variant_release_bundles", bundle_id) is not None:
+            raise ValueError("Immutable variant release bundle already exists")
+        entries = []
+        for design_id in batch.get("variant_ids", []):
+            child = self.repository.get("play_designs", design_id)
+            if child is None:
+                raise ValueError(f"Variant child is missing: {design_id}")
+            if (child.get("batch_approval") or {}).get("state") != "approved_for_release":
+                raise ValueError(f"Variant child is not approved for release: {design_id}")
+            integrity = verify_design_integrity(child)
+            if not integrity["valid"]:
+                raise ValueError({"code": "VARIANT-RELEASE-INTEGRITY-INVALID", "design_id": design_id, "issues": integrity["issues"]})
+            entries.append({"design_id": design_id, "version": child.get("version"), "snapshot_id": child.get("latest_snapshot_id"), "checksum": child.get("checksum"), "renderer_version": child.get("renderer_version"), "renderer_checksum": child.get("renderer_checksum")})
+        manifest = {"batch_id": batch_id, "source_design_id": batch.get("source_design_id"), "variant_ids": list(batch.get("variant_ids", [])), "entries": entries, "approval_decision_ref": (batch.get("review_request") or {}).get("decision_ref"), "approved_for_release": True}
+        manifest_hash = hashlib.sha256(json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+        bundle = {"id": bundle_id, "organization_id": self.repository.organization_id, "batch_id": batch_id, "status": "frozen", "immutable": True, "created_by": actor, "decision_ref": decision, "created_at": datetime.now(timezone.utc).isoformat(), "manifest": manifest, "manifest_hash": manifest_hash, "production_activation": False}
+        return self.repository.put("play_design_variant_release_bundles", bundle_id, bundle, actor=actor, reason="play_design_variant_release_bundle_created")
+
     def role_view(self, design_id: str, *, role: str, mode: str = "player", step: int | None = None, user_id: str | None = None) -> dict[str, Any]:
         design = self.repository.get("play_designs", design_id)
         if design is None:

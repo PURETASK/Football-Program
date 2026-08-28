@@ -19,6 +19,7 @@ interface AssetPaletteProps {
   variantBatches?: Array<{ id: string; variants: PlayDesign[]; count: number; status: string; human_review_required?: boolean; review?: { ready: boolean; ready_count: number; blocked_count: number } }>;
   onRequestVariantReview?: (batchId: string) => Promise<void>;
   onApproveVariantReview?: (batchId: string) => Promise<void>;
+  onCreateVariantReleaseBundle?: (batchId: string) => Promise<void>;
   onOpenVariant?: (designId: string) => void;
   selectedElementIds?: string[];
 }
@@ -67,7 +68,7 @@ function AssetGlyph({ asset }: { asset: PlayAsset }) {
   return <span className={`asset-glyph asset-glyph--${kind}`} aria-hidden="true"><i /></span>;
 }
 
-export function AssetPalette({ assets, design, activeAsset, templates = [], variantBatches = [], loading, onChoose, onApplyTemplate, onSaveTemplate, onCreateVariants, onOpenVariant, onRequestVariantReview, onApproveVariantReview, selectedElementIds = [] }: AssetPaletteProps) {
+export function AssetPalette({ assets, design, activeAsset, templates = [], variantBatches = [], loading, onChoose, onApplyTemplate, onSaveTemplate, onCreateVariants, onOpenVariant, onRequestVariantReview, onApproveVariantReview, onCreateVariantReleaseBundle, selectedElementIds = [] }: AssetPaletteProps) {
   const [libraryMode, setLibraryMode] = useState<'assets' | 'templates'>('assets');
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
@@ -111,7 +112,7 @@ export function AssetPalette({ assets, design, activeAsset, templates = [], vari
 
       {libraryMode === 'templates' ? (
         <Suspense fallback={<div className="asset-list__loading"><i /><i /><i /><i /></div>}>
-          <TemplateLibraryPanel templates={templates} design={design} variantBatches={variantBatches} selectedElementIds={selectedElementIds} onApply={onApplyTemplate ?? (() => undefined)} onSave={onSaveTemplate} onCreateVariants={onCreateVariants} onOpenVariant={onOpenVariant} onRequestVariantReview={onRequestVariantReview} onApproveVariantReview={onApproveVariantReview} />
+          <TemplateLibraryPanel templates={templates} design={design} variantBatches={variantBatches} selectedElementIds={selectedElementIds} onApply={onApplyTemplate ?? (() => undefined)} onSave={onSaveTemplate} onCreateVariants={onCreateVariants} onOpenVariant={onOpenVariant} onRequestVariantReview={onRequestVariantReview} onApproveVariantReview={onApproveVariantReview} onCreateVariantReleaseBundle={onCreateVariantReleaseBundle} />
         </Suspense>
       ) : null}
 

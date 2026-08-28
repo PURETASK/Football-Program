@@ -181,6 +181,23 @@ export function approvePlayVariantBatchReview(session: AppSession, batchId: stri
   });
 }
 
+export interface PlayVariantReleaseBundle {
+  id: string;
+  organization_id: string;
+  batch_id: string;
+  status: 'frozen' | string;
+  immutable: boolean;
+  manifest_hash: string;
+  production_activation: boolean;
+}
+
+export function createPlayVariantReleaseBundle(session: AppSession, batchId: string, decisionRef: string): Promise<PlayVariantReleaseBundle> {
+  return request<PlayVariantReleaseBundle>('/v1/playbook/designs/variants/create-release-bundle', session, {
+    method: 'POST',
+    body: organizationBody(session, { batch_id: batchId, decision_ref: decisionRef }),
+  });
+}
+
 export function savePlayDesign(session: AppSession, design: PlayDesign, expectedRevision?: number): Promise<PlayDesign> {
   return request<PlayDesign>('/v1/playbook/designs', session, {
     method: 'POST',

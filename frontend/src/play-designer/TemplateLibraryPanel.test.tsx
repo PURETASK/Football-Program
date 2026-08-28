@@ -126,4 +126,13 @@ describe('TemplateLibraryPanel', () => {
     await user.click(screen.getByRole('button', { name: 'Approve batch for release' }));
     expect(onApproveVariantReview).toHaveBeenCalledWith('VARIANT-BATCH-OWNER-001');
   });
+
+  it('shows the immutable release-bundle action only after batch approval', async () => {
+    const user = userEvent.setup();
+    const onCreateVariantReleaseBundle = vi.fn().mockResolvedValue(undefined);
+    render(<TemplateLibraryPanel templates={[]} design={DESIGN} variantBatches={[{ id: 'VARIANT-BATCH-FROZEN-001', variants: [], count: 1, status: 'approved_for_release' }]} onApply={vi.fn()} onCreateVariantReleaseBundle={onCreateVariantReleaseBundle} />);
+
+    await user.click(screen.getByRole('button', { name: 'Freeze release bundle' }));
+    expect(onCreateVariantReleaseBundle).toHaveBeenCalledWith('VARIANT-BATCH-FROZEN-001');
+  });
 });

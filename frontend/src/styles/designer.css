@@ -395,6 +395,9 @@
 .variant-history-card__approve { justify-self: start; min-height: 26px; padding: 0 0.45rem; border: 1px solid rgb(120 166 255 / 0.34); border-radius: 5px; color: #c4d8ff; background: rgb(120 166 255 / 0.08); cursor: pointer; font-size: 0.45rem; font-weight: 800; }
 .variant-history-card__approve:hover, .variant-history-card__approve:focus-visible { border-color: rgb(157 193 255 / 0.8); background: rgb(120 166 255 / 0.16); outline: none; }
 .variant-history-card__approve:disabled { cursor: wait; opacity: 0.62; }
+.variant-history-card__release { justify-self: start; min-height: 26px; padding: 0 0.45rem; border: 1px solid rgb(255 214 115 / 0.42); border-radius: 5px; color: #ffe5a6; background: rgb(255 181 71 / 0.1); cursor: pointer; font-size: 0.45rem; font-weight: 800; }
+.variant-history-card__release:hover, .variant-history-card__release:focus-visible { border-color: rgb(255 225 151 / 0.9); background: rgb(255 181 71 / 0.18); outline: none; }
+.variant-history-card__release:disabled { cursor: wait; opacity: 0.62; }
 .merge-conflict-card__item { display: grid; gap: 0.22rem; margin-top: 0.28rem; padding: 0.25rem; border: 1px solid rgb(255 209 102 / 0.22); border-radius: 4px; background: rgb(27 22 9 / 0.45); }
 .merge-conflict-card__item summary { cursor: pointer; }
 .merge-conflict-card__values { display: grid; gap: 0.2rem; padding-left: 0.35rem; font-size: 0.45rem; }

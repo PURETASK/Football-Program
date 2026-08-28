@@ -11,7 +11,7 @@ from typing import Any
 
 
 RENDERER_VERSION = "nfl-fidos-play-renderer-1.0.0"
-LIFECYCLE_FIELDS = {"status", "approval", "validation", "latest_snapshot_id", "release_id", "release_bundle", "_revision", "_saved_at", "_saved_by", "parent_design_id", "parent_snapshot_id", "merged_branch_id", "merge_base_snapshot_id", "rolled_back_from_snapshot_id"}
+LIFECYCLE_FIELDS = {"status", "approval", "batch_approval", "validation", "latest_snapshot_id", "release_id", "release_bundle", "_revision", "_saved_at", "_saved_by", "parent_design_id", "parent_snapshot_id", "merged_branch_id", "merge_base_snapshot_id", "rolled_back_from_snapshot_id"}
 MERGE_METADATA_FIELDS = {"parent_design_id", "parent_snapshot_id", "merged_branch_id", "merge_base_snapshot_id", "rolled_back_from_snapshot_id"}
 INTEGRITY_FIELDS = {"checksum"}
 

@@ -92,6 +92,26 @@ class PlayDesignApiTests(unittest.TestCase):
             self.assertNotIn("release_id", child)
         os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
 
+    def test_variant_release_bundle_requires_owner_and_freezes_manifest_without_activation(self):
+        secret = "play-design-variant-bundle-secret-012345678901234567890"
+        os.environ["NFL_FIDOS_AUTH_SECRET"] = secret
+        coach = {"Authorization": "Bearer " + issue_token(subject="COACH-BUNDLE", role="coach_staff", organization_id="ORG-DESIGN-BUNDLE", secret=secret)}
+        owner = {"Authorization": "Bearer " + issue_token(subject="OWNER-BUNDLE", role="program_owner", organization_id="ORG-DESIGN-BUNDLE", secret=secret)}
+        with tempfile.TemporaryDirectory() as directory:
+            service = FootballIntelligenceService(JsonRepository(Path(directory) / "state.json"))
+            _, created = handle_request(method="POST", path="/v1/playbook/designs", headers=coach, body={"organization_id":"ORG-DESIGN-BUNDLE", "design":design()}, service=service)
+            _, batch = handle_request(method="POST", path="/v1/playbook/designs/variants", headers=coach, body={"organization_id":"ORG-DESIGN-BUNDLE", "design_id":created["data"]["id"], "batch_id":"VARIANT-BATCH-BUNDLE-API-001", "variants":[{"label":"Cover 3", "patch":{"coverage":"cover_3"}}]}, service=service)
+            handle_request(method="POST", path="/v1/playbook/designs/variants/request-review", headers=coach, body={"organization_id":"ORG-DESIGN-BUNDLE", "batch_id":batch["data"]["id"], "decision_ref":"DEC-REVIEW-BUNDLE-API"}, service=service)
+            handle_request(method="POST", path="/v1/playbook/designs/variants/approve-review", headers=owner, body={"organization_id":"ORG-DESIGN-BUNDLE", "batch_id":batch["data"]["id"], "decision_ref":"DEC-APPROVE-BUNDLE-API"}, service=service)
+            denied, _ = handle_request(method="POST", path="/v1/playbook/designs/variants/create-release-bundle", headers=coach, body={"organization_id":"ORG-DESIGN-BUNDLE", "batch_id":batch["data"]["id"], "decision_ref":"DEC-BUNDLE-DENIED"}, service=service)
+            self.assertEqual(denied, 403)
+            status, payload = handle_request(method="POST", path="/v1/playbook/designs/variants/create-release-bundle", headers=owner, body={"organization_id":"ORG-DESIGN-BUNDLE", "batch_id":batch["data"]["id"], "decision_ref":"DEC-BUNDLE-API"}, service=service)
+            self.assertEqual(status, 201)
+            self.assertEqual(payload["data"]["status"], "frozen")
+            self.assertTrue(payload["data"]["immutable"])
+            self.assertFalse(payload["data"]["production_activation"])
+        os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
+
     def test_export_preflight_is_org_scoped_and_returns_structured_blockers(self):
         secret = "play-design-preflight-api-secret-012345678901234567890"
         os.environ["NFL_FIDOS_AUTH_SECRET"] = secret

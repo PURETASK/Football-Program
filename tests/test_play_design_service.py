@@ -176,6 +176,15 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertEqual(approved["review_request"]["state"], "approved_for_release")
         self.assertTrue(all(service.repository.get("play_designs", item)["batch_approval"]["state"] == "approved_for_release" for item in batch["variant_ids"]))
 
+        bundle = service.create_variant_release_bundle(batch["id"], actor="owner", decision_ref="DEC-BUNDLE-001")
+        self.assertEqual(bundle["status"], "frozen")
+        self.assertTrue(bundle["immutable"])
+        self.assertFalse(bundle["production_activation"])
+        self.assertEqual(bundle["manifest"]["variant_ids"], batch["variant_ids"])
+        self.assertEqual(len(bundle["manifest_hash"]), 64)
+        with self.assertRaises(ValueError):
+            service.create_variant_release_bundle(batch["id"], actor="owner", decision_ref="DEC-BUNDLE-REPEAT")
+
     def test_batch_variants_apply_bounded_assignment_transformations(self):
         service = self.service()
         candidate = design()

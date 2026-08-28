@@ -63,6 +63,7 @@ Routes:
 - `GET /v1/playbook/designs/variants?organization_id=ORG-...&source_design_id=DESIGN-...` returns persisted organization-scoped multi-look variant batches and draft child designs, optionally filtered to one source play, with a computed per-child review readiness summary; this is read-only and does not approve or publish variants
 - `POST /v1/playbook/designs/variants/request-review` accepts `{organization_id, batch_id, decision_ref}` and atomically submits every valid draft child in a variant batch to the governed pending-approval state; it requires the collaboration review permission and never publishes the batch
 - `POST /v1/playbook/designs/variants/approve-review` accepts `{organization_id, batch_id, decision_ref}` for a program owner and records batch approval for release only after all children pass validation, lifecycle, and integrity checks; it never publishes a child automatically
+- `POST /v1/playbook/designs/variants/create-release-bundle` accepts `{organization_id, batch_id, decision_ref}` for a program owner and freezes an owner-approved batch into an immutable, hashed manifest; it does not publish children or activate production
 - `POST /v1/playbook/visuals` for coach-authored validated visual play records
 - `POST /v1/playbook/visuals/{visual_id}/what-if` for separate, human-review-required scenarios that cannot replace canonical visuals
 - `GET /v1/film/annotation-sessions?organization_id=ORG-...` for authorized annotation-session review state
