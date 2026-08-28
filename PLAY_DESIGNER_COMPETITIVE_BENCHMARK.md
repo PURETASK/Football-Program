@@ -298,3 +298,13 @@ the local HTTP/SSE replay contract in addition to the event idempotency and
 client cursor unit tests. It remains a bounded local rehearsal; real browser
 latency, network partitions, transport reordering, and production-scale
 multi-client persistence still require deployment validation.
+
+Variant history addendum — 2026-08-28: generated multi-look batches are now
+discoverable after a refresh through the organization-scoped
+`GET /v1/playbook/designs/variants` endpoint. Staff can optionally filter by
+`source_design_id`; the response preserves batch identity, source lineage,
+draft child designs, transformation recipes, immutable source revision, and
+the human-review-required state. The Play Designer workspace payload includes
+the same newest-first batch history, so later UI surfaces can restore review
+sets without relying on a transient browser result. The endpoint is read-only
+and does not approve, publish, or release any generated child.

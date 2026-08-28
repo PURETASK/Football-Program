@@ -309,6 +309,19 @@ def handle_request(*, method: str, path: str, body: dict[str, Any] | None = None
         except (KeyError, TypeError, ValueError) as exc:
             return 422, _response("invalid", None, str(exc))
         return 201, _response("ok", report)
+    if parsed.path == "/v1/playbook/designs/variants" and method.upper() == "GET":
+        organization_id = query.get("organization_id", [""])[0]
+        if not organization_id:
+            return 400, _response("error", None, "organization_id query parameter is required")
+        source_design_id = query.get("source_design_id", [None])[0]
+        if source_design_id == "":
+            source_design_id = None
+        service = service or FootballIntelligenceService(JsonRepository(Path.cwd() / ".runtime" / "core-slice-state.json"))
+        principal, denial = _authenticated(headers, action="read_team_playbook", organization_id=organization_id)
+        if denial:
+            return denial
+        batches = _play_designs(service, organization_id=principal.organization_id, actor=principal.subject).variant_batches(source_design_id=source_design_id)
+        return 200, _response("ok", {"organization_id": principal.organization_id, "source_design_id": source_design_id, "batches": batches, "count": len(batches)})
     if parsed.path == "/v1/playbook/designs" and method.upper() == "GET":
         organization_id = query.get("organization_id", [""])[0]
         if not organization_id:

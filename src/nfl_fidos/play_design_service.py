@@ -791,7 +791,15 @@ class PlayDesignService:
         designs = self.repository.list("play_designs")
         if not include_invalid:
             designs = [design for design in designs if design.get("validation", {}).get("status") == "valid"]
-        return {"organization_id": self.repository.organization_id, "designs": designs, "templates": self.templates(), "asset_count": len(load_asset_registry())}
+        return {"organization_id": self.repository.organization_id, "designs": designs, "templates": self.templates(), "variant_batches": self.variant_batches(), "asset_count": len(load_asset_registry())}
+
+    def variant_batches(self, *, source_design_id: str | None = None) -> list[dict[str, Any]]:
+        """Return persisted variant batches in newest-first review order."""
+        batches = [deepcopy(item) for item in self.repository.list("play_design_variant_batches")]
+        if source_design_id is not None:
+            batches = [item for item in batches if item.get("source_design_id") == source_design_id]
+        batches.sort(key=lambda item: (str(item.get("_saved_at", item.get("created_at", ""))), str(item.get("id", ""))), reverse=True)
+        return batches
 
     def role_view(self, design_id: str, *, role: str, mode: str = "player", step: int | None = None, user_id: str | None = None) -> dict[str, Any]:
         design = self.repository.get("play_designs", design_id)

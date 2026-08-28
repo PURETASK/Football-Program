@@ -386,3 +386,12 @@ printer/device validation remains open.
 - Advanced React parity beyond the completed operational workbenches: provider-managed media storage/deployment beyond the approved local server-path catalog, and a formal feature-parity audit before any legacy dashboard retirement. Multi-item publishing/layout composition is now locally implemented with explicit packet layouts, correct pagination, and layout-aware export metadata; true multi-user edit convergence is also implemented and locally verified for disjoint field edits with explicit overlap conflicts.
 - Deployment configuration, secret-manager/database/monitoring/provider registration, production migration and backup setup, rollback rehearsal in the target environment, and release approval.
 - Stage 0 owner authorization and Stage 25 specification acceptance; no code path should auto-advance either gate.
+
+Variant history addendum (2026-08-28): persisted multi-look variant batches are
+now restorable through the organization-scoped read endpoint
+`GET /v1/playbook/designs/variants`, with optional `source_design_id` filtering.
+The Play Designer workspace payload carries the same newest-first review
+history, preserving source lineage, draft children, transformation recipes,
+immutable source revision, and human-review-required status. This closes the
+local refresh/discoverability gap; approval, publishing, provider-scale
+administration, and pilot validation remain separately gated.

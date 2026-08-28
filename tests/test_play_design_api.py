@@ -33,6 +33,23 @@ class PlayDesignApiTests(unittest.TestCase):
                 self.assertIn(message, payload["error"])
         os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
 
+    def test_variant_history_api_is_organization_scoped_and_source_filterable(self):
+        secret = "play-design-variant-history-secret-012345678901234567890"
+        os.environ["NFL_FIDOS_AUTH_SECRET"] = secret
+        coach = {"Authorization": "Bearer " + issue_token(subject="COACH-HISTORY", role="coach_staff", organization_id="ORG-DESIGN-HISTORY", secret=secret)}
+        with tempfile.TemporaryDirectory() as directory:
+            service = FootballIntelligenceService(JsonRepository(Path(directory) / "state.sqlite3"))
+            status, created = handle_request(method="POST", path="/v1/playbook/designs", headers=coach, body={"organization_id":"ORG-DESIGN-HISTORY", "design":design()}, service=service)
+            self.assertEqual(status, 201)
+            design_id = created["data"]["id"]
+            status, _ = handle_request(method="POST", path="/v1/playbook/designs/variants", headers=coach, body={"organization_id":"ORG-DESIGN-HISTORY", "design_id":design_id, "batch_id":"VARIANT-BATCH-HISTORY-API-001", "variants":[{"label":"Cover 3", "patch":{"coverage":"cover_3"}}]}, service=service)
+            self.assertEqual(status, 201)
+            status, payload = handle_request(method="GET", path=f"/v1/playbook/designs/variants?organization_id=ORG-DESIGN-HISTORY&source_design_id={design_id}", headers=coach, service=service)
+            self.assertEqual(status, 200)
+            self.assertEqual(payload["data"]["count"], 1)
+            self.assertEqual(payload["data"]["batches"][0]["id"], "VARIANT-BATCH-HISTORY-API-001")
+        os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
+
     def test_export_preflight_is_org_scoped_and_returns_structured_blockers(self):
         secret = "play-design-preflight-api-secret-012345678901234567890"
         os.environ["NFL_FIDOS_AUTH_SECRET"] = secret

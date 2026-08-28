@@ -13,6 +13,7 @@ import {
   fetchPlayPresence,
   fetchPlayCollaborationStream,
   fetchPlayTemplates,
+  fetchPlayVariantBatches,
   fetchPlayVersionDiff,
   fetchPlayVersions,
   validatePlayDesignDraft,
@@ -66,6 +67,16 @@ export function usePlayTemplatesQuery() {
     queryFn: ({ signal }) => fetchPlayTemplates(session!, signal),
     enabled: Boolean(session),
     staleTime: 5 * 60_000,
+  });
+}
+
+export function usePlayVariantBatchesQuery(sourceDesignId?: string) {
+  const { session } = useSession();
+  return useQuery({
+    queryKey: ['play-variant-batches', session?.organizationId, sourceDesignId],
+    queryFn: ({ signal }) => fetchPlayVariantBatches(session!, sourceDesignId, signal),
+    enabled: Boolean(session),
+    staleTime: 20_000,
   });
 }
 

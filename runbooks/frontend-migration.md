@@ -255,3 +255,12 @@ sequence delivery, creation of a later event, and reconnect replay from the
 last consumed sequence. Both clients receive sequence 1 and the reconnecting
 client receives sequence 2 only. This is local transport evidence, not proof
 of browser, partition, or production-scale convergence.
+
+Variant history addendum (2026-08-28): generated Play Designer look batches
+are persisted and can be restored through the organization-scoped
+`GET /v1/playbook/designs/variants?source_design_id=...` read API. Use the
+source filter when reopening a play's review set; the response retains child
+IDs, lineage, transformations, and human-review state. This restores durable
+review context after a browser refresh but does not approve or publish a
+variant. Provider-scale caching and moderated staff workflow remain separate
+acceptance gates.

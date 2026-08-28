@@ -147,6 +147,19 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertEqual(report["variants"][0]["variant_look"]["patch"], {"coverage": "cover_3"})
         self.assertTrue(all(item["status"] == "draft" for item in report["variants"]))
 
+    def test_variant_batch_history_is_persisted_and_filterable_by_source(self):
+        service = self.service()
+        source = service.save(design(), actor="coach")
+        first = service.create_batch_variants(source["id"], actor="coach", variants=[{"label": "Cover 3", "patch": {"coverage": "cover_3"}}], batch_id="VARIANT-BATCH-HISTORY-001")
+        other_design = design()
+        other_design["id"] = "PLAY-HISTORY-OTHER"
+        other = service.save(other_design, actor="coach")
+        service.create_batch_variants(other["id"], actor="coach", variants=[{"label": "Quarters", "patch": {"coverage": "quarters"}}], batch_id="VARIANT-BATCH-HISTORY-002")
+        history = service.variant_batches(source_design_id=source["id"])
+        self.assertEqual([item["id"] for item in history], [first["id"]])
+        self.assertEqual(history[0]["variants"][0]["parent_design_id"], source["id"])
+        self.assertEqual(service.workspace()["variant_batches"][0]["id"], "VARIANT-BATCH-HISTORY-002")
+
     def test_batch_variants_apply_bounded_assignment_transformations(self):
         service = self.service()
         candidate = design()

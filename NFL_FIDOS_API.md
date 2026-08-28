@@ -60,6 +60,7 @@ Routes:
 - `POST /v1/scouting/reports` for analyst-authored, reviewable opponent scouting reports
 - `GET /v1/playbook/visual?organization_id=ORG-...&visual_id=VISUAL-...&role=...` for authorized deterministic SVG role views
 - `POST /v1/playbook/designs/export` accepts `design_ids`, `kind`, `format`, optional `layout`, role, branding, and black-white settings; layouts include `table`, `wristband_2col`, `grid_2x2`, and `grid_3x2`, with SVG/PNG restricted to single-design output
+- `GET /v1/playbook/designs/variants?organization_id=ORG-...&source_design_id=DESIGN-...` returns persisted organization-scoped multi-look variant batches and draft child designs, optionally filtered to one source play; this is read-only and does not approve or publish variants
 - `POST /v1/playbook/visuals` for coach-authored validated visual play records
 - `POST /v1/playbook/visuals/{visual_id}/what-if` for separate, human-review-required scenarios that cannot replace canonical visuals
 - `GET /v1/film/annotation-sessions?organization_id=ORG-...` for authorized annotation-session review state
