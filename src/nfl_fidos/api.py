@@ -322,6 +322,22 @@ def handle_request(*, method: str, path: str, body: dict[str, Any] | None = None
             return denial
         batches = _play_designs(service, organization_id=principal.organization_id, actor=principal.subject).variant_batches(source_design_id=source_design_id)
         return 200, _response("ok", {"organization_id": principal.organization_id, "source_design_id": source_design_id, "batches": batches, "count": len(batches)})
+    if parsed.path.startswith("/v1/playbook/designs/variants/release-bundles/") and method.upper() == "GET":
+        organization_id = query.get("organization_id", [""])[0]
+        bundle_id = parsed.path.rsplit("/", 1)[-1]
+        if not organization_id:
+            return 400, _response("error", None, "organization_id query parameter is required")
+        if not bundle_id:
+            return 400, _response("error", None, "release bundle id is required")
+        service = service or FootballIntelligenceService(JsonRepository(Path.cwd() / ".runtime" / "core-slice-state.json"))
+        principal, denial = _authenticated(headers, action="read_team_playbook", organization_id=organization_id)
+        if denial:
+            return denial
+        try:
+            result = _play_designs(service, organization_id=principal.organization_id, actor=principal.subject).inspect_variant_release_bundle(bundle_id)
+        except KeyError as exc:
+            return 404, _response("not_found", None, str(exc))
+        return 200, _response("ok", result)
     if parsed.path == "/v1/playbook/designs/variants/request-review" and method.upper() == "POST":
         required = ("organization_id", "batch_id", "decision_ref")
         missing = [field for field in required if not body.get(field)]

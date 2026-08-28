@@ -185,6 +185,13 @@ class PlayDesignServiceTests(unittest.TestCase):
         history_with_bundle = service.variant_batches(source_design_id=source["id"])[0]
         self.assertEqual(history_with_bundle["release_bundle"]["id"], bundle["id"])
         self.assertTrue(history_with_bundle["release_bundle"]["immutable"])
+        self.assertTrue(history_with_bundle["release_bundle"]["integrity_valid"])
+        inspected = service.inspect_variant_release_bundle(bundle["id"])
+        self.assertTrue(inspected["integrity"]["valid"])
+        tampered = service.repository.get("play_design_variant_release_bundles", bundle["id"])
+        tampered["manifest"]["variant_ids"] = []
+        service.repository.put("play_design_variant_release_bundles", bundle["id"], tampered, actor="TEST", reason="tamper_fixture")
+        self.assertFalse(service.inspect_variant_release_bundle(bundle["id"])["integrity"]["valid"])
         with self.assertRaises(ValueError):
             service.create_variant_release_bundle(batch["id"], actor="owner", decision_ref="DEC-BUNDLE-REPEAT")
 

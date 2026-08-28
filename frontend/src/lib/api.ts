@@ -150,7 +150,7 @@ export function createPlayTemplate(session: AppSession, input: { designId: strin
 }
 
 export interface PlayVariantBatchReview { ready: boolean; ready_count: number; blocked_count: number; items: Array<{ design_id: string; state: string; ready: boolean; validation_status?: string; lifecycle?: string; approval_state?: string; reasons: string[] }> }
-export interface PlayVariantBatchResult { id: string; source_design_id: string; variant_ids: string[]; variants: PlayDesign[]; count: number; status: string; human_review_required?: boolean; review?: PlayVariantBatchReview; release_bundle?: Pick<PlayVariantReleaseBundle, 'id' | 'status' | 'immutable' | 'manifest_hash' | 'created_at' | 'production_activation'> }
+export interface PlayVariantBatchResult { id: string; source_design_id: string; variant_ids: string[]; variants: PlayDesign[]; count: number; status: string; human_review_required?: boolean; review?: PlayVariantBatchReview; release_bundle?: Pick<PlayVariantReleaseBundle, 'id' | 'status' | 'immutable' | 'manifest_hash' | 'created_at' | 'production_activation'> & { integrity_valid?: boolean } }
 
 export interface PlayVariantBatchHistory { organization_id: string; source_design_id?: string | null; batches: PlayVariantBatchResult[]; count: number }
 
@@ -197,6 +197,10 @@ export function createPlayVariantReleaseBundle(session: AppSession, batchId: str
     method: 'POST',
     body: organizationBody(session, { batch_id: batchId, decision_ref: decisionRef }),
   });
+}
+
+export function fetchPlayVariantReleaseBundle(session: AppSession, bundleId: string, signal?: AbortSignal): Promise<PlayVariantReleaseBundle & { integrity: { valid: boolean; expected_manifest_hash?: string; declared_manifest_hash?: string } }> {
+  return request(`/v1/playbook/designs/variants/release-bundles/${encodeURIComponent(bundleId)}?organization_id=${encodeURIComponent(session.organizationId)}`, session, { signal });
 }
 
 export function savePlayDesign(session: AppSession, design: PlayDesign, expectedRevision?: number): Promise<PlayDesign> {

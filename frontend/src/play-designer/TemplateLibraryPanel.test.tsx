@@ -139,7 +139,7 @@ describe('TemplateLibraryPanel', () => {
   it('renders the persisted frozen release-bundle identity', () => {
     render(<TemplateLibraryPanel templates={[]} design={DESIGN} variantBatches={[{ id: 'VARIANT-BATCH-LOCKED-001', variants: [], count: 1, status: 'approved_for_release', release_bundle: { id: 'VARIANT-RELEASE-VARIANT-BATCH-LOCKED-001', status: 'frozen', immutable: true, manifest_hash: 'abcdef1234567890', created_at: '2026-08-28T00:00:00Z', production_activation: false } }]} onApply={vi.fn()} />);
 
-    expect(screen.getByText('Frozen release bundle')).toBeVisible();
+    expect(screen.getByText(/Frozen release bundle/)).toBeVisible();
     expect(screen.getByText('VARIANT-RELEASE-VARIANT-BATCH-LOCKED-001')).toBeVisible();
     expect(screen.getByText(/production activation disabled/)).toBeVisible();
   });

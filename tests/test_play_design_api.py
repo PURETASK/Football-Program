@@ -110,6 +110,12 @@ class PlayDesignApiTests(unittest.TestCase):
             self.assertEqual(payload["data"]["status"], "frozen")
             self.assertTrue(payload["data"]["immutable"])
             self.assertFalse(payload["data"]["production_activation"])
+            read_status, read_payload = handle_request(method="GET", path=f"/v1/playbook/designs/variants/release-bundles/{payload['data']['id']}?organization_id=ORG-DESIGN-BUNDLE", headers=coach, service=service)
+            self.assertEqual(read_status, 200)
+            self.assertTrue(read_payload["data"]["integrity"]["valid"])
+            other = {"Authorization": "Bearer " + issue_token(subject="OTHER-BUNDLE", role="coach_staff", organization_id="ORG-OTHER-BUNDLE", secret=secret)}
+            denied_read, _ = handle_request(method="GET", path=f"/v1/playbook/designs/variants/release-bundles/{payload['data']['id']}?organization_id=ORG-DESIGN-BUNDLE", headers=other, service=service)
+            self.assertEqual(denied_read, 403)
         os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
 
     def test_export_preflight_is_org_scoped_and_returns_structured_blockers(self):

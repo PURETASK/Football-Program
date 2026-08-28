@@ -1,7 +1,7 @@
 import { beforeEach, expect, vi } from 'vitest';
 
 import type { AppSession, PracticePlan } from '../types';
-import { appendCollaborationComment, approvePlayLegalityOverride, createCollaborationThread, createDeliveryPacket, createPilotDeliveryPackage, createPlayTemplate, createPlayVariants, createPlayVariantReleaseBundle, evaluatePilotReadiness, exportPlayDesign, fetchAdminWorkspace, fetchCollaborationWorkspace, fetchCollaborationStream, fetchOrganizationPopulationReadiness, fetchPlayAssets, fetchPlayCollaborationStream, fetchPlayVariantBatches, fetchStage25Acceptance, fetchPracticeAttendance, markCollaborationNotificationsRead, createFilmClip, createFilmObservation, createFilmVoiceNote, createGamePlanReleaseSnapshot, createPracticePlan, fetchFilmWorkspace, fetchMediaProcessingJob, fetchMediaProcessingJobs, fetchOperationsInbox, fetchPlayRoleView, fetchPlayVersionDiff, fetchPracticeDrills, fetchScoutingTendencies, markOperationsNotificationsRead, mergePlayBranch, preflightPlayDesignExport, recordAnalyticsOutcome, recordPlayMastery, recordPracticeAttendance, registerFilmAsset, requestPlayLegalityOverride, reviewGovernanceItem, selectPilotOrganization, submitPlayQuiz, submitStage25Acceptance, submitUsabilityFeedback, validatePlayDesignDraft } from './api';
+import { appendCollaborationComment, approvePlayLegalityOverride, createCollaborationThread, createDeliveryPacket, createPilotDeliveryPackage, createPlayTemplate, createPlayVariants, createPlayVariantReleaseBundle, evaluatePilotReadiness, exportPlayDesign, fetchAdminWorkspace, fetchCollaborationWorkspace, fetchCollaborationStream, fetchOrganizationPopulationReadiness, fetchPlayAssets, fetchPlayCollaborationStream, fetchPlayVariantBatches, fetchPlayVariantReleaseBundle, fetchStage25Acceptance, fetchPracticeAttendance, markCollaborationNotificationsRead, createFilmClip, createFilmObservation, createFilmVoiceNote, createGamePlanReleaseSnapshot, createPracticePlan, fetchFilmWorkspace, fetchMediaProcessingJob, fetchMediaProcessingJobs, fetchOperationsInbox, fetchPlayRoleView, fetchPlayVersionDiff, fetchPracticeDrills, fetchScoutingTendencies, markOperationsNotificationsRead, mergePlayBranch, preflightPlayDesignExport, recordAnalyticsOutcome, recordPlayMastery, recordPracticeAttendance, registerFilmAsset, requestPlayLegalityOverride, reviewGovernanceItem, selectPilotOrganization, submitPlayQuiz, submitStage25Acceptance, submitUsabilityFeedback, validatePlayDesignDraft } from './api';
 
 const SESSION: AppSession = {
   organizationId: 'ORG-TEST-001',
@@ -77,6 +77,13 @@ describe('operational API wiring', () => {
     expect(bundle.production_activation).toBe(false);
     expect(fetchMock.mock.calls[0][0]).toBe('/v1/playbook/designs/variants/create-release-bundle');
     expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toMatchObject({ organization_id: 'ORG-TEST-001', batch_id: 'BATCH-1', decision_ref: 'DECISION-1' });
+  });
+
+  it('reads a release bundle with organization scope and integrity evidence', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => response({ id: 'VARIANT-RELEASE-BATCH/1', status: 'frozen', immutable: true, manifest_hash: 'abc', production_activation: false, integrity: { valid: true } }));
+    const bundle = await fetchPlayVariantReleaseBundle(SESSION, 'VARIANT-RELEASE-BATCH/1');
+    expect(bundle.integrity.valid).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe('/v1/playbook/designs/variants/release-bundles/VARIANT-RELEASE-BATCH%2F1?organization_id=ORG-TEST-001');
   });
 
   it('loads the complete Film Room in parallel from its five organization-scoped endpoints', async () => {

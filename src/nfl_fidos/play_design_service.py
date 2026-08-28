@@ -31,6 +31,12 @@ def _template_fingerprint(template: dict[str, Any]) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
+def _release_manifest_hash(manifest: dict[str, Any]) -> str:
+    """Return the canonical hash used to verify an immutable release manifest."""
+    payload = json.dumps(manifest, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
 def _parse_expiry(value: Any) -> datetime:
     text = _clean_required_text(value, "expires_at")
     try:
@@ -802,6 +808,8 @@ class PlayDesignService:
         for batch in batches:
             release_bundle = self.repository.get("play_design_variant_release_bundles", f"VARIANT-RELEASE-{batch.get('id')}")
             if release_bundle is not None:
+                manifest = release_bundle.get("manifest")
+                expected_hash = _release_manifest_hash(manifest) if isinstance(manifest, dict) else None
                 batch["release_bundle"] = {
                     "id": release_bundle.get("id"),
                     "status": release_bundle.get("status"),
@@ -809,6 +817,7 @@ class PlayDesignService:
                     "manifest_hash": release_bundle.get("manifest_hash"),
                     "created_at": release_bundle.get("created_at"),
                     "production_activation": bool(release_bundle.get("production_activation")),
+                    "integrity_valid": bool(expected_hash and expected_hash == release_bundle.get("manifest_hash")),
                 }
             review_items = []
             for variant_id in batch.get("variant_ids", []):
@@ -912,9 +921,20 @@ class PlayDesignService:
                 raise ValueError({"code": "VARIANT-RELEASE-INTEGRITY-INVALID", "design_id": design_id, "issues": integrity["issues"]})
             entries.append({"design_id": design_id, "version": child.get("version"), "snapshot_id": child.get("latest_snapshot_id"), "checksum": child.get("checksum"), "renderer_version": child.get("renderer_version"), "renderer_checksum": child.get("renderer_checksum")})
         manifest = {"batch_id": batch_id, "source_design_id": batch.get("source_design_id"), "variant_ids": list(batch.get("variant_ids", [])), "entries": entries, "approval_decision_ref": (batch.get("review_request") or {}).get("decision_ref"), "approved_for_release": True}
-        manifest_hash = hashlib.sha256(json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+        manifest_hash = _release_manifest_hash(manifest)
         bundle = {"id": bundle_id, "organization_id": self.repository.organization_id, "batch_id": batch_id, "status": "frozen", "immutable": True, "created_by": actor, "decision_ref": decision, "created_at": datetime.now(timezone.utc).isoformat(), "manifest": manifest, "manifest_hash": manifest_hash, "production_activation": False}
         return self.repository.put("play_design_variant_release_bundles", bundle_id, bundle, actor=actor, reason="play_design_variant_release_bundle_created")
+
+    def inspect_variant_release_bundle(self, bundle_id: str) -> dict[str, Any]:
+        """Read a frozen bundle and report whether its manifest remains intact."""
+        bundle = self.repository.get("play_design_variant_release_bundles", bundle_id)
+        if bundle is None:
+            raise KeyError(f"Unknown variant release bundle: {bundle_id}")
+        manifest = bundle.get("manifest")
+        expected_hash = _release_manifest_hash(manifest) if isinstance(manifest, dict) else None
+        inspected = deepcopy(bundle)
+        inspected["integrity"] = {"valid": bool(expected_hash and expected_hash == bundle.get("manifest_hash")), "expected_manifest_hash": expected_hash, "declared_manifest_hash": bundle.get("manifest_hash")}
+        return inspected
 
     def role_view(self, design_id: str, *, role: str, mode: str = "player", step: int | None = None, user_id: str | None = None) -> dict[str, Any]:
         design = self.repository.get("play_designs", design_id)
