@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nfl-fidos.local/contracts/play-design-variant.schema.json",
+  "title": "NFL FIDOS Play Design Variant Batch",
+  "description": "Bounded, human-reviewable look variants derived from a canonical play design. Runtime services remain authoritative for field-level football validation.",
+  "type": "object",
+  "required": ["design_id", "variants"],
+  "properties": {
+    "design_id": {"type": "string", "minLength": 1},
+    "batch_id": {"type": "string", "pattern": "^VARIANT-BATCH-.+"},
+    "variants": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {"$ref": "#/$defs/variant"}
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "lookPatch": {
+      "type": "object",
+      "description": "At least one look-level field is required by the service.",
+      "minProperties": 1,
+      "properties": {
+        "formation": {"type": "string"},
+        "front": {"type": "string"},
+        "coverage": {"type": "string"},
+        "personnel": {"type": "string"},
+        "concept": {"type": "string"},
+        "rule_profile": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "assignmentValue": {
+      "description": "A JSON value accepted by the bounded assignment transformation layer; semantic validation is performed by the football service.",
+      "anyOf": [
+        {"type": "string"},
+        {"type": "number"},
+        {"type": "boolean"},
+        {"type": "null"},
+        {"type": "array"},
+        {"type": "object"}
+      ]
+    },
+    "assignmentPatch": {
+      "type": "object",
+      "required": ["element_id", "patch"],
+      "properties": {
+        "element_id": {"type": "string", "minLength": 1},
+        "patch": {
+          "type": "object",
+          "minProperties": 1,
+          "properties": {
+            "type": {"type": "string"},
+            "points": {"type": "array"},
+            "path": {"type": "array"},
+            "note": {"type": "string"},
+            "assignment": {"type": "string"},
+            "responsibility": {"type": "string"},
+            "objective": {"type": "string"},
+            "technique": {"type": "string"},
+            "landmark": {"type": "string"},
+            "depth_yards": {"type": "number"},
+            "leverage": {"type": "string"},
+            "gap": {"type": "string"},
+            "fit_gap": {"type": "string"},
+            "gap_owner": {"type": "string"},
+            "gap_owner_label": {"type": "string"},
+            "fit_rule": {"type": "string"},
+            "coverage": {"type": "string"},
+            "rush_lane": {"type": "string"},
+            "blitz_path": {"type": "string"},
+            "stunt": {"type": "string"},
+            "rotation": {"type": "string"},
+            "rotation_trigger": {"type": "string"},
+            "rotation_from_zone": {"type": "string"},
+            "rotation_to_zone": {"type": "string"},
+            "rotation_replacement_player_id": {"type": "string"},
+            "rotation_vacated_zone": {"type": "string"},
+            "rotation_sequence": {"type": "integer", "minimum": 0},
+            "rotation_communication": {"type": "string"},
+            "blocking_primitive": {"type": "string"},
+            "protection_mode": {"type": "string"},
+            "release_after_ms": {"type": "integer"},
+            "route_family": {"type": "string"},
+            "stem_depth_yards": {"type": "number"},
+            "break_type": {"type": "string"},
+            "break_depth_yards": {"type": "number"},
+            "finish_direction": {"type": "string"},
+            "option_rule": {"type": "string"},
+            "option_condition": {"type": "string"},
+            "arrow_style": {"type": "string"},
+            "arrow_ends": {"type": "boolean"},
+            "path_mode": {"type": "string"},
+            "line_style": {"type": "string"},
+            "stroke_width": {"type": "number"},
+            "line_cap": {"type": "string"},
+            "start_ms": {"type": "integer"},
+            "end_ms": {"type": "integer"},
+            "timing": {"type": "object"},
+            "phase": {"type": "string"},
+            "zone": {"type": "string"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "variant": {
+      "type": "object",
+      "required": ["label", "patch"],
+      "properties": {
+        "label": {"type": "string", "minLength": 1},
+        "patch": {"$ref": "#/$defs/lookPatch"},
+        "assignment_patches": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {"$ref": "#/$defs/assignmentPatch"}
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

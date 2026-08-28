@@ -136,6 +136,8 @@ How to use: open the timeline, select an element, set start/end timing and phase
 
 Supports draft save, revision history, review requests, comments, replies, resolution/reopen, presence, branching, visual source-vs-variant comparison, metadata and element-level diffs, merges, immutable publish snapshots, checksums, rollback, and release checks.
 
+Variant batches are governed by `contracts/play-design-variant.schema.json`: each look must have a label and at least one bounded look-level change, may include no more than 64 explicit assignment transformations, and remains a draft child until human review and publication. The schema documents the integration boundary; the Python service remains authoritative for element existence, supported fields, legality, and tenant authorization.
+
 How to use: create a branch for a competing look, compare it with the source, review added/removed/changed assignments, request staff review, resolve comments, merge only when authorized, and publish a locked snapshot only after validation.
 
 ### Exports
@@ -402,6 +404,7 @@ The implementation foundation is extensive, but the following remain external or
 - `NFL_FIDOS_TUTORIAL.md` — operator/developer tutorial.
 - `PLAY_DESIGNER_BUILD_GUIDE.md` — play-designer architecture and build guide.
 - `PLAY_DESIGNER_COMPETITIVE_BENCHMARK.md` — competitive capability target and reconciliation.
+- `contracts/play-design-variant.schema.json` — machine-readable contract for bounded look variants and assignment transformations.
 - `governance/master-plan/NFL_Football_Intelligence_OS_Master_Codex_Plan_v1.0.md` — authoritative master plan.
 - `agents/agent-organization-bible.json` — controlled agent roles and handoff rules.
 - `control/` — stage, governance, safety, acceptance, and evidence contracts.

@@ -1,5 +1,6 @@
 import tempfile
 from copy import deepcopy
+import json
 import unittest
 from pathlib import Path
 
@@ -18,6 +19,19 @@ class PlayDesignServiceTests(unittest.TestCase):
         path.unlink()
         repository = JsonRepository(path)
         return PlayDesignService(TenantRepository(repository, organization_id="ORG-PLAY", actor="coach"))
+
+    def test_variant_contract_describes_bounded_batch_and_assignment_transformations(self):
+        root = Path(__file__).resolve().parents[1]
+        contract = json.loads((root / "contracts" / "play-design-variant.schema.json").read_text(encoding="utf-8"))
+        self.assertEqual(contract["$schema"], "https://json-schema.org/draft/2020-12/schema")
+        self.assertEqual(contract["properties"]["variants"]["maxItems"], 32)
+        variant = contract["$defs"]["variant"]
+        self.assertEqual(variant["required"], ["label", "patch"])
+        assignment = contract["$defs"]["assignmentPatch"]
+        self.assertEqual(variant["properties"]["assignment_patches"]["maxItems"], 64)
+        self.assertEqual(assignment["properties"]["patch"]["additionalProperties"], False)
+        self.assertEqual(assignment["properties"]["element_id"]["minLength"], 1)
+        self.assertIn("route_family", assignment["properties"]["patch"]["properties"])
 
     def test_registry_exposes_assets_and_templates(self):
         service = self.service()
