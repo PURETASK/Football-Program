@@ -1282,3 +1282,20 @@ with the edited geometry, timing window, branch condition, collision model,
 teaching view, and export pipeline. Verification: the full frontend suite passes
 with 231 tests and 46 test files, TypeScript typecheck passes, and the
 production Vite build passes.
+
+### Implementation addendum — professional asset catalog expansion (2026-08-28)
+
+The canonical asset registry now contains 113 versioned, searchable assets
+across formation, route, motion, run, protection, block, front, coverage,
+pressure, stunt, rotation, check, and teaching families. The expanded catalog
+adds professional front variants (under, even, odd, mint, wide, reduced,
+nickel, dime, goal-line, and custom), split-field and match coverage variants,
+interior/overload/creeper/green-dog/spy/contain pressures, line-game movement
+(TE, twist, pirate, long-stick, pinch, slant, and loop), spin/buzz/poach
+rotations, and reach/down/trap/wrap/fold/climb/scoop/insert/arc/screen-release
+blocking with full-slide and scan protection. Existing aliases, descriptions,
+accessibility text, lifecycle fields, thumbnails, and compatibility metadata
+remain governed by the registry contract and flow directly to the React asset
+palette. Verification: the Python registry contract passes, 22 focused
+service tests pass, the full frontend suite passes with 231 tests, typecheck
+passes, and the production Vite build passes.
