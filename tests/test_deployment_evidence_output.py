@@ -1,6 +1,7 @@
 import contextlib
 import io
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -24,7 +25,7 @@ class DeploymentEvidenceOutputTests(unittest.TestCase):
                 "--output",
                 str(output),
             ]
-            with patch("sys.argv", argv), contextlib.redirect_stdout(io.StringIO()):
+            with patch("sys.argv", argv), patch.dict(os.environ, {"NFL_FIDOS_AUTH_SECRET": ""}, clear=False), contextlib.redirect_stdout(io.StringIO()):
                 exit_code = deployment_preflight.main()
 
             self.assertEqual(exit_code, 1)
