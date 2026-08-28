@@ -280,6 +280,15 @@ describe('DesignerInspector assignment graph controls', () => {
     expect(props.onRequestLegalityOverride).toHaveBeenCalledWith({ issueCode: 'LEGALITY-ELIGIBILITY', rationale: 'Local rulebook permits this exception.', decisionRef: 'DEC-LEGALITY-1', evidenceRefs: ['RULEBOOK-1', 'FILM-CLIP-1'], expiresAt: '2026-09-01T16:00' });
   });
 
+  it('shows pending override requests and collects an owner approval reference', () => {
+    const props = { ...inspectorProps(), onApproveLegalityOverride: vi.fn(), canApproveLegalityOverride: true };
+    render(<DesignerInspector {...props} tab="validate" legality={{ design_id: DESIGN.id, rule_profile: 'nfl', status: 'invalid', issues: [], overrides: [{ id: 'OVERRIDE-1', issue_code: 'LEGALITY-ELIGIBILITY', status: 'pending_owner_approval', rationale: 'Local exception documented.', evidence_refs: ['RULEBOOK-1'] }] }} />);
+    expect(screen.getByRole('region', { name: 'Pending legality override requests' })).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Approval decision reference for OVERRIDE-1' }), { target: { value: 'APPROVAL-LEGALITY-1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Approve override' }));
+    expect(props.onApproveLegalityOverride).toHaveBeenCalledWith({ overrideId: 'OVERRIDE-1', decisionRef: 'APPROVAL-LEGALITY-1' });
+  });
+
   it('expands exact base, target, and branch values for a merge conflict', () => {
     const props = inspectorProps();
     render(<DesignerInspector {...props} tab="review" mergeConflict={{ status: 'conflict', branch_id: 'BR-1', conflicts: [{ path: 'elements.FIT-WLB.type', base: 'fit', target: 'spill', branch: 'box', message: 'Both branches changed the assignment.' }] }} />);

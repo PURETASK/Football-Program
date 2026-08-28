@@ -237,6 +237,13 @@ export function requestPlayLegalityOverride(session: AppSession, values: {
   });
 }
 
+export function approvePlayLegalityOverride(session: AppSession, values: { designId: string; overrideId: string; decisionRef: string }): Promise<Record<string, unknown>> {
+  return request<Record<string, unknown>>('/v1/playbook/designs/legality/override/approve', session, {
+    method: 'POST',
+    body: organizationBody(session, { design_id: values.designId, override_id: values.overrideId, decision_ref: values.decisionRef }),
+  });
+}
+
 export function fetchPlayRoleView(
   session: AppSession,
   designId: string,

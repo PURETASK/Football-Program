@@ -26,6 +26,7 @@ import {
   leavePlayPresence,
   mergePlayBranch,
   publishPlayDesign,
+  approvePlayLegalityOverride,
   requestPlayLegalityOverride,
   requestPlayReview,
   savePlayDesign,
@@ -431,6 +432,15 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
     );
   };
 
+  const approveLegalityOverride = (values: { overrideId: string; decisionRef: string }) => {
+    if (!session) return;
+    void runAction(
+      () => approvePlayLegalityOverride(session, { designId: state.present.id, ...values }),
+      () => undefined,
+      `Legality override ${values.overrideId} approved. Re-run Checks before release.`,
+    );
+  };
+
   const saveConflictCopy = async () => {
     if (!session) return;
     const suffix = Date.now().toString(36).toUpperCase();
@@ -656,6 +666,8 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
             onToggleCompare={setCompareVisible}
             onMerge={mergeBranch}
             onRequestLegalityOverride={requestLegalityOverride}
+            onApproveLegalityOverride={approveLegalityOverride}
+            canApproveLegalityOverride={session?.role === 'program_owner'}
           />
         </Suspense>
       </div>

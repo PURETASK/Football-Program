@@ -80,6 +80,8 @@ interface InspectorProps {
   onToggleCompare?: (visible: boolean) => void;
   onMerge: (branchId: string) => void;
   onRequestLegalityOverride?: (values: { issueCode: string; rationale: string; decisionRef: string; evidenceRefs: string[]; expiresAt: string }) => void;
+  onApproveLegalityOverride?: (values: { overrideId: string; decisionRef: string }) => void;
+  canApproveLegalityOverride?: boolean;
   assets?: PlayAsset[];
   templates?: PlayTemplate[];
   onChooseAsset?: (asset: PlayAsset) => void;
@@ -423,8 +425,9 @@ function LayersPanel({ design, selected, onSelect, onPlayer, onElement }: Pick<I
   );
 }
 
-function ValidationPanel({ design, legality, validationPending, validationError, onSelect, onTab, onRequestLegalityOverride }: Pick<InspectorProps, 'design' | 'legality' | 'validationPending' | 'validationError' | 'onSelect' | 'onTab' | 'onRequestLegalityOverride'>) {
+function ValidationPanel({ design, legality, validationPending, validationError, onSelect, onTab, onRequestLegalityOverride, onApproveLegalityOverride, canApproveLegalityOverride }: Pick<InspectorProps, 'design' | 'legality' | 'validationPending' | 'validationError' | 'onSelect' | 'onTab' | 'onRequestLegalityOverride' | 'onApproveLegalityOverride' | 'canApproveLegalityOverride'>) {
   const [overrideIssue, setOverrideIssue] = useState<string | null>(null);
+  const [approvalRefs, setApprovalRefs] = useState<Record<string, string>>({});
   const report = legality ?? { status: design.validation?.status ?? 'not_checked', issues: design.validation?.issues ?? [] };
   const localIssues = [...defensiveResponsibilityIssues(design), ...offensiveBlockingIssues(design), ...timelineIntegrityIssues(design)];
   const issueKeys = new Set(report.issues.map((issue) => `${issue.code ?? ''}:${issue.path ?? ''}`));
@@ -483,6 +486,13 @@ function ValidationPanel({ design, legality, validationPending, validationError,
           </article>
         ))}
       </div>
+      {legality && 'overrides' in legality && legality.overrides.some((item) => item.status === 'pending_owner_approval') ? <section className="legality-override-queue" aria-label="Pending legality override requests">
+        <header><strong>Owner approval queue</strong><span>{legality.overrides.filter((item) => item.status === 'pending_owner_approval').length} pending</span></header>
+        {legality.overrides.filter((item) => item.status === 'pending_owner_approval').map((item) => {
+          const overrideId = String(item.id ?? '');
+          return <article key={overrideId}><div><strong>{String(item.issue_code ?? 'Legality exception')}</strong><small>{String(item.rationale ?? 'No rationale recorded')}</small><small>Evidence: {Array.isArray(item.evidence_refs) ? item.evidence_refs.join(', ') : 'Not provided'}</small></div>{canApproveLegalityOverride && onApproveLegalityOverride ? <form onSubmit={(event) => { event.preventDefault(); const decisionRef = approvalRefs[overrideId]?.trim(); if (!decisionRef) return; onApproveLegalityOverride({ overrideId, decisionRef }); }}><label><span className="sr-only">Approval decision reference for {overrideId}</span><input aria-label={`Approval decision reference for ${overrideId}`} value={approvalRefs[overrideId] ?? ''} onChange={(event) => setApprovalRefs((current) => ({ ...current, [overrideId]: event.target.value }))} placeholder="APPROVAL-LEGALITY-001" required /></label><button className="button button--secondary" type="submit">Approve override</button></form> : <span className="approval-boundary">Program-owner approval required</span>}</article>;
+        })}
+      </section> : null}
       <p className="inspector-help">Exceptions remain finding-specific and require evidence plus program-owner approval in the controlled legality workflow.</p>
     </div>
   );
