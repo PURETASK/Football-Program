@@ -289,3 +289,12 @@ review cannot drift into a second visual-only representation. This closes the
 local visual inheritance/override explanation gap; parent-change propagation,
 network-scale administration, and production pilot evidence remain external
 acceptance work.
+
+Two-client HTTP rehearsal addendum — 2026-08-28: the HTTP test suite now
+opens the authenticated Play Designer stream as two distinct organization
+sessions, confirms both receive the same canonical sequence, creates a later
+event, and reconnects from `since=1` to receive only sequence 2. This proves
+the local HTTP/SSE replay contract in addition to the event idempotency and
+client cursor unit tests. It remains a bounded local rehearsal; real browser
+latency, network partitions, transport reordering, and production-scale
+multi-client persistence still require deployment validation.

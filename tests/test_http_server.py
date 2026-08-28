@@ -11,6 +11,8 @@ from urllib.request import Request, urlopen
 from nfl_fidos.api import handle_request
 from nfl_fidos.auth import issue_token
 from nfl_fidos.http_server import create_server
+from nfl_fidos.play_design_collaboration import PlayDesignCollaborationService
+from nfl_fidos.tenant_repository import TenantRepository
 from tests.test_play_creation import design
 
 
@@ -202,6 +204,52 @@ class HttpServerTests(unittest.TestCase):
                     self.assertEqual(response.readline().decode("utf-8"), "retry: 1500\n")
                     self.assertEqual(response.readline().decode("utf-8"), "\n")
                     self.assertTrue(response.readline().decode("utf-8").startswith("id: 1"))
+            finally:
+                server.shutdown()
+                thread.join(timeout=3)
+        finally:
+            server.server_close()
+            repository.close()
+            temporary.cleanup()
+            os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
+
+    def test_two_authenticated_play_clients_replay_shared_events_after_reconnect(self):
+        secret = "http-two-client-collaboration-secret-012345678901234567890"
+        os.environ["NFL_FIDOS_AUTH_SECRET"] = secret
+        coach_token = issue_token(subject="COACH-TWO-CLIENT", role="coach_staff", organization_id="ORG-TWO-CLIENT", secret=secret)
+        owner_token = issue_token(subject="OWNER-TWO-CLIENT", role="program_owner", organization_id="ORG-TWO-CLIENT", secret=secret)
+        temporary = tempfile.TemporaryDirectory()
+        server, repository = create_server(port=0, database_path=Path(temporary.name) / "http.sqlite3")
+        try:
+            created_status, created = handle_request(method="POST", path="/v1/playbook/designs", headers={"Authorization": "Bearer " + coach_token}, body={"organization_id": "ORG-TWO-CLIENT", "design": design()}, service=server.fidos_service)
+            self.assertEqual(created_status, 201)
+            design_id = created["data"]["id"]
+            collaboration = PlayDesignCollaborationService(TenantRepository(server.fidos_service.repository, organization_id="ORG-TWO-CLIENT", actor="COACH-TWO-CLIENT"))
+            first = collaboration.events(design_id=design_id)[0]
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                base = f"http://127.0.0.1:{server.server_address[1]}/v1/playbook/designs/{design_id}/events/stream?organization_id=ORG-TWO-CLIENT&since=0&timeout=1"
+                received_sequences = []
+                for token in (coach_token, owner_token):
+                    request = Request(base, headers={"Authorization": "Bearer " + token, "Accept": "text/event-stream"})
+                    with urlopen(request, timeout=3) as response:
+                        self.assertEqual(response.status, 200)
+                        self.assertEqual(response.readline().decode("utf-8"), "retry: 1500\n")
+                        self.assertEqual(response.readline().decode("utf-8"), "\n")
+                        event_id = response.readline().decode("utf-8")
+                        self.assertEqual(event_id, "id: 1\n")
+                        received_sequences.append(int(event_id.removeprefix("id: ").strip()))
+                second = collaboration.record_event(design_id=design_id, event_type="comment_added", actor="OWNER-TWO-CLIENT", payload={"comment_id": "COMMENT-TWO-CLIENT"}, idempotency_key="TWO-CLIENT-2")
+                self.assertEqual(first["sequence"], 1)
+                self.assertEqual(second["sequence"], 2)
+                replay_url = f"http://127.0.0.1:{server.server_address[1]}/v1/playbook/designs/{design_id}/events/stream?organization_id=ORG-TWO-CLIENT&since=1&timeout=1"
+                request = Request(replay_url, headers={"Authorization": "Bearer " + coach_token, "Accept": "text/event-stream"})
+                with urlopen(request, timeout=3) as response:
+                    self.assertEqual(response.readline().decode("utf-8"), "retry: 1500\n")
+                    self.assertEqual(response.readline().decode("utf-8"), "\n")
+                    self.assertEqual(response.readline().decode("utf-8"), "id: 2\n")
+                self.assertEqual(received_sequences, [1, 1])
             finally:
                 server.shutdown()
                 thread.join(timeout=3)

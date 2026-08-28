@@ -248,3 +248,10 @@ original event and sequence, while a reused key with a different type or
 payload is rejected. Combined with the monotonic SSE replay cursor, this
 prevents retry duplication and preserves a deterministic gap/replay boundary;
 multi-browser and production transport validation remain required.
+
+Two-client HTTP rehearsal addendum (2026-08-28): the authenticated Play
+Designer SSE test now exercises two distinct organization sessions, shared
+sequence delivery, creation of a later event, and reconnect replay from the
+last consumed sequence. Both clients receive sequence 1 and the reconnecting
+client receives sequence 2 only. This is local transport evidence, not proof
+of browser, partition, or production-scale convergence.
