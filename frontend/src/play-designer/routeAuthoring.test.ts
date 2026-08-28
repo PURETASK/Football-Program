@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { routeAuthoringPatch, routeConstructionPatch } from './routeAuthoring';
+import { routeAuthoringPatch, routeConstructionPatch, routeGeometryPatch } from './routeAuthoring';
 
 describe('route construction authoring', () => {
   it('stores stem, break, finish, and option semantics in the route phase', () => {
@@ -21,5 +21,18 @@ describe('route construction authoring', () => {
     const patch = routeConstructionPatch(element, { id: 'D1', unit: 'offense' }, { break_type: 'speed_out' });
     expect(patch).toMatchObject({ phase: 'route', break_type: 'speed_out' });
     expect(patch.points?.at(-1)).toEqual({ x: 11, y: 20 });
+  });
+
+  it('keeps direct stem and break edits synchronized with the route contract', () => {
+    const element = {
+      id: 'R1', kind: 'route', route_family: 'dropback', break_type: 'dig',
+      stem_depth_yards: 8, break_depth_yards: 12,
+      points: [{ x: 20, y: 32 }, { x: 20, y: 24 }, { x: 20, y: 20 }, { x: 28, y: 12 }],
+    };
+    const stem = routeGeometryPatch(element, { id: 'D1', unit: 'offense' }, [...element.points.slice(0, 1), { x: 24, y: 22 }, ...element.points.slice(2)], 1);
+    expect(stem).toMatchObject({ stem_depth_yards: 10, phase: 'route' });
+    const breakPatch = routeGeometryPatch(element, { id: 'D1', unit: 'offense' }, [...element.points.slice(0, 2), { x: 22, y: 18 }, ...element.points.slice(3)], 2);
+    expect(breakPatch).toMatchObject({ break_depth_yards: 14, phase: 'route' });
+    expect(breakPatch.points).toHaveLength(4);
   });
 });

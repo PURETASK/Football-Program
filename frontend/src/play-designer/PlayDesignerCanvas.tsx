@@ -27,6 +27,7 @@ import { defensiveExchangeLinks, defensiveExchangeProgress } from './defensiveEx
 import { defensiveAlignmentLabel } from './defensiveAlignment';
 import { branchProgress } from './routeBranches';
 import { timelineEventEnd, timelineEventKind, timelineEventStart } from './timelineEvents';
+import { routeGeometryPatch } from './routeAuthoring';
 
 interface CanvasProps {
   design: PlayDesign;
@@ -395,7 +396,8 @@ export function PlayDesignerCanvas({
     }
     if (elementDrag?.pointerId === event.pointerId && cancelled) setElementDrag(null);
     if (handleDrag?.pointerId === event.pointerId && !cancelled) {
-      onUpdateElement(handleDrag.elementId, { points: handleDrag.points });
+      const element = elements.find((item) => item.id === handleDrag.elementId);
+      if (element) onUpdateElement(element.id, routeGeometryPatch(element, design, handleDrag.points, handleDrag.pointIndex));
       setHandleDrag(null);
     }
     if (handleDrag?.pointerId === event.pointerId && cancelled) setHandleDrag(null);
@@ -487,7 +489,7 @@ export function PlayDesignerCanvas({
       x: point.x + (event.key === 'ArrowLeft' ? -amount : event.key === 'ArrowRight' ? amount : 0),
       y: point.y + (event.key === 'ArrowUp' ? -amount : event.key === 'ArrowDown' ? amount : 0),
     }, false);
-    onUpdateElement(element.id, { points });
+    onUpdateElement(element.id, routeGeometryPatch(element, design, points, pointIndex));
   };
 
   const editBranchHandleWithKeyboard = (event: ReactKeyboardEvent<SVGCircleElement>, element: PlayElement, branchId: string, pointIndex: number) => {
@@ -795,6 +797,7 @@ export function PlayDesignerCanvas({
                 aria-label={`Path handle ${index + 1}`}
                 aria-description={`${handleRole(selectedElement, index)} handle`}
                 data-handle-role={handleRole(selectedElement, index)}
+                data-semantic-handle={['stem', 'break'].includes(handleRole(selectedElement, index)) ? handleRole(selectedElement, index) : undefined}
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={point.x}

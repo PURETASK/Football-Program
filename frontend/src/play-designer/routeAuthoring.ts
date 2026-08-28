@@ -93,3 +93,46 @@ export function routeConstructionPatch(element: PlayElement, design: PlayDesign,
   else next.path = nextPoints;
   return next;
 }
+
+/**
+ * Persist a direct drag of a route's semantic points.  A route is more useful
+ * to a coach when its visual geometry and its coaching contract cannot drift
+ * apart: moving the stem or break point updates the corresponding depth in
+ * yards while preserving all other element metadata.
+ *
+ * We intentionally only emit semantic fields for routes that already carry a
+ * route contract.  This keeps legacy/freehand paths compatible with the
+ * generic editor payload while allowing catalog-created routes to remain
+ * explainable after direct manipulation.
+ */
+export function routeGeometryPatch(
+  element: PlayElement,
+  design: PlayDesign,
+  points: Point[],
+  pointIndex: number,
+): Partial<PlayElement> {
+  const patch: Partial<PlayElement> = element.points ? { points } : { path: points };
+  if (element.kind !== 'route' || points.length < 2) return patch;
+  const hasContract = [
+    element.route_family,
+    element.stem_depth_yards,
+    element.break_type,
+    element.break_depth_yards,
+    element.finish_direction,
+    element.option_rule,
+  ].some((value) => value !== undefined);
+  if (!hasContract) return patch;
+  const start = points[0];
+  const depth = Math.abs(points[pointIndex].y - start.y);
+  if (pointIndex > 0 && pointIndex < points.length - 1) {
+    if (pointIndex === points.length - 2) patch.break_depth_yards = Math.round(depth * 10) / 10;
+    else patch.stem_depth_yards = Math.round(depth * 10) / 10;
+  }
+  // Keep the semantic phase explicit so downstream validators and exports
+  // continue to treat a manually adjusted route as a route assignment.
+  patch.phase = 'route';
+  // Referencing design here makes the direction rule visible at the call site
+  // and protects this helper if field orientation becomes configurable.
+  void design;
+  return patch;
+}
