@@ -639,8 +639,9 @@ export function PlayDesignerCanvas({
             if (!box) return null;
             const label = `${link.owner} to ${box.label}${link.sequence !== undefined ? `, step ${link.sequence}` : ''}`;
             const midpoint = { x: (link.from.x + link.to.x) / 2, y: (link.from.y + link.to.y) / 2 };
+            const reveal = playbackTime === null ? 1 : Math.max(0, Math.min(1, (playbackTime - link.startMs) / Math.max(1, link.endMs - link.startMs)));
             return <g key={link.id} className={`designer-coverage-shell__link${link.conflict ? ' is-conflict' : ''}`} role="img" aria-label={`Coverage shell movement: ${label}${link.conflict ? '; conflict: multiple owners' : ''}`}>
-              <path d={smoothPathData([link.from, midpoint, link.to])} markerEnd={`url(#${markerPrefix}-coverage)`} />
+              <path d={smoothPathData([link.from, midpoint, link.to])} markerEnd={`url(#${markerPrefix}-coverage)`} pathLength="1" strokeDasharray={playbackTime === null ? undefined : 1} strokeDashoffset={playbackTime === null ? undefined : 1 - reveal} />
             </g>;
           })}
           {shellBoxes.map((box) => { const owners = elements.filter((element) => element.kind === 'coverage' || element.kind === 'rotation').filter((element) => element.zone === box.id || element.rotation_to_zone === box.id); const ownerLabel = owners.map((element) => `${element.player_id ?? element.type ?? element.id}${element.kind === 'rotation' && element.rotation_sequence !== undefined ? ` · step ${element.rotation_sequence}` : ''}`).join(' + ') || 'Unassigned'; return <g key={box.id} role="group" aria-label={`${box.label}: ${ownerLabel}`}>

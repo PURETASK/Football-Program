@@ -18,6 +18,8 @@ export interface CoverageShellLink {
   to: Point;
   sequence?: number;
   conflict: boolean;
+  startMs: number;
+  endMs: number;
 }
 
 const BOXES: Record<string, CoverageShellBox> = {
@@ -86,6 +88,8 @@ export function coverageShellLinks(design: PlayDesign): CoverageShellLink[] {
       to,
       sequence: element.kind === 'rotation' && element.rotation_sequence !== undefined ? element.rotation_sequence : undefined,
       conflict: (owners.get(zone)?.length ?? 0) > 1,
+      startMs: Number(element.start_ms ?? element.timing?.start_ms ?? 0),
+      endMs: Number(element.end_ms ?? element.timing?.end_ms ?? 3000),
     }];
   });
 }

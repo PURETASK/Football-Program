@@ -44,5 +44,6 @@ describe('coverage shell geometry', () => {
     ] });
     expect(links).toHaveLength(2);
     expect(links.every((link) => link.conflict)).toBe(true);
+    expect(links[0]).toMatchObject({ startMs: 0, endMs: 3000 });
   });
 });
