@@ -49,10 +49,10 @@ The NFL FIDOS Play Designer must combine the fastest professional diagram-author
 | Assignment graph | In implementation | Structured references, cycle/conflict validation, graph summary, and inspector controls |
 | Timeline | Basic synchronized playback exists | Multi-track phases, speed, cue stepping, pauses, narration, exchanges, and ball events |
 | Live checks | Saved-design legality exists | Debounced, non-persisting validation of the current unsaved draft |
-| Templates/play families | Basic templates exist | Partial-play stencils, variants vs. looks, inheritance, naming, and batch generation |
-| Collaboration/versioning | Presence, comments, events, snapshots, branching, diff, merge exist | Shared cursors/thread depth, conflict visualization, release locking, and rollback UX |
-| Teaching | Basic role views and mastery records exist | Full player animation, progressive reveal, accessible text, quizzes, and practice links |
-| Exports | Server export foundation exists | Visual fidelity, grids, install/scout formats, true wristband layouts, and render QA |
+| Templates/play families | Registry-backed templates, partial stencils, inheritance, naming, and batch variants exist | Multi-client convergence, richer catalog governance, and production-scale template administration |
+| Collaboration/versioning | Presence, shared cursors, comments, events, snapshots, branching, diffs, merge conflicts, release locking, and rollback exist | Production multi-client convergence and deployment-environment collaboration evidence |
+| Teaching | Role-filtered diagrams, mastery, player animation, progressive reveal, accessible text, quizzes, and practice links exist | Moderated player pilot evidence and production learning-data integration |
+| Exports | Server PDF/SVG/PNG/HTML/JSON/CSV, install sheets, call sheets, wristband layouts, branding, and render preflight exist | Provider-grade fidelity, printer/device certification, and production deployment evidence |
 
 ## Definition of done for this workstream
 
@@ -64,7 +64,7 @@ The benchmark is now an active engineering standard, not a research-only note. T
 
 Version review now returns the immutable base and compare designs alongside element-level diff data. The Review panel can toggle a non-interactive field overlay with dashed compared paths, ghost personnel, and an accessible legend; this keeps review evidence visible on the same field as the active draft. The teaching surface now renders the filtered role/position-group diagram, dims context players, progressively reveals authored steps, and replays the active assignment with accessible play/pause/replay controls.
 
-Verification for this addendum: the full frontend suite passes 116 tests across 27 files; the focused Play Designer service/API/export suite passes 23 tests; TypeScript typecheck passes; and the production build passes with the Play Designer route chunk at 89.48 kB, below the local 90 kB designer ceiling. Remaining benchmark gaps are still active: true multi-user edit convergence, partial-play stencil inheritance and batch variants, production-grade export layout coverage, complete rule-profile depth, automated visual/screen-reader/tablet traces, and moderated pilot evidence.
+Verification for this historical addendum: the full frontend suite passed 116 tests across 27 files; the focused Play Designer service/API/export suite passed 23 tests; TypeScript typecheck passed; and the production build passed with the Play Designer route chunk at 89.48 kB. The partial-stencil, inheritance, batch-variant, export, and teaching gaps named at that point have since been reconciled by later implementation addenda; current remaining gaps are listed in the dated capability reconciliation below.
 
 The export slice now adds a source manifest and manifest hash to every generated artifact. Each manifest records the selected design IDs, versions, immutable snapshot IDs, content checksums, renderer versions/checksums, status, release IDs, and approval state; signed exports include the manifest hash in their HMAC-covered fields. The export dialog shows this source lock before download so a packet can be traced back to the exact canonical play revision used to render it.
 
