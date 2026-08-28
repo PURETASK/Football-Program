@@ -395,3 +395,14 @@ history, preserving source lineage, draft children, transformation recipes,
 immutable source revision, and human-review-required status. This closes the
 local refresh/discoverability gap; approval, publishing, provider-scale
 administration, and pilot validation remain separately gated.
+
+Feature-parity addendum (2026-08-28): the repository now includes
+`control/feature-parity-manifest.json` and the dependency-free
+`scripts/audit_feature_parity.py` audit. The manifest maps all 22 legacy
+dashboard anchors to the React route/file that replaces or consolidates each
+surface; the audit verifies anchor presence, route tokens, source files, unique
+IDs, and the non-authorized retirement decision. The local structural result is
+`ready_for_human_review` with 11 migrated and 11 consolidated entries, while
+`retirement_authorized` remains false. Behavioral parity review, deployment
+validation, accessibility evidence, and the separately authorized legacy
+dashboard retirement decision remain open.

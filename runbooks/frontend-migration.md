@@ -139,6 +139,25 @@ Scouting tendency addendum (2026-08-25): the Scouting workbench now queries `GET
 5. Run cross-browser visual baselines, screen-reader/contrast automation, large-library performance traces, and moderated role-based usability validation.
 6. Complete the formal feature-parity audit and make a separately authorized legacy-dashboard retirement decision.
 
+## Feature-parity audit
+
+The legacy dashboard-to-React migration contract is recorded in
+`control/feature-parity-manifest.json`. It maps every legacy dashboard anchor
+to a React route and source file, distinguishing fully migrated surfaces from
+intentional consolidations such as Admin, Today, Film, and Playbook. Run the
+dependency-free audit with:
+
+```powershell
+$env:PYTHONPATH = (Resolve-Path '.\\src').Path
+python scripts/audit_feature_parity.py
+```
+
+`ready_for_human_review` means every manifest mapping resolves structurally; it
+does not authorize retirement. The audit always reports
+`retirement_authorized: false`. A human must inspect behavioral parity,
+permissions, workflows, exports, accessibility, and deployment behavior before
+making a separate retirement decision.
+
 Defensive authoring and route-budget correction (2026-08-27): the assignment
 inspector now provides structured defensive fit, coverage, pressure, stunt, and
 rotation presets, while the Play Designer route entry lazy-loads its heavy
