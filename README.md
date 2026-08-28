@@ -172,6 +172,17 @@ The report records source hashes, traceability, evaluation status, blockers,
 Stage 0 state, and production authorization. It preserves
 `completion_claimed: false` until every required gate is genuinely complete.
 
+To combine that checkpoint with feature-parity and browser-evidence validation
+in one artifact, run:
+
+```powershell
+python scripts/build_local_evidence_bundle.py `
+  --output .\\runtime\\local-evidence-bundle.json
+```
+
+The bundle is the same non-activating evidence shape retained by CI under the
+`local-evidence-bundle` artifact.
+
 Other validators:
 
 ```powershell
