@@ -175,11 +175,13 @@ production deployment, real-data integration, and moderated pilot evidence
 remain pending.
 
 Professional asset catalog addendum (2026-08-28): the canonical Play Designer
-registry now contains 121 validated assets across formations, routes, motions,
+registry now contains 128 validated assets across formations, routes, motions,
 runs, protections, blocks, fronts, coverages, pressures, stunts, rotations,
 checks, and teaching annotations. The additions include pressure, coverage,
 motion, key-read, communication, error-correction, and synchronized teaching
-pause cues. Registry validation confirms unique IDs and terms, required
+pause cues, plus wheel, whip, choice, glance, leak, screen-release, duo,
+power, counter, pin-pull, sweep, man, half-slide, empty, play-action, and
+sprint-out offensive variations. Registry validation confirms unique IDs and terms, required
 accessibility metadata, lifecycle metadata, and replacement safety. The
 existing palette, compatibility scoring, alias search, lifecycle filtering,
 thumbnails, templates, and position toolkit consume the same registry.
