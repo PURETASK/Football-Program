@@ -204,6 +204,16 @@ describe('DesignerInspector assignment graph controls', () => {
     expect(props.onElement).toHaveBeenCalledWith('BLOCK', { protection_scan_order: 'Mike to Will' });
   });
 
+  it('renders a selectable defensive alignment board', () => {
+    const props = inspectorProps();
+    const design = { ...DESIGN, players: [{ id: 'DE', position: 'DE', start: { x: 30, y: 18 }, defensive_technique: '5', defensive_alignment: 'outside_eye', alignment_key: '5T' }] };
+    render(<DesignerInspector {...props} design={design} selected={[]} />);
+    const defender = screen.getByRole('button', { name: 'DE: 5-tech · outside eye' });
+    expect(screen.getByRole('group', { name: 'Interactive defensive alignment board' })).toBeInTheDocument();
+    fireEvent.keyDown(defender, { key: 'Enter' });
+    expect(props.onSelect).toHaveBeenCalledWith({ kind: 'player', id: 'DE' });
+  });
+
   it('declares coverage-shell zones for server ownership checks', () => {
     const props = inspectorProps();
     render(<DesignerInspector {...props} />);

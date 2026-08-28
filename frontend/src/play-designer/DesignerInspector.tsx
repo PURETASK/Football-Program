@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useState, type KeyboardEvent, type ReactNode } from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -38,7 +38,7 @@ import { AssignmentGraphFields } from './AssignmentGraphFields';
 import { PositionToolkit } from './PositionToolkit';
 import { DEFENSIVE_GAP_OPTIONS, defensiveGapOwners, defensiveGapSummary } from './defensiveFront';
 import { routeCollisions } from './geometry';
-import { DEFENSIVE_ALIGNMENTS, DEFENSIVE_TECHNIQUES, defensiveAlignmentIssues, defensiveAlignmentPatch } from './defensiveAlignment';
+import { DEFENSIVE_ALIGNMENTS, DEFENSIVE_TECHNIQUES, defensiveAlignmentIssues, defensiveAlignmentLabel, defensiveAlignmentPatch } from './defensiveAlignment';
 import { CoverageShellEditor } from './CoverageShellEditor';
 import { rotationLabel } from './rotationSequencing';
 import { DEFENSIVE_EXCHANGE_ROLES, clearDefensiveExchangePairPatch, defensiveExchangePairPatch } from './defensiveExchanges';
@@ -162,6 +162,28 @@ function DefensiveFrontMap({ design, onSelect }: Pick<InspectorProps, 'design' |
         </button>;
       })}
     </div>
+  </InspectorSection>;
+}
+
+function DefensiveAlignmentMap({ design, onSelect }: Pick<InspectorProps, 'design' | 'onSelect'>) {
+  const players = (design.players ?? []).filter((player) => Boolean(player.start));
+  const activate = (id: string, event: KeyboardEvent<SVGGElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelect({ kind: 'player', id }); }
+  };
+  return <InspectorSection title="Defensive alignment board">
+    <p className="inspector-help">Select a defender to edit technique, alignment relationship, and assignment details. The board keeps the front picture visible while you author individual players.</p>
+    <svg className="defensive-alignment-board" viewBox="0 0 100 54" role="group" aria-label="Interactive defensive alignment board">
+      <rect x="0.5" y="0.5" width="99" height="53" rx="1.5" className="defensive-alignment-board__field" />
+      <line x1="0" y1="27" x2="100" y2="27" className="defensive-alignment-board__line" />
+      <text x="2" y="25" className="defensive-alignment-board__label">DEFENSIVE SIDE</text>
+      <text x="2" y="31" className="defensive-alignment-board__label">LINE OF SCRIMMAGE</text>
+      {players.map((player) => <g key={player.id} role="button" tabIndex={0} aria-label={`${player.position ?? player.role ?? player.id}: ${defensiveAlignmentLabel(player)}`} className="defensive-alignment-board__player" transform={`translate(${player.start!.x} ${player.start!.y})`} onClick={() => onSelect({ kind: 'player', id: player.id })} onKeyDown={(event) => activate(player.id, event)}>
+        <circle r="3.1" />
+        <text y="0.9" textAnchor="middle">{player.position ?? player.role ?? player.id}</text>
+        <title>{defensiveAlignmentLabel(player)}</title>
+      </g>)}
+    </svg>
+    {!players.length ? <div className="validation-empty">Add defensive players with field coordinates to populate the alignment board.</div> : null}
   </InspectorSection>;
 }
 
@@ -623,6 +645,7 @@ export function DesignerInspector(props: InspectorProps) {
               </div>
               <p className="inspector-help">Hash and line changes translate every unlocked player and assignment together. Locked objects stay fixed for deliberate exceptions.</p>
             </InspectorSection>
+            {props.design.unit === 'defense' ? <DefensiveAlignmentMap design={props.design} onSelect={props.onSelect} /> : null}
             {props.design.unit === 'defense' ? <DefensiveFrontMap design={props.design} onSelect={props.onSelect} /> : null}
             {props.design.unit === 'defense' ? <RotationSequencePanel design={props.design} onSelect={props.onSelect} /> : null}
             <SelectionInspector {...props} />
