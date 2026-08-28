@@ -14,10 +14,12 @@ from typing import Any
 
 DEFAULT_DURATION_MS = 3000
 DEFAULT_ELEMENT_DURATION_MS = 1200
+DEFAULT_EVENT_DURATION_MS = 300
 MIN_TIMELINE_MS = -5000
 MARKER_KINDS = {"snap", "cue", "pause", "read", "rotation", "exchange", "ball", "handoff"}
 EVENT_KINDS = {"ball", "handoff", "exchange", "block_exchange", "rush_exchange", "read", "rotation", "throw", "catch", "contact", "cue"}
 EVENT_KIND_ALIASES = {"qb_read": "read", "coverage_rotation": "rotation", "pass": "throw", "completion": "catch"}
+EVENT_DURATIONS_MS = {"read": 500, "exchange": 400, "block_exchange": 400, "rush_exchange": 400, "rotation": 500, "cue": DEFAULT_EVENT_DURATION_MS}
 
 PHASE_TEMPLATES: dict[str, tuple[tuple[str, str, float, float], ...]] = {
     "route": (("release", "Release", 0.0, 0.18), ("stem", "Stem", 0.18, 0.48), ("break", "Break", 0.48, 0.72), ("finish", "Finish", 0.72, 1.0)),
@@ -134,8 +136,8 @@ def normalize_timeline_design(design: dict[str, Any], *, default_duration_ms: in
         start = _integer(event.get("start_ms"), _integer(event.get("at_ms"), _integer(event.get("ms"), 0))) or 0
         start = max(MIN_TIMELINE_MS, min(timeline["duration_ms"], start))
         event.update({"id": str(event.get("id") or f"EVENT-{event_index + 1}"), "kind": kind, "start_ms": start})
-        if event.get("end_ms") is not None or kind in {"ball", "handoff"}:
-            end = _integer(event.get("end_ms"), start + 1) or start + 1
+        if event.get("end_ms") is not None or kind in EVENT_KINDS:
+            end = _integer(event.get("end_ms"), start + EVENT_DURATIONS_MS.get(kind, 1)) or start + EVENT_DURATIONS_MS.get(kind, 1)
             event["end_ms"] = max(start + 1, min(timeline["duration_ms"], end))
     return output
 

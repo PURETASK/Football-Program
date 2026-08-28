@@ -166,7 +166,7 @@ class PlayDesignExportTests(unittest.TestCase):
         }
         rendered = build_export(designs=[candidate], kind="play_card", format="svg")
         payload = base64.b64decode(rendered["content_base64"]).decode("utf-8")
-        self.assertIn("Timeline read: Read the apex defender; at 300 ms.", payload)
+        self.assertIn("Timeline read: Read the apex defender; 300-800 ms.", payload)
         self.assertIn("Narration (coach) 350-900 ms: Confirm the flat defender widens.", payload)
 
     def test_defensive_export_preserves_technique_and_alignment_labels(self):

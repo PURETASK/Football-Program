@@ -66,6 +66,7 @@ class PlayCreationTests(unittest.TestCase):
         self.assertEqual(normalized["timeline"]["markers"][0]["ms"], -900)
         self.assertEqual(normalized["timeline"]["events"][0]["kind"], "read")
         self.assertEqual(normalized["timeline"]["events"][0]["start_ms"], -100)
+        self.assertEqual(normalized["timeline"]["events"][0]["end_ms"], 400)
         self.assertEqual(validate_timeline(normalized), [])
 
     def test_timeline_accepts_explicit_block_and_rush_exchange_cues(self):
