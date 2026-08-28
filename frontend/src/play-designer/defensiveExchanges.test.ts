@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { clearDefensiveExchangePairPatch, defensiveExchangeLinks, defensiveExchangePairPatch, defensiveExchangePresetPatch, defensiveExchangeProgress, exchangePatch, reciprocalExchangePatch } from './defensiveExchanges';
+import { clearDefensiveExchangePairPatch, defensiveExchangeLinks, defensiveExchangePairPatch, defensiveExchangePresetPatch, defensiveExchangeProgress, exchangeConceptPatch, exchangePatch, reciprocalExchangePatch } from './defensiveExchanges';
 import type { PlayDesign } from '../types';
 
 describe('defensive exchange relationships', () => {
@@ -37,6 +37,17 @@ describe('defensive exchange relationships', () => {
       ['END', expect.objectContaining({ exchange_with: 'TACKLE', exchange_role: 'loop_penetrate' })],
     ]);
     expect(defensiveExchangePresetPatch('rush_replace', 'RUSH', 'DROP', { replacement_zone: 'flat_left' })[1][1]).toMatchObject({ rotation_to_zone: 'flat_left', responsibility: 'Replace flat_left' });
+  });
+
+  it('stores relationship-level concept, trigger, and communication metadata', () => {
+    expect(exchangeConceptPatch('tex', { trigger: 'on_guard_away', communication: 'TEX alert, exchange through the hip' })).toEqual({
+      exchange_concept: 'tex',
+      exchange_concept_label: 'TEX · tackle-end exchange',
+      exchange_trigger: 'on_guard_away',
+      exchange_communication: 'TEX alert, exchange through the hip',
+      phase: 'exchange',
+    });
+    expect(exchangeConceptPatch('')).toEqual({ exchange_concept: undefined, exchange_concept_label: undefined, exchange_trigger: undefined, exchange_communication: undefined, phase: undefined });
   });
 
   it('persists vacated and replacement responsibility context on the appropriate sides', () => {

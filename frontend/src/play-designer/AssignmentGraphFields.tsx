@@ -2,7 +2,7 @@ import type { PlayDesign, PlayElement, Point, RouteBranch } from '../types';
 import { defaultTimelinePhases, elementTiming, timingPatch } from './timelineModel';
 import { ANGLE_PRESETS, anglePatch, depthPatch, LANDMARK_SNAP_OPTIONS, landmarkPatch } from './geometry';
 import { DEFENSIVE_PRESETS, defensivePresetPatch } from './defensivePresets';
-import { DEFENSIVE_EXCHANGE_PRESETS, DEFENSIVE_EXCHANGE_ROLES, defensiveExchangePresetPatch, exchangePatch, exchangeRole, reciprocalExchangePatch, type DefensiveExchangeRole } from './defensiveExchanges';
+import { DEFENSIVE_EXCHANGE_CONCEPTS, DEFENSIVE_EXCHANGE_PRESETS, DEFENSIVE_EXCHANGE_ROLES, defensiveExchangePresetPatch, exchangeConceptPatch, exchangePatch, exchangeRole, reciprocalExchangePatch, type DefensiveExchangeRole } from './defensiveExchanges';
 import { DEFENSIVE_GAP_OPTIONS, gapOwnerPatch } from './defensiveFront';
 import { ROTATION_TRIGGERS, rotationSequencePatch } from './rotationSequencing';
 import { OFFENSIVE_BLOCKING_PRIMITIVES, PROTECTION_MODES, blockingConstructionPatch, offensiveBlockingPatch } from './offensiveBlocking';
@@ -178,6 +178,9 @@ export function AssignmentGraphFields({ design, element, onElement }: Assignment
     </select></label>
     {canExchange ? <div className="defensive-exchange-panel">
       <div><strong>Coordinated exchange</strong><small>Link both assignments so the stunt, replacement, or rotation teaches as one relationship.</small></div>
+      <label className="inspector-field"><span>Named exchange concept</span><select aria-label="Named defensive exchange concept" value={String(element.exchange_concept ?? '')} disabled={!element.exchange_with} onChange={(event) => { const partner = element.exchange_with; if (!partner) return; const patch = exchangeConceptPatch(event.target.value); onElement(element.id, patch); onElement(partner, patch); }}>
+        <option value="">Unspecified relationship</option>{DEFENSIVE_EXCHANGE_CONCEPTS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}
+      </select><small>Stores the scheme name separately from the two individual paths.</small></label>
       <label className="inspector-field"><span>Exchange pattern</span><select aria-label="Defensive exchange pattern" defaultValue="" disabled={!element.exchange_with} onChange={(event) => { const partner = element.exchange_with; if (!partner || !event.target.value) return; defensiveExchangePresetPatch(event.target.value, element.id, partner).forEach(([id, patch]) => onElement(id, patch)); }}>
         <option value="">Choose a named pattern</option>{DEFENSIVE_EXCHANGE_PRESETS.map((preset) => <option value={preset.value} key={preset.value}>{preset.label}</option>)}
       </select><small>{element.exchange_with ? 'Apply to the selected assignment and its partner.' : 'Choose an exchange partner first.'}</small></label>
@@ -185,6 +188,10 @@ export function AssignmentGraphFields({ design, element, onElement }: Assignment
         <option value="">Choose an exchange role</option>{DEFENSIVE_EXCHANGE_ROLES.map((role) => <option value={role.value} key={role.value}>{role.label} — {role.description}</option>)}
       </select></label>
       {element.exchange_with ? <small className="defensive-exchange-panel__status">Linked to {otherElements.find((item) => item.id === element.exchange_with)?.type ?? element.exchange_with}{exchangeRole(element.exchange_role) ? ` · ${exchangeRole(element.exchange_role)?.description}` : ''}</small> : null}
+      {element.exchange_with ? <div className="inspector-form inspector-form--two inspector-form--nested">
+        <CommitInput label="Exchange trigger" value={element.exchange_trigger as string | undefined} onCommit={(value) => { const partner = element.exchange_with; const patch = exchangeConceptPatch(String(element.exchange_concept ?? ''), { trigger: value }); onElement(element.id, patch); if (partner) onElement(partner, patch); }} />
+        <CommitInput label="Communication" value={element.exchange_communication as string | undefined} onCommit={(value) => { const partner = element.exchange_with; const patch = exchangeConceptPatch(String(element.exchange_concept ?? ''), { communication: value }); onElement(element.id, patch); if (partner) onElement(partner, patch); }} />
+      </div> : null}
     </div> : null}
     {isRotation ? <fieldset className="rotation-sequence-editor">
       <legend>Post-snap rotation sequence</legend>

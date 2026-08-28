@@ -20,6 +20,31 @@ export const DEFENSIVE_EXCHANGE_PRESETS: Array<{ value: string; label: string; f
   { value: 'carry_transfer', label: 'Carry and transfer', firstRole: 'carry_transfer', secondRole: 'carry_transfer', description: 'Pass the threat between two coverage defenders.' },
 ];
 
+/** Named relationship metadata keeps a two-player stunt teachable after the
+ * individual paths have been edited or exported. */
+export const DEFENSIVE_EXCHANGE_CONCEPTS = [
+  ['tex', 'TEX · tackle-end exchange'],
+  ['et', 'ET · end-tackle exchange'],
+  ['cross_dog', 'Cross-dog · linebacker exchange'],
+  ['cross_dog_fire', 'Cross-dog fire · pressure exchange'],
+  ['rush_replace', 'Rush and replace · coverage exchange'],
+  ['carry_transfer', 'Carry and transfer · coverage handoff'],
+] as const;
+
+export function exchangeConceptPatch(
+  concept: string,
+  context: { trigger?: string; communication?: string } = {},
+): Partial<PlayElement> {
+  const label = DEFENSIVE_EXCHANGE_CONCEPTS.find(([value]) => value === concept)?.[1];
+  return {
+    exchange_concept: concept || undefined,
+    exchange_concept_label: concept ? label : undefined,
+    exchange_trigger: concept ? context.trigger ?? 'on_snap' : undefined,
+    exchange_communication: concept ? context.communication ?? 'communicate and pass the stunt' : undefined,
+    phase: concept ? 'exchange' : undefined,
+  };
+}
+
 export function exchangeRole(value: string | undefined) {
   return DEFENSIVE_EXCHANGE_ROLES.find((role) => role.value === value);
 }
