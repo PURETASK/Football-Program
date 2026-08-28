@@ -13,7 +13,7 @@ from .play_creation import validate_legality, validate_play_design
 from .play_assignment_graph import build_assignment_graph
 from .play_design_exports import build_export, build_export_preflight
 from .play_timeline import normalize_timeline_design
-from .play_design_versioning import RENDERER_VERSION, build_snapshot, bump_version, design_checksum, design_diff, renderer_checksum, snapshot_id, three_way_merge
+from .play_design_versioning import RENDERER_VERSION, build_snapshot, bump_version, design_checksum, design_diff, renderer_checksum, snapshot_id, three_way_merge, verify_design_integrity, verify_release_integrity
 from .play_legality import profile_metadata
 from .tenant_repository import TenantRepository
 from .security_controls import sign_payload
@@ -770,6 +770,9 @@ class PlayDesignService:
             raise ValueError("Only a valid play design can be published")
         if design.get("approval", {}).get("state") != "pending_approval":
             raise ValueError("Play design must be under review before publishing")
+        integrity = verify_design_integrity(design)
+        if not integrity["valid"]:
+            raise ValueError({"code": "DESIGN-INTEGRITY-INVALID", "issues": integrity["issues"]})
         if game_plan_snapshot_id is not None:
             if not isinstance(game_plan_snapshot_id, str) or not game_plan_snapshot_id.strip():
                 raise ValueError("game_plan_snapshot_id must be a non-empty string when supplied")
@@ -789,6 +792,9 @@ class PlayDesignService:
         snapshot = build_snapshot(saved, actor=actor, source="publish")
         self._store_immutable_snapshot(snapshot, actor=actor, reason="play_design_release_snapshot_created")
         release = {"id": release_id, "organization_id": self.repository.organization_id, "design_id": design_id, "version": saved.get("version"), "snapshot_id": snapshot["id"], "checksum": saved.get("checksum"), "renderer_version": saved.get("renderer_version"), "renderer_checksum": saved.get("renderer_checksum"), "game_plan_snapshot_id": saved.get("game_plan_snapshot_id"), "game_plan_snapshot_locked": bool(saved.get("game_plan_snapshot_id")), "immutable": True, "status": "published", "approval": saved.get("approval"), "bundle_manifest": deepcopy(saved.get("release_bundle", {})), "published_at": datetime.now(timezone.utc).isoformat()}
+        release_integrity = verify_release_integrity(release)
+        if not release_integrity["valid"]:
+            raise ValueError({"code": "RELEASE-INTEGRITY-INVALID", "issues": release_integrity["issues"]})
         self.repository.put("play_design_releases", release_id, release, actor=actor, reason="play_design_release_created")
         return saved
 

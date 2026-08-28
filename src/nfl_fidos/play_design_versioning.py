@@ -13,11 +13,12 @@ from typing import Any
 RENDERER_VERSION = "nfl-fidos-play-renderer-1.0.0"
 LIFECYCLE_FIELDS = {"status", "approval", "validation", "latest_snapshot_id", "release_id", "release_bundle", "_revision", "_saved_at", "_saved_by", "parent_design_id", "parent_snapshot_id", "merged_branch_id", "merge_base_snapshot_id", "rolled_back_from_snapshot_id"}
 MERGE_METADATA_FIELDS = {"parent_design_id", "parent_snapshot_id", "merged_branch_id", "merge_base_snapshot_id", "rolled_back_from_snapshot_id"}
+INTEGRITY_FIELDS = {"checksum"}
 
 
 def _canonical(value: Any) -> Any:
     if isinstance(value, dict):
-        return {key: _canonical(item) for key, item in sorted(value.items()) if key not in LIFECYCLE_FIELDS}
+        return {key: _canonical(item) for key, item in sorted(value.items()) if key not in LIFECYCLE_FIELDS | INTEGRITY_FIELDS}
     if isinstance(value, list):
         return [_canonical(item) for item in value]
     return value
@@ -28,8 +29,70 @@ def design_checksum(design: dict[str, Any]) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
+def renderer_checksum_for_version(version: Any) -> str:
+    """Return the deterministic identity for a renderer version."""
+    return hashlib.sha256(str(version).encode("utf-8")).hexdigest()
+
+
 def renderer_checksum() -> str:
-    return hashlib.sha256(RENDERER_VERSION.encode("utf-8")).hexdigest()
+    return renderer_checksum_for_version(RENDERER_VERSION)
+
+
+def verify_design_integrity(design: dict[str, Any]) -> dict[str, Any]:
+    """Verify content and renderer identity before a design is snapshotted."""
+    expected_checksum = design_checksum(design)
+    declared_checksum = design.get("checksum")
+    renderer_version = design.get("renderer_version", RENDERER_VERSION)
+    expected_renderer_checksum = renderer_checksum_for_version(renderer_version)
+    declared_renderer_checksum = design.get("renderer_checksum", expected_renderer_checksum)
+    issues: list[str] = []
+    if declared_checksum is not None and declared_checksum != expected_checksum:
+        issues.append("content checksum does not match canonical design content")
+    if declared_renderer_checksum != expected_renderer_checksum:
+        issues.append("renderer checksum does not match renderer version")
+    return {"valid": not issues, "issues": issues, "expected_checksum": expected_checksum, "declared_checksum": declared_checksum, "renderer_version": renderer_version, "expected_renderer_checksum": expected_renderer_checksum, "declared_renderer_checksum": declared_renderer_checksum}
+
+
+def verify_snapshot_integrity(snapshot: dict[str, Any]) -> dict[str, Any]:
+    """Verify an immutable snapshot's identity and embedded design."""
+    design = snapshot.get("design")
+    issues: list[str] = []
+    if not isinstance(design, dict):
+        return {"valid": False, "issues": ["snapshot design is missing"]}
+    design_result = verify_design_integrity(design)
+    issues.extend(f"design: {issue}" for issue in design_result["issues"])
+    if snapshot.get("checksum") != design_result["expected_checksum"]:
+        issues.append("snapshot checksum does not match embedded design")
+    if snapshot.get("renderer_version", RENDERER_VERSION) != design_result["renderer_version"]:
+        issues.append("snapshot renderer version does not match embedded design")
+    if snapshot.get("renderer_checksum") != design_result["expected_renderer_checksum"]:
+        issues.append("snapshot renderer checksum does not match renderer version")
+    expected_id = snapshot_id(str(snapshot.get("design_id", design.get("id", ""))), str(snapshot.get("version", design.get("version", "0.1.0"))), str(snapshot.get("checksum", "")), str(snapshot.get("source", "save")))
+    if snapshot.get("id") != expected_id:
+        issues.append("snapshot id does not match its content identity")
+    return {"valid": not issues, "issues": issues, "expected_checksum": design_result["expected_checksum"], "expected_snapshot_id": expected_id}
+
+
+def verify_release_integrity(release: dict[str, Any]) -> dict[str, Any]:
+    """Verify the immutable release manifest identity without mutating it."""
+    issues: list[str] = []
+    checksum = release.get("checksum")
+    expected_snapshot_id = snapshot_id(str(release.get("design_id", "")), str(release.get("version", "0.1.0")), str(checksum or ""), "publish")
+    if release.get("snapshot_id") != expected_snapshot_id:
+        issues.append("release snapshot id does not match release identity")
+    if release.get("renderer_checksum") != renderer_checksum_for_version(release.get("renderer_version", RENDERER_VERSION)):
+        issues.append("release renderer checksum does not match renderer version")
+    manifest = release.get("bundle_manifest")
+    if not isinstance(manifest, dict):
+        issues.append("release bundle manifest is missing")
+    else:
+        if manifest.get("content_checksum") != checksum:
+            issues.append("release manifest content checksum does not match release checksum")
+        if manifest.get("snapshot_id") != release.get("snapshot_id"):
+            issues.append("release manifest snapshot id does not match release")
+        if manifest.get("renderer_checksum") != release.get("renderer_checksum"):
+            issues.append("release manifest renderer checksum does not match release")
+    return {"valid": not issues, "issues": issues, "expected_snapshot_id": expected_snapshot_id}
 
 
 def bump_version(version: Any) -> str:
@@ -47,16 +110,20 @@ def snapshot_id(design_id: str, version: str, checksum: str, source: str = "save
 
 
 def build_snapshot(design: dict[str, Any], *, actor: str, source: str = "save") -> dict[str, Any]:
-    checksum = design.get("checksum") or design_checksum(design)
+    integrity = verify_design_integrity(design)
+    if not integrity["valid"]:
+        raise ValueError({"code": "DESIGN-INTEGRITY-INVALID", "issues": integrity["issues"]})
+    checksum = integrity["expected_checksum"]
     version = str(design.get("version", "0.1.0"))
+    renderer_version = design.get("renderer_version", RENDERER_VERSION)
     return {
         "id": snapshot_id(str(design["id"]), version, checksum, source),
         "organization_id": design.get("organization_id"),
         "design_id": design["id"],
         "version": version,
         "checksum": checksum,
-        "renderer_version": design.get("renderer_version", RENDERER_VERSION),
-        "renderer_checksum": design.get("renderer_checksum", renderer_checksum()),
+        "renderer_version": renderer_version,
+        "renderer_checksum": integrity["expected_renderer_checksum"],
         "source": source,
         "design": deepcopy(design),
         "immutable": True,

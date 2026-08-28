@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 
 from src.nfl_fidos.play_design_service import PlayDesignService, load_asset_registry, validate_asset_registry
+from src.nfl_fidos.play_design_versioning import build_snapshot, verify_design_integrity, verify_release_integrity
 from src.nfl_fidos.play_design_collaboration import PlayDesignCollaborationService
 from src.nfl_fidos.repository import JsonRepository
 from src.nfl_fidos.tenant_repository import TenantRepository
@@ -154,6 +155,26 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertTrue(saved["elements"][0]["timing"]["phases"])
         view = service.role_view(saved["id"], role="WR")
         self.assertEqual(view["status"], "renderable")
+
+    def test_snapshot_integrity_rejects_stale_checksum_and_verifies_published_release(self):
+        candidate = design()
+        candidate["checksum"] = "0" * 64
+        integrity = verify_design_integrity(candidate)
+        self.assertFalse(integrity["valid"])
+        with self.assertRaises(ValueError):
+            build_snapshot(candidate, actor="coach")
+
+        service = self.service()
+        saved = service.save(design=design(), actor="coach")
+        service.request_review(saved["id"], actor="coach", decision_ref="DEC-REVIEW-INTEGRITY")
+        service.publish(saved["id"], actor="owner", decision_ref="DEC-PUBLISH-INTEGRITY")
+        release = service.repository.get("play_design_releases", "RELEASE-DESIGN-001-1.0.0")
+        self.assertIsNotNone(release)
+        self.assertTrue(verify_release_integrity(release)["valid"])
+
+        tampered_release = deepcopy(release)
+        tampered_release["bundle_manifest"]["content_checksum"] = "tampered"
+        self.assertFalse(verify_release_integrity(tampered_release)["valid"])
 
     def test_role_view_normalizes_legacy_persisted_timeline_records(self):
         service = self.service()
