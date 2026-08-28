@@ -240,6 +240,20 @@ class PlayCreationTests(unittest.TestCase):
         candidate["elements"].append({"id": "CONTACT-1", "kind": "annotation", "assignment_type": "contact", "player_id": "P1", "points": [{"x": 10, "y": 30}, {"x": 12, "y": 28}]})
         self.assertNotIn("LEGALITY-FLAG-CONTACT", {issue["code"] for issue in validate_advanced_legality(candidate)})
 
+    def test_nfl_number_and_line_end_eligibility_are_explainable(self):
+        candidate = design()
+        candidate["unit"] = "offense"
+        for index, player in enumerate(candidate["players"][:7]):
+            player["start"] = {"x": 10 + index * 10, "y": 12}
+            player["alignment"] = {"on_line": True, "eligible": index in {1, 6}, "number": 55 if index == 1 else index + 1}
+        findings = validate_advanced_legality(candidate)
+        codes = {issue["code"] for issue in findings}
+        self.assertIn("LEGALITY-FORMATION-END-ELIGIBILITY", codes)
+        self.assertIn("LEGALITY-ELIGIBLE-NUMBER", codes)
+        eligible_number = next(issue for issue in findings if issue["code"] == "LEGALITY-ELIGIBLE-NUMBER")
+        self.assertEqual(eligible_number["rule_profile"], "nfl")
+        self.assertIn("reported_eligible", eligible_number["expected"])
+
 
 if __name__ == "__main__":
     unittest.main()

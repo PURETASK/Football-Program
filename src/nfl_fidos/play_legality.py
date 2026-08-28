@@ -14,11 +14,11 @@ from typing import Any
 
 
 RULE_PROFILE_CATALOG: dict[str, dict[str, Any]] = {
-    "nfl": {"label": "NFL tackle football", "players_on_field": 11, "minimum_line_players": 7, "max_motion_at_snap": 1, "allow_blocking": True, "min_rush_distance_yards": None, "no_contact": False, "qb_direct_run_allowed": True, "source": {"title": "NFL Football Operations Rulebook hub", "uri": "https://operations.nfl.com/the-rules/nfl-rulebook", "rule_refs": ["Rule 5-1-1", "Rule 7-4-7", "Rule 7-4-8", "Rule 7-5-1"]}},
-    "ncaa": {"label": "NCAA college football", "players_on_field": 11, "minimum_line_players": 7, "max_motion_at_snap": 1, "allow_blocking": True, "min_rush_distance_yards": None, "no_contact": False, "qb_direct_run_allowed": True, "source": {"title": "2025 NCAA Football Rules and Interpretations", "uri": "https://ncaaorg.s3.amazonaws.com/championships/sports/football/rules/PRMFB_RulesBook.pdf", "rule_refs": ["Rule 7-1", "Rule 7-1-5", "Rule 7-3"]}},
-    "high_school": {"label": "NFHS high-school tackle football", "players_on_field": 11, "minimum_line_players": 7, "max_motion_at_snap": 1, "allow_blocking": True, "min_rush_distance_yards": None, "no_contact": False, "qb_direct_run_allowed": True, "requires_local_rules": True, "source": {"title": "NFHS Football Rules and Rules Changes", "uri": "https://www.nfhs.org/sports/football/rules", "rule_refs": ["NFHS current rulebook and state adoption"]}},
-    "youth": {"label": "Youth tackle football - local rules required", "players_on_field": None, "minimum_line_players": None, "max_motion_at_snap": None, "allow_blocking": None, "min_rush_distance_yards": None, "no_contact": False, "qb_direct_run_allowed": None, "requires_local_rules": True, "source": {"title": "Organization-defined youth rules profile", "uri": None, "rule_refs": ["Local league rulebook required"]}},
-    "flag": {"label": "NFL FLAG 5-on-5 baseline", "players_on_field": 5, "minimum_line_players": 0, "max_motion_at_snap": 1, "allow_blocking": False, "min_rush_distance_yards": 7, "no_contact": True, "qb_direct_run_allowed": False, "requires_local_rules": True, "source": {"title": "NFL FLAG Football Rules", "uri": "https://nflflag.com/coaches/flag-football-rules", "rule_refs": ["Illegal motion", "Illegal rush", "No contact", "Forward-pass and quarterback restrictions"]}},
+    "nfl": {"label": "NFL tackle football", "players_on_field": 11, "minimum_line_players": 7, "max_motion_at_snap": 1, "allow_blocking": True, "min_rush_distance_yards": None, "no_contact": False, "qb_direct_run_allowed": True, "number_based_eligibility": True, "source": {"title": "NFL Football Operations Rulebook hub", "uri": "https://operations.nfl.com/the-rules/nfl-rulebook", "rule_refs": ["Rule 5-1-1", "Rule 7-4-7", "Rule 7-4-8", "Rule 7-5-1", "Rule 8-1-5", "Rule 8-1-6"]}},
+    "ncaa": {"label": "NCAA college football", "players_on_field": 11, "minimum_line_players": 7, "max_motion_at_snap": 1, "allow_blocking": True, "min_rush_distance_yards": None, "no_contact": False, "qb_direct_run_allowed": True, "number_based_eligibility": True, "source": {"title": "2025 NCAA Football Rules and Interpretations", "uri": "https://ncaaorg.s3.amazonaws.com/championships/sports/football/rules/PRMFB_RulesBook.pdf", "rule_refs": ["Rule 7-1", "Rule 7-1-5", "Rule 7-3", "Rule 7-3-3"]}},
+    "high_school": {"label": "NFHS high-school tackle football", "players_on_field": 11, "minimum_line_players": 7, "max_motion_at_snap": 1, "allow_blocking": True, "min_rush_distance_yards": None, "no_contact": False, "qb_direct_run_allowed": True, "number_based_eligibility": False, "requires_local_rules": True, "source": {"title": "NFHS Football Rules and Rules Changes", "uri": "https://www.nfhs.org/sports/football/rules", "rule_refs": ["NFHS current rulebook and state adoption"]}},
+    "youth": {"label": "Youth tackle football - local rules required", "players_on_field": None, "minimum_line_players": None, "max_motion_at_snap": None, "allow_blocking": None, "min_rush_distance_yards": None, "no_contact": False, "qb_direct_run_allowed": None, "number_based_eligibility": False, "requires_local_rules": True, "source": {"title": "Organization-defined youth rules profile", "uri": None, "rule_refs": ["Local league rulebook required"]}},
+    "flag": {"label": "NFL FLAG 5-on-5 baseline", "players_on_field": 5, "minimum_line_players": 0, "max_motion_at_snap": 1, "allow_blocking": False, "min_rush_distance_yards": 7, "no_contact": True, "qb_direct_run_allowed": False, "number_based_eligibility": False, "requires_local_rules": True, "source": {"title": "NFL FLAG Football Rules", "uri": "https://nflflag.com/coaches/flag-football-rules", "rule_refs": ["Illegal motion", "Illegal rush", "No contact", "Forward-pass and quarterback restrictions"]}},
 }
 
 
@@ -46,6 +46,7 @@ def validate_rule_profile_catalog(path: str | Path | None = None) -> dict[str, A
         "max_motion_at_snap": "max_motion_at_snap",
         "blocking_allowed": "allow_blocking",
         "minimum_rush_distance_yards": "min_rush_distance_yards",
+        "number_based_eligibility": "number_based_eligibility",
     }
     for profile_id in sorted(expected_ids & set(declared)):
         executable = RULE_PROFILE_CATALOG[profile_id]
@@ -129,13 +130,13 @@ def _effective_profile_configuration(design: dict[str, Any], profile: str, sourc
     if not isinstance(overrides, dict):
         issues.append(_finding("LEGALITY-LOCAL-CONSTRAINTS", "Local rule constraints must be an object keyed by supported profile fields.", "local_rule_constraints", profile=profile, source=source, severity="error", observed=type(overrides).__name__, expected="object"))
         return configuration
-    allowed = {"players_on_field", "minimum_line_players", "max_motion_at_snap", "allow_blocking", "min_rush_distance_yards", "qb_direct_run_allowed"}
+    allowed = {"players_on_field", "minimum_line_players", "max_motion_at_snap", "allow_blocking", "min_rush_distance_yards", "qb_direct_run_allowed", "number_based_eligibility"}
     unknown = sorted(set(overrides) - allowed)
     if unknown:
         issues.append(_finding("LEGALITY-LOCAL-CONSTRAINT-FIELD", "Local rule constraints contain unsupported fields.", "local_rule_constraints", profile=profile, source=source, severity="error", observed=unknown, expected=sorted(allowed)))
     for key in sorted(set(overrides) & allowed):
         value = overrides[key]
-        if key == "allow_blocking" or key == "qb_direct_run_allowed":
+        if key in {"allow_blocking", "qb_direct_run_allowed", "number_based_eligibility"}:
             if not isinstance(value, bool):
                 issues.append(_finding("LEGALITY-LOCAL-CONSTRAINT-TYPE", f"Local constraint {key} must be boolean.", f"local_rule_constraints.{key}", profile=profile, source=source, severity="error", observed=value, expected="boolean"))
                 continue
@@ -176,6 +177,18 @@ def validate_advanced_legality(design: dict[str, Any], *, rule_profile: str | No
         line_eligible = [item for item in explicit_line if item.get("eligible") is True]
         if len(line_eligible) < 2 and profile != "flag":
             issues.append(_finding("LEGALITY-FORMATION-ELIGIBILITY", "Explicit tackle formation needs eligible ends represented on the line.", "players[].alignment.eligible", profile=profile, source=source, severity="error", expected=">=2 eligible ends", observed=len(line_eligible)))
+        line_players = [player for player in players if isinstance(player.get("alignment"), dict) and player["alignment"].get("on_line") is True]
+        if design.get("unit", "offense") == "offense" and len(line_players) >= 2:
+            ordered_line = sorted(line_players, key=lambda player: _point(player.get("start")) or (50, 0))
+            end_players = [ordered_line[0], ordered_line[-1]]
+            if any(item.get("alignment", {}).get("eligible") is not True for item in end_players):
+                issues.append(_finding("LEGALITY-FORMATION-END-ELIGIBILITY", "The outermost declared line players must be eligible ends for a legal tackle formation.", "players[].alignment.eligible", profile=profile, source=source, severity="error", observed=[item.get("id") or item.get("position") for item in end_players], expected="both line ends eligible"))
+        if configuration.get("number_based_eligibility") and design.get("unit", "offense") == "offense":
+            for index, player in enumerate(players):
+                alignment = player.get("alignment", {}) if isinstance(player.get("alignment"), dict) else {}
+                number = alignment.get("number")
+                if alignment.get("eligible") is True and isinstance(number, int) and 50 <= number <= 79 and alignment.get("reported_eligible") is not True:
+                    issues.append(_finding("LEGALITY-ELIGIBLE-NUMBER", "A player wearing a number in the ineligible range is marked eligible without an explicit reported-eligible exception.", f"players[{index}].alignment.reported_eligible", profile=profile, source=source, severity="error", observed={"number": number, "eligible": True}, expected="reported_eligible=true or an eligible number"))
         numbers = [item.get("number") for item in alignments if item.get("number") is not None]
         if len(numbers) != len(set(numbers)):
             issues.append(_finding("LEGALITY-NUMBER-CONFLICT", "Two explicitly numbered players share a jersey number in the formation model.", "players[].alignment.number", profile=profile, source=source, severity="error", observed=numbers, expected="unique numbers", overrideable=False))
