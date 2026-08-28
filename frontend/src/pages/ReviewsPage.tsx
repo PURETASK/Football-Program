@@ -22,6 +22,10 @@ import { REVIEWS_WORKSPACE } from './workspaceDefinitions';
 
 type ReviewTab = 'queue' | 'evidence' | 'decision';
 
+export function reviewRecordKey(item: Pick<GovernanceInboxItem, 'collection' | 'id'>): string {
+  return `${item.collection}:${item.id}`;
+}
+
 export function ReviewsPage() {
   const { session } = useSession();
   const queryClient = useQueryClient();
@@ -43,7 +47,7 @@ export function ReviewsPage() {
       && (!needle || compactValue(item).toLowerCase().includes(needle))
     );
   }, [collection, data?.items, search, status]);
-  const selected = items.find((item) => `${item.collection}:${item.id}` === selectedId) ?? items[0];
+  const selected = items.find((item) => reviewRecordKey(item) === selectedId) ?? items[0];
   const blockerCount = (data?.items ?? []).reduce((total, item) => total + item.blockers.length, 0);
   const evidenceCount = (data?.items ?? []).reduce((total, item) => total + item.evidence_refs.length, 0);
 
@@ -108,9 +112,9 @@ export function ReviewsPage() {
                 <div className="workbench-pane__header"><div><h3>Governance queue</h3><p>{items.length} records match the active filters.</p></div></div>
                 <RecordList
                   emptyMessage="No governance records match these filters."
-                  onSelect={(item) => { setSelectedId(`${item.collection}:${item.id}`); if (tab === 'decision') mutation.reset(); }}
+                  onSelect={(item) => { setSelectedId(reviewRecordKey(item)); if (tab === 'decision') mutation.reset(); }}
                   records={items}
-                  selectedId={selected?.id}
+                  selectedId={selected ? reviewRecordKey(selected) : undefined}
                   subtitle={(item) => `${sentenceCase(item.collection)} · ${item.owner || 'No owner recorded'}`}
                   title={(item) => item.id}
                 />
