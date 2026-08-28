@@ -14,4 +14,8 @@ describe('sequenced collaboration stream', () => {
   it('holds an out-of-order event so reconnect replay can request the missing sequence', () => {
     expect(acceptSequencedEvent(5, 7)).toEqual({ accepted: false, nextCursor: 5, reason: 'gap' });
   });
+
+  it('allows legitimate gaps for role-filtered organization streams', () => {
+    expect(acceptSequencedEvent(5, 7, false)).toEqual({ accepted: true, nextCursor: 7, reason: 'accepted' });
+  });
 });

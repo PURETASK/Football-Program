@@ -80,7 +80,8 @@ export function useCollaborationEventStream(): { status: CollaborationStreamStat
               const parsed = parseServerEvent(block);
               if (!parsed) continue;
               if (parsed.event === 'stream_end') { ended = true; break; }
-              const sequencing = acceptSequencedEvent(sequence, parsed.id);
+              // Organization streams are role-filtered; hidden events create legitimate visible gaps.
+              const sequencing = acceptSequencedEvent(sequence, parsed.id, false);
               if (!sequencing.accepted) continue;
               sequence = sequencing.nextCursor;
               try {
