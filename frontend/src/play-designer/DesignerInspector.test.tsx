@@ -147,6 +147,35 @@ describe('DesignerInspector assignment graph controls', () => {
     expect(props.onSelect).toHaveBeenCalledWith({ kind: 'player', id: 'X' });
   });
 
+  it('supports exact coordinate editing for alternate route handles', async () => {
+    const props = inspectorProps();
+    const routeDesign = {
+      ...DESIGN,
+      unit: 'offense' as const,
+      players: [{ id: 'X', position: 'X', start: { x: 30, y: 26 } }],
+      elements: [{ id: 'ROUTE-X', kind: 'route', type: 'choice', player_id: 'X', points: [{ x: 30, y: 26 }, { x: 30, y: 12 }], branches: [{ id: 'BRANCH-X', label: 'Deep cross', condition: 'If leverage changes', points: [{ x: 30, y: 12 }, { x: 48, y: 12 }] }] }],
+    };
+    render(<DesignerInspector {...props} design={routeDesign} selected={[{ kind: 'element', id: 'ROUTE-X' }]} />);
+    fireEvent.click(await screen.findByText('Precise path geometry · 2 handles'));
+    const xInput = await screen.findByLabelText('Path Deep cross handle 2 X');
+    fireEvent.change(xInput, { target: { value: '44' } });
+    fireEvent.blur(xInput);
+    expect(props.onElement).toHaveBeenCalledWith('ROUTE-X', expect.objectContaining({ branches: [expect.objectContaining({ id: 'BRANCH-X', points: [{ x: 30, y: 12 }, { x: 44, y: 12 }] })] }));
+  });
+
+  it('inserts a midpoint handle while keeping branch geometry editable', async () => {
+    const props = inspectorProps();
+    const routeDesign = {
+      ...DESIGN,
+      unit: 'offense' as const,
+      elements: [{ id: 'ROUTE-X', kind: 'route', type: 'choice', points: [{ x: 30, y: 26 }, { x: 30, y: 12 }], branches: [{ id: 'BRANCH-X', label: 'Convert', condition: 'If squat', points: [{ x: 30, y: 12 }, { x: 48, y: 12 }] }] }],
+    };
+    render(<DesignerInspector {...props} design={routeDesign} selected={[{ kind: 'element', id: 'ROUTE-X' }]} />);
+    fireEvent.click(await screen.findByText('Precise path geometry · 2 handles'));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Insert after' })[0]);
+    expect(props.onElement).toHaveBeenCalledWith('ROUTE-X', expect.objectContaining({ branches: [expect.objectContaining({ points: [{ x: 30, y: 12 }, { x: 39, y: 12 }, { x: 48, y: 12 }] })] }));
+  });
+
   it('declares coverage-shell zones for server ownership checks', () => {
     const props = inspectorProps();
     render(<DesignerInspector {...props} />);

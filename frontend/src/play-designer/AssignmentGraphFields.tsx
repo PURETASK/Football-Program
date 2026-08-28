@@ -1,4 +1,4 @@
-import type { PlayDesign, PlayElement } from '../types';
+import type { PlayDesign, PlayElement, Point, RouteBranch } from '../types';
 import { defaultTimelinePhases, elementTiming, timingPatch } from './timelineModel';
 import { ANGLE_PRESETS, anglePatch, depthPatch, LANDMARK_SNAP_OPTIONS, landmarkPatch } from './geometry';
 import { DEFENSIVE_PRESETS, defensivePresetPatch } from './defensivePresets';
@@ -19,6 +19,41 @@ interface AssignmentGraphFieldsProps {
 function CommitInput({ label, value, type = 'text', min, max, onCommit }: { label: string; value: string | number | undefined; type?: 'text' | 'number'; min?: number; max?: number; onCommit: (value: string) => void }) {
   const stringValue = value === undefined ? '' : String(value);
   return <label className="inspector-field"><span>{label}</span><input key={stringValue} type={type} min={min} max={max} defaultValue={stringValue} onBlur={(event) => { if (event.target.value !== stringValue) onCommit(event.target.value); }} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }} /></label>;
+}
+
+function RouteBranchPoints({ element, branch, onElement }: { element: PlayElement; branch: RouteBranch; onElement: (id: string, patch: Partial<PlayElement>) => void }) {
+  const patchPoints = (points: Point[]) => onElement(element.id, routeAuthoringPatch({ branches: element.branches?.map((item) => item.id === branch.id ? { ...item, points } : item) }));
+  const updatePoint = (pointIndex: number, axis: keyof Point, value: string) => {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return;
+    const point = branch.points[pointIndex];
+    const nextPoint: Point = { ...point, [axis]: Math.max(axis === 'x' ? 0 : 0, Math.min(axis === 'x' ? 100 : 53, numeric)) };
+    patchPoints(branch.points.map((candidate, index) => index === pointIndex ? nextPoint : candidate));
+  };
+  const insertPoint = (pointIndex: number) => {
+    const current = branch.points[pointIndex];
+    const next = branch.points[pointIndex + 1] ?? current;
+    const inserted: Point = pointIndex === branch.points.length - 1
+      ? { x: Math.max(0, Math.min(100, current.x + (current.x - (branch.points[pointIndex - 1]?.x ?? current.x)) / 2)), y: Math.max(0, Math.min(53, current.y + (current.y - (branch.points[pointIndex - 1]?.y ?? current.y)) / 2)) }
+      : { x: (current.x + next.x) / 2, y: (current.y + next.y) / 2 };
+    patchPoints([...branch.points.slice(0, pointIndex + 1), inserted, ...branch.points.slice(pointIndex + 1)]);
+  };
+  const removePoint = (pointIndex: number) => {
+    if (branch.points.length <= 2) return;
+    patchPoints(branch.points.filter((_, index) => index !== pointIndex));
+  };
+  return <details className="route-branch-points">
+    <summary>Precise path geometry · {branch.points.length} handles</summary>
+    <p>Use the canvas handles for direct manipulation or edit exact field coordinates here.</p>
+    <div className="route-branch-points__grid">
+      {branch.points.map((point, pointIndex) => <div className="route-branch-point" key={`${branch.id}-${pointIndex}`}>
+        <strong>Handle {pointIndex + 1}</strong>
+        <CommitInput label={`Path ${branch.label} handle ${pointIndex + 1} X`} type="number" min={0} max={100} value={point.x} onCommit={(value) => updatePoint(pointIndex, 'x', value)} />
+        <CommitInput label={`Path ${branch.label} handle ${pointIndex + 1} Y`} type="number" min={0} max={53} value={point.y} onCommit={(value) => updatePoint(pointIndex, 'y', value)} />
+        <div className="route-branch-point__actions"><button type="button" onClick={() => insertPoint(pointIndex)}>Insert after</button><button type="button" disabled={branch.points.length <= 2} onClick={() => removePoint(pointIndex)}>Remove</button></div>
+      </div>)}
+    </div>
+  </details>;
 }
 
 export function AssignmentGraphFields({ design, element, onElement }: AssignmentGraphFieldsProps) {
@@ -86,6 +121,7 @@ export function AssignmentGraphFields({ design, element, onElement }: Assignment
           <CommitInput label="Condition" value={branch.condition} onCommit={(value) => onElement(element.id, routeAuthoringPatch({ branches: element.branches?.map((item) => item.id === branch.id ? { ...item, condition: value } : item) }))} />
           <CommitInput label="Start (ms)" type="number" value={branch.start_ms ?? window.start} onCommit={(value) => onElement(element.id, routeAuthoringPatch({ branches: element.branches?.map((item) => item.id === branch.id ? { ...item, start_ms: Number(value), timing: { ...item.timing, start_ms: Number(value) } } : item) }))} />
           <CommitInput label="End (ms)" type="number" value={branch.end_ms ?? window.end} onCommit={(value) => onElement(element.id, routeAuthoringPatch({ branches: element.branches?.map((item) => item.id === branch.id ? { ...item, end_ms: Number(value), timing: { ...item.timing, end_ms: Number(value) } } : item) }))} />
+          <RouteBranchPoints element={element} branch={branch} onElement={onElement} />
           <button type="button" aria-label={`Delete ${branch.label}`} onClick={() => onElement(element.id, routeAuthoringPatch({ branches: element.branches?.filter((item) => item.id !== branch.id) }))}>Delete</button>
         </div>)}
       </div>
