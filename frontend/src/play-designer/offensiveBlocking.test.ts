@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { PlayDesign } from '../types';
-import { offensiveBlockingIssues } from './offensiveBlocking';
+import { blockingConstructionPatch, blockingPrimitiveDefaults, offensiveBlockingIssues } from './offensiveBlocking';
 
 const DESIGN: PlayDesign = {
   id: 'BLOCK-TEST',
@@ -11,6 +11,12 @@ const DESIGN: PlayDesign = {
 };
 
 describe('offensive blocking diagnostics', () => {
+  it('materializes canonical primitive defaults for coach-readable authoring', () => {
+    expect(blockingPrimitiveDefaults('pull')).toMatchObject({ blocking_path_role: 'pull-to-lead', blocking_geometry: 'target-aware', arrow_style: 'block', phase: 'block' });
+    expect(blockingPrimitiveDefaults('screen_release')).toMatchObject({ phase: 'release', arrow_style: 'block' });
+    expect(blockingConstructionPatch({ id: 'PULL', kind: 'block', points: [{ x: 20, y: 30 }] }, DESIGN, { blocking_primitive: 'pull' })).toMatchObject({ objective: 'Pull with depth, square the landmark, and lead the play.', responsibility: 'pull to lead' });
+  });
+
   it('requires targets for pull and combo relationships', () => {
     const issues = offensiveBlockingIssues({ ...DESIGN, elements: [
       { id: 'PULL', kind: 'block', type: 'pull', blocking_primitive: 'pull' },

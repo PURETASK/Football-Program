@@ -24,6 +24,29 @@ const PRIMITIVE_ROLES: Record<string, string> = {
   insert: 'insert-through-declared-gap', arc: 'arc-release-to-force', screen_release: 'release-to-screen',
 };
 
+const PRIMITIVE_OBJECTIVES: Record<string, string> = {
+  base: 'Secure the assigned surface and keep leverage.',
+  reach: 'Reach the play-side edge and create the running lane.',
+  down: 'Close the near gap and down-block the surface.',
+  pull: 'Pull with depth, square the landmark, and lead the play.',
+  trap: 'Pull across the formation and trap the declared penetrator.',
+  wrap: 'Pull tight around the first blocker and wrap to the second level.',
+  fold: 'Fold with the adjacent blocker and replace the released surface.',
+  combo: 'Work the double team, then climb to the declared second-level target.',
+  climb: 'Secure the surface, then climb under control to the linebacker.',
+  scoop: 'Scoop the backside gap and prevent the pursuit entry.',
+  insert: 'Insert through the declared gap and fit the second level.',
+  arc: 'Arc release outside and account for the force defender.',
+  screen_release: 'Release into space and protect the screen timing.',
+};
+
+/** Return canonical defaults when a coach chooses a blocking primitive. */
+export function blockingPrimitiveDefaults(value: string): Partial<PlayElement> {
+  const role = PRIMITIVE_ROLES[value];
+  if (!role) return {};
+  return { blocking_primitive: value, blocking_path_role: role, blocking_geometry: 'target-aware', arrow_style: 'block', phase: value === 'screen_release' ? 'release' : 'block' };
+}
+
 const PROTECTION_ROLES: Record<string, string> = {
   man: 'man-to-man', full_slide: 'slide-full', half_slide_left: 'slide-left',
   half_slide_right: 'slide-right', scan: 'scan-dual-read', screen: 'screen-release',
@@ -64,11 +87,13 @@ function pointForTarget(target: PlayElement, design: PlayDesign): Point | undefi
 
 /** Build a target-aware starter path without overwriting coach-drawn geometry. */
 export function blockingConstructionPatch(element: PlayElement, design: PlayDesign, patch: Partial<PlayElement>): Partial<PlayElement> {
-  const next = offensiveBlockingPatch(patch);
   const primitive = String(patch.blocking_primitive ?? element.blocking_primitive ?? '');
+  const next: Partial<PlayElement> = { ...offensiveBlockingPatch(patch), ...blockingPrimitiveDefaults(primitive) };
   if (primitive && PRIMITIVE_ROLES[primitive]) {
     next.blocking_path_role = PRIMITIVE_ROLES[primitive];
     next.blocking_geometry = 'target-aware';
+    if (!element.objective && PRIMITIVE_OBJECTIVES[primitive]) next.objective = PRIMITIVE_OBJECTIVES[primitive];
+    if (!element.responsibility) next.responsibility = PRIMITIVE_ROLES[primitive].replaceAll('-', ' ');
   }
   const targetId = String(patch.block_target_element_id ?? patch.target_element_id ?? element.block_target_element_id ?? element.target_element_id ?? '');
   const source = (element.points ?? element.path)?.[0] ?? (element.player_id ? design.players?.find((player) => player.id === element.player_id)?.start : undefined);
