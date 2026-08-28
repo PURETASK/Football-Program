@@ -43,6 +43,10 @@ python scripts/stage0_runtime_smoke.py --database .runtime/stage0-demo.sqlite3
 The smoke is local-only and its report keeps production, stage advancement, and
 external-state flags disabled.
 
+The same smoke runs in the `validate` GitHub Actions job after the frontend
+build and Python regression suite, so changes cannot silently break the seeded
+HTTP/React path.
+
 The command prints JSON. The important safety fields must remain:
 
 ```json
