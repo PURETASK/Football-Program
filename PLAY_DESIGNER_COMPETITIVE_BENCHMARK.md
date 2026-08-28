@@ -132,12 +132,14 @@ defensive-authoring, timeline, API, and export tests:
   reads, exchanges, rotations, playback speed, and pause cues.
 
 The remaining benchmark gaps are narrower and still active: true multi-user
-edit convergence under concurrent mutations, partial-play stencil inheritance
-with persisted batch variants against multiple looks, complete provider-grade
-export layout/device certification, authoritative depth for every supported
-rule profile, automated browser visual/screen-reader/tablet traces, and
-moderated coach/coordinator/player pilot evidence. These items must not be
-marked complete from static controls or local unit tests alone.
+edit convergence under concurrent mutations, complete provider-grade export
+layout/device certification, authoritative depth for every supported rule
+profile, automated browser visual/screen-reader/tablet traces, and moderated
+coach/coordinator/player pilot evidence. Partial-play stencil capture,
+inheritance, and persisted multi-look assignment transformations are now
+implemented locally, but they still require production-scale administration
+and real-team pilot evidence before they can be considered operationally
+complete.
 
 Repository verification for this reconciliation: the frontend suite passes
 163 tests across 42 files, the Python suite passes 598 tests, TypeScript
