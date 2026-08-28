@@ -47,7 +47,15 @@ export interface DefensiveExchangeLink {
   label: string;
   from: { x: number; y: number };
   to: { x: number; y: number };
+  replacement?: { x: number; y: number; label: string };
 }
+
+const REPLACEMENT_ANCHORS: Record<string, { x: number; y: number }> = {
+  flat_left: { x: 14, y: 22 }, flat_right: { x: 86, y: 22 },
+  hook_curl_left: { x: 30, y: 20 }, hook_curl_middle: { x: 50, y: 20 }, hook_curl_right: { x: 70, y: 20 },
+  deep_left: { x: 18, y: 7 }, deep_middle: { x: 50, y: 7 }, deep_right: { x: 82, y: 7 },
+  deep_half_left: { x: 25, y: 7 }, deep_half_right: { x: 75, y: 7 }, robber: { x: 50, y: 31 },
+};
 
 export function defensiveExchangeLinks(design: PlayDesign): DefensiveExchangeLink[] {
   const elements = design.elements ?? [];
@@ -58,6 +66,9 @@ export function defensiveExchangeLinks(design: PlayDesign): DefensiveExchangeLin
     const from = element.points?.at(-1);
     const to = partner?.points?.at(-1);
     if (!partner || !from || !to) return [];
-    return [{ id: `${element.id}::${partner.id}`, fromId: element.id, toId: partner.id, role: element.exchange_role, label: exchangeRole(element.exchange_role)?.label ?? 'Defensive exchange', from, to }];
+    const replacementZone = element.rotation_to_zone ?? element.zone ?? partner.rotation_to_zone ?? partner.zone;
+    const replacementAnchor = replacementZone ? REPLACEMENT_ANCHORS[replacementZone] : undefined;
+    return [{ id: `${element.id}::${partner.id}`, fromId: element.id, toId: partner.id, role: element.exchange_role, label: exchangeRole(element.exchange_role)?.label ?? 'Defensive exchange', from, to,
+      replacement: replacementAnchor ? { ...replacementAnchor, label: replacementZone! } : undefined }];
   });
 }

@@ -38,6 +38,14 @@ describe('defensive exchange relationships', () => {
     ]);
   });
 
+  it('projects a replacement-zone anchor for rush-to-replace teaching', () => {
+    const design: PlayDesign = { id: 'REPLACE', unit: 'defense', elements: [
+      { id: 'RUSH', kind: 'rush', exchange_with: 'DROP', exchange_role: 'rush_replace', points: [{ x: 40, y: 20 }, { x: 46, y: 30 }] },
+      { id: 'DROP', kind: 'coverage', exchange_with: 'RUSH', exchange_role: 'drop_replace', zone: 'flat_right', rotation_to_zone: 'flat_right', points: [{ x: 60, y: 20 }, { x: 55, y: 28 }] },
+    ] };
+    expect(defensiveExchangeLinks(design)[0].replacement).toEqual({ x: 86, y: 22, label: 'flat_right' });
+  });
+
   it('clears both reciprocal links without leaving exchange metadata behind', () => {
     expect(clearDefensiveExchangePairPatch('RUSH-1', 'DROP-1')).toEqual([
       ['RUSH-1', expect.objectContaining({ exchange_with: undefined, target_element_id: undefined, exchange_role: undefined, phase: undefined })],

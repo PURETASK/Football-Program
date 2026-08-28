@@ -629,9 +629,10 @@ export function PlayDesignerCanvas({
         </g> : null}
 
         {exchangeLinks.length ? <g className="designer-exchange-links" role="group" aria-label="Defensive exchange responsibility links">
-          {exchangeLinks.map((link) => { const midX = (link.from.x + link.to.x) / 2; const midY = Math.min(link.from.y, link.to.y) - 3; const selectPair = () => onSelectMany([{ kind: 'element', id: link.fromId }, { kind: 'element', id: link.toId }]); return <g key={link.id} role="button" tabIndex={0} aria-label={`${link.label}: ${link.fromId} with ${link.toId}`} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectPair(); } }} onPointerDown={(event) => { event.stopPropagation(); selectPair(); }}>
+          {exchangeLinks.map((link) => { const midX = (link.from.x + link.to.x) / 2; const midY = Math.min(link.from.y, link.to.y) - 3; const selectPair = () => onSelectMany([{ kind: 'element', id: link.fromId }, { kind: 'element', id: link.toId }]); const replacementMidX = link.replacement ? (link.to.x + link.replacement.x) / 2 : 0; const replacementMidY = link.replacement ? (link.to.y + link.replacement.y) / 2 - 2 : 0; return <g key={link.id} role="button" tabIndex={0} aria-label={`${link.label}: ${link.fromId} with ${link.toId}${link.replacement ? `; replaces ${link.replacement.label}` : ''}`} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectPair(); } }} onPointerDown={(event) => { event.stopPropagation(); selectPair(); }}>
             <path className="designer-exchange-link__path" d={`M ${link.from.x} ${link.from.y} Q ${midX} ${midY} ${link.to.x} ${link.to.y}`} />
             <text className="designer-exchange-link__label" x={midX} y={midY - 0.8} textAnchor="middle">{link.label}</text>
+            {link.replacement ? <><path className="designer-exchange-link__replacement" d={`M ${link.to.x} ${link.to.y} Q ${replacementMidX} ${replacementMidY} ${link.replacement.x} ${link.replacement.y}`} /><text className="designer-exchange-link__replacement-label" x={link.replacement.x} y={link.replacement.y - 1} textAnchor="middle">{link.replacement.label.replace('_', ' ')}</text></> : null}
           </g>; })}
         </g> : null}
 
