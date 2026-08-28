@@ -38,6 +38,16 @@ describe('offensive blocking diagnostics', () => {
     expect(issues).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'SCREEN_PROTECTION_MODE', severity: 'warning' })]));
   });
 
+  it('requires reciprocal combo relationships and valid protection threats', () => {
+    const issues = offensiveBlockingIssues({ ...DESIGN, elements: [
+      { id: 'COMBO-A', kind: 'block', blocking_primitive: 'combo', block_partner_element_id: 'COMBO-B', block_target_element_id: 'LB' },
+      { id: 'COMBO-B', kind: 'block', blocking_primitive: 'base' },
+      { id: 'PASS', kind: 'block', protection_mode: 'scan', protection_target_element_id: 'MISSING' },
+      { id: 'PASS-2', kind: 'block', protection_mode: 'full_slide' },
+    ] });
+    expect(issues.map((issue) => issue.code)).toEqual(expect.arrayContaining(['COMBO_PARTNER_NOT_RECIPROCAL', 'PROTECTION_TARGET_MISSING', 'PROTECTION_TARGET_REQUIRED']));
+  });
+
   it('does not apply offensive blocking diagnostics to defensive designs', () => {
     expect(offensiveBlockingIssues({ ...DESIGN, unit: 'defense', elements: [{ id: 'RUSH', kind: 'rush', blocking_primitive: 'combo' }] })).toEqual([]);
   });
