@@ -136,3 +136,33 @@ export function routeGeometryPatch(
   void design;
   return patch;
 }
+
+/** Persist direct edits to an alternate route path without losing its branch contract. */
+export function routeBranchGeometryPatch(
+  element: PlayElement,
+  design: PlayDesign,
+  branchId: string,
+  points: Point[],
+  pointIndex: number,
+): Partial<PlayElement> {
+  const branch = element.branches?.find((candidate) => candidate.id === branchId);
+  if (!branch) return {};
+  const nextBranch = { ...branch, points };
+  if (element.kind === 'route' && points.length >= 2) {
+    const hasContract = [branch.route_family, branch.stem_depth_yards, branch.break_type, branch.break_depth_yards, branch.finish_direction].some((value) => value !== undefined)
+      || [element.route_family, element.stem_depth_yards, element.break_type, element.break_depth_yards, element.finish_direction].some((value) => value !== undefined);
+    if (hasContract) {
+      const start = points[0];
+      const depth = Math.round(Math.abs(points[pointIndex].y - start.y) * 10) / 10;
+      if (pointIndex > 0 && pointIndex < points.length - 1) {
+        if (pointIndex === points.length - 2) nextBranch.break_depth_yards = depth;
+        else nextBranch.stem_depth_yards = depth;
+      }
+      nextBranch.route_family ??= element.route_family;
+      nextBranch.break_type ??= element.break_type;
+      nextBranch.finish_direction ??= element.finish_direction;
+    }
+  }
+  void design;
+  return { phase: 'route', branches: element.branches?.map((candidate) => candidate.id === branchId ? nextBranch : candidate) };
+}

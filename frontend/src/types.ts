@@ -117,6 +117,11 @@ export interface RouteBranch {
   start_ms?: number;
   end_ms?: number;
   timing?: { start_ms?: number; end_ms?: number; phases?: TimelinePhase[] };
+  route_family?: string;
+  stem_depth_yards?: number;
+  break_type?: string;
+  break_depth_yards?: number;
+  finish_direction?: string;
 }
 
 export interface PlayElement {
