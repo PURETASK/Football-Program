@@ -211,6 +211,35 @@ function segmentsIntersect(first: Point, second: Point, third: Point, fourth: Po
   return (Math.abs(a) < 0.01 && onSegment(first, third, second)) || (Math.abs(b) < 0.01 && onSegment(first, fourth, second)) || (Math.abs(c) < 0.01 && onSegment(third, first, fourth)) || (Math.abs(d) < 0.01 && onSegment(third, second, fourth));
 }
 
+function pointSegmentDistance(point: Point, start: Point, end: Point): number {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const denominator = dx * dx + dy * dy;
+  if (!denominator) return pointDistance(point, start);
+  const ratio = clamp(((point.x - start.x) * dx + (point.y - start.y) * dy) / denominator, 0, 1);
+  return pointDistance(point, { x: start.x + ratio * dx, y: start.y + ratio * dy });
+}
+
+function segmentDistance(first: Point, second: Point, third: Point, fourth: Point): number {
+  if (segmentsIntersect(first, second, third, fourth)) return 0;
+  return Math.min(
+    pointSegmentDistance(first, third, fourth),
+    pointSegmentDistance(second, third, fourth),
+    pointSegmentDistance(third, first, second),
+    pointSegmentDistance(fourth, first, second),
+  );
+}
+
+function pathDistance(first: Point[], second: Point[]): number {
+  let minimum = Number.POSITIVE_INFINITY;
+  for (let firstIndex = 1; firstIndex < first.length; firstIndex += 1) {
+    for (let secondIndex = 1; secondIndex < second.length; secondIndex += 1) {
+      minimum = Math.min(minimum, segmentDistance(first[firstIndex - 1], first[firstIndex], second[secondIndex - 1], second[secondIndex]));
+    }
+  }
+  return minimum;
+}
+
 export function pathsIntersect(first: Point[], second: Point[]): boolean {
   for (let firstIndex = 1; firstIndex < first.length; firstIndex += 1) {
     for (let secondIndex = 1; secondIndex < second.length; secondIndex += 1) {
@@ -230,19 +259,27 @@ function timingOverlaps(first: PlayElement, second: PlayElement): boolean {
 
 export function collisionIds(elements: PlayElement[]): Set<string> {
   const collisions = new Set<string>();
-  const routes = elements.filter((element) => element.kind === 'route' && !element.hidden && elementPoints(element).length > 1);
-  for (let index = 0; index < routes.length; index += 1) {
-    for (let secondIndex = index + 1; secondIndex < routes.length; secondIndex += 1) {
-      if (timingOverlaps(routes[index], routes[secondIndex]) && pathsIntersect(elementPoints(routes[index]), elementPoints(routes[secondIndex]))) {
-        collisions.add(routes[index].id);
-        collisions.add(routes[secondIndex].id);
-      }
-    }
+  for (const collision of routeCollisions(elements)) {
+    collisions.add(collision.firstId);
+    collisions.add(collision.secondId);
   }
   return collisions;
 }
 
-export interface RouteCollision { firstId: string; secondId: string; intentional: boolean; explanation: string; }
+export interface RouteCollision {
+  firstId: string;
+  secondId: string;
+  intentional: boolean;
+  explanation: string;
+  minimumSeparation: number;
+  corridorThreshold: number;
+  kind: 'intersection' | 'corridor';
+}
+
+function routeCorridor(element: PlayElement): number {
+  const configured = Number(element.collision_corridor_yards);
+  return Number.isFinite(configured) && configured > 0 ? configured : 1.5;
+}
 
 export function routeCollisions(elements: PlayElement[]): RouteCollision[] {
   const routes = elements.filter((element) => element.kind === 'route' && !element.hidden && elementPoints(element).length > 1);
@@ -250,11 +287,18 @@ export function routeCollisions(elements: PlayElement[]): RouteCollision[] {
   for (let index = 0; index < routes.length; index += 1) {
     for (let secondIndex = index + 1; secondIndex < routes.length; secondIndex += 1) {
       const first = routes[index]; const second = routes[secondIndex];
-      if (!timingOverlaps(first, second) || !pathsIntersect(elementPoints(first), elementPoints(second))) continue;
+      if (!timingOverlaps(first, second)) continue;
+      const minimumSeparation = pathDistance(elementPoints(first), elementPoints(second));
+      const corridorThreshold = Math.max(routeCorridor(first), routeCorridor(second));
+      if (minimumSeparation > corridorThreshold) continue;
       const intentional = first.collision_intent === 'intentional' && second.collision_intent === 'intentional';
-      collisions.push({ firstId: first.id, secondId: second.id, intentional, explanation: intentional
-        ? 'Both routes are marked as an intentional crossing; confirm spacing and timing in the teaching view.'
-        : 'Routes intersect during overlapping timing; separate the corridor or explicitly document the intentional crossing.' });
+      const kind = minimumSeparation === 0 ? 'intersection' : 'corridor';
+      const separation = minimumSeparation.toFixed(1);
+      collisions.push({ firstId: first.id, secondId: second.id, intentional, minimumSeparation, corridorThreshold, kind, explanation: intentional
+        ? `Both routes are marked as an intentional crossing; minimum separation is ${separation} yd. Confirm spacing and timing in the teaching view.`
+        : kind === 'intersection'
+          ? 'Routes intersect during overlapping timing; separate the corridor or explicitly document the intentional crossing.'
+          : `Route corridors come within ${separation} yd during overlapping timing; maintain at least ${corridorThreshold.toFixed(1)} yd or document the intentional crossing.` });
     }
   }
   return collisions;

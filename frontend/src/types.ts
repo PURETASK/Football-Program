@@ -133,6 +133,7 @@ export interface PlayElement {
   collision_status?: 'clear' | 'possible' | string;
   collision_intent?: 'review' | 'intentional' | 'avoid' | string;
   collision_note?: string;
+  collision_corridor_yards?: number;
   asset_id?: string;
   start_ms?: number;
   end_ms?: number;

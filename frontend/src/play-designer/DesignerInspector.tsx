@@ -272,8 +272,9 @@ function SelectionInspector({
         <CommitInput label="Coaching assignment" value={element.assignment ?? element.responsibility ?? element.note} onCommit={(value) => onElement(element.id, { assignment: value })} />
         {element.kind === 'route' ? <fieldset className="route-collision-editor">
           <legend>Route corridor review</legend>
-          <p>{collisionPairs.length ? `${collisionPairs.length} overlapping route${collisionPairs.length === 1 ? '' : 's'} found in the active timing window.` : 'No route corridor intersections found in the active timing window.'}</p>
+          <p>{collisionPairs.length ? `${collisionPairs.length} route corridor${collisionPairs.length === 1 ? '' : 's'} need review in the active timing window.` : 'No route corridor conflicts found in the active timing window.'}</p>
           <label className="inspector-field"><span>Crossing intent</span><select value={element.collision_intent ?? 'review'} onChange={(event) => onElement(element.id, { collision_intent: event.target.value })}><option value="review">Needs review</option><option value="intentional">Intentional crossing</option><option value="avoid">Avoid crossing</option></select></label>
+          <CommitInput label="Clearance corridor (yd)" type="number" min={0.25} max={10} value={element.collision_corridor_yards ?? 1.5} onCommit={(value) => onElement(element.id, { collision_corridor_yards: Math.max(0.25, Math.min(10, Number(value))) })} />
           <CommitInput label="Crossing explanation" value={element.collision_note} onCommit={(value) => onElement(element.id, { collision_note: value })} />
           {collisionPairs.map((pair) => <small key={`${pair.firstId}-${pair.secondId}`} className={pair.intentional ? 'route-collision-note is-intentional' : 'route-collision-note'}>{pair.explanation}</small>)}
         </fieldset> : null}

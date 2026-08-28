@@ -1,5 +1,5 @@
 import type { PlayElement } from '../types';
-import { anglePatch, collisionIds, depthPatch, elementProgress, fieldRect, handleRole, insertPointOnNearestSegment, landmarkPatch, normalizePoint, pathIntersectsRect, positionAlongPath, simplifyPath, smoothPathData } from './geometry';
+import { anglePatch, collisionIds, depthPatch, elementProgress, fieldRect, handleRole, insertPointOnNearestSegment, landmarkPatch, normalizePoint, pathIntersectsRect, positionAlongPath, routeCollisions, simplifyPath, smoothPathData } from './geometry';
 
 describe('play designer geometry', () => {
   it('clamps field coordinates and applies the authoring grid', () => {
@@ -67,5 +67,14 @@ describe('play designer geometry', () => {
     const make = (id: string, points: [{ x: number; y: number }, { x: number; y: number }], start_ms = 0, end_ms = 1000): PlayElement => ({ id, kind: 'route', points, start_ms, end_ms });
     expect(collisionIds([make('A', [{ x: 10, y: 30 }, { x: 40, y: 10 }]), make('B', [{ x: 10, y: 10 }, { x: 40, y: 30 }])])).toEqual(new Set(['A', 'B']));
     expect(collisionIds([make('A', [{ x: 10, y: 30 }, { x: 40, y: 10 }]), make('B', [{ x: 10, y: 10 }, { x: 40, y: 30 }], 1001, 2000)])).toEqual(new Set());
+  });
+
+  it('flags near-miss routes when their teaching corridors overlap', () => {
+    const result = routeCollisions([
+      { id: 'A', kind: 'route', points: [{ x: 10, y: 20 }, { x: 90, y: 20 }] },
+      { id: 'B', kind: 'route', points: [{ x: 10, y: 21 }, { x: 90, y: 21 }] },
+    ]);
+    expect(result[0]).toMatchObject({ kind: 'corridor', minimumSeparation: 1 });
+    expect(result[0].explanation).toContain('corridors');
   });
 });
