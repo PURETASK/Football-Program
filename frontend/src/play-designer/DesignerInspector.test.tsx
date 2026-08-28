@@ -176,6 +176,13 @@ describe('DesignerInspector assignment graph controls', () => {
     expect(props.onElement).toHaveBeenCalledWith('ROUTE-X', expect.objectContaining({ branches: [expect.objectContaining({ points: [{ x: 30, y: 12 }, { x: 39, y: 12 }, { x: 48, y: 12 }] })] }));
   });
 
+  it('surfaces incomplete blocking relationships in the Checks panel', () => {
+    const props = inspectorProps();
+    render(<DesignerInspector {...props} tab="validate" design={{ ...DESIGN, unit: 'offense', elements: [{ id: 'COMBO', kind: 'block', type: 'combo', blocking_primitive: 'combo' }] }} />);
+    expect(screen.getByText('COMBO_PARTNER_REQUIRED')).toBeInTheDocument();
+    expect(screen.getByText(/Choose the adjacent blocker or partner assignment/)).toBeInTheDocument();
+  });
+
   it('declares coverage-shell zones for server ownership checks', () => {
     const props = inspectorProps();
     render(<DesignerInspector {...props} />);

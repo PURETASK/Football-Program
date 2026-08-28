@@ -1,4 +1,4 @@
-import type { PlayDesign, PlayElement, Point } from '../types';
+import type { PlayDesign, PlayElement, Point, ValidationIssue } from '../types';
 
 export const OFFENSIVE_BLOCKING_PRIMITIVES = [
   ['base', 'Base block'], ['reach', 'Reach'], ['down', 'Down block'], ['pull', 'Pull'], ['trap', 'Trap'],
@@ -28,6 +28,32 @@ const PROTECTION_ROLES: Record<string, string> = {
   man: 'man-to-man', full_slide: 'slide-full', half_slide_left: 'slide-left',
   half_slide_right: 'slide-right', scan: 'scan-dual-read', screen: 'screen-release',
 };
+
+function blockingIssue(code: string, message: string, path: string, suggestion: string, severity: ValidationIssue['severity'] = 'warning'): ValidationIssue {
+  return { code, message, path, suggestion, severity };
+}
+
+/** Local authoring diagnostics; the server remains authoritative for legality and release decisions. */
+export function offensiveBlockingIssues(design: PlayDesign): ValidationIssue[] {
+  if (design.unit !== 'offense') return [];
+  const elements = design.elements ?? [];
+  const ids = new Set(elements.map((element) => element.id));
+  const issues: ValidationIssue[] = [];
+  elements.forEach((element, index) => {
+    if (!['block', 'run'].includes(element.kind)) return;
+    const primitive = String(element.blocking_primitive ?? '');
+    const targetId = element.block_target_element_id ?? element.target_element_id;
+    const partnerId = element.block_partner_element_id;
+    if (targetId === element.id || partnerId === element.id) issues.push(blockingIssue('BLOCKING_SELF_REFERENCE', `${element.type ?? element.kind} cannot target or partner with itself.`, `elements[${index}]`, 'Choose another assignment or clear the self-reference.', 'error'));
+    if (targetId && !ids.has(targetId)) issues.push(blockingIssue('BLOCKING_TARGET_MISSING', `${element.type ?? element.kind} references a block target that is not in this play.`, `elements[${index}].block_target_element_id`, 'Choose an existing assignment as the block target.', 'error'));
+    if (partnerId && !ids.has(partnerId)) issues.push(blockingIssue('BLOCKING_PARTNER_MISSING', `${element.type ?? element.kind} references a combo partner that is not in this play.`, `elements[${index}].block_partner_element_id`, 'Choose an existing assignment as the combo partner.', 'error'));
+    if (['pull', 'trap', 'wrap', 'fold', 'insert', 'arc'].includes(primitive) && !targetId) issues.push(blockingIssue('BLOCKING_TARGET_REQUIRED', `${primitive} needs an explicit assignment target before it can be taught or released.`, `elements[${index}].block_target_element_id`, 'Choose the defender or surface this blocker acts on.'));
+    if (primitive === 'combo' && !partnerId) issues.push(blockingIssue('COMBO_PARTNER_REQUIRED', 'Combo block has no second blocker or partner assignment.', `elements[${index}].block_partner_element_id`, 'Choose the adjacent blocker or partner assignment.'));
+    if (primitive === 'combo' && !targetId) issues.push(blockingIssue('COMBO_TARGET_REQUIRED', 'Combo block has no second-level or declared target.', `elements[${index}].block_target_element_id`, 'Choose the linebacker or target assignment the combo climbs to.'));
+    if (primitive === 'screen_release' && element.protection_mode !== 'screen') issues.push(blockingIssue('SCREEN_PROTECTION_MODE', 'Screen release is not paired with screen protection mode.', `elements[${index}].protection_mode`, 'Set Protection mode to Screen or choose another blocking primitive.'));
+  });
+  return issues;
+}
 
 function pointForTarget(target: PlayElement, design: PlayDesign): Point | undefined {
   const targetPoints = target.points ?? target.path;

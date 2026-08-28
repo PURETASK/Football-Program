@@ -43,6 +43,7 @@ import { CoverageShellEditor } from './CoverageShellEditor';
 import { rotationLabel } from './rotationSequencing';
 import { DEFENSIVE_EXCHANGE_ROLES, clearDefensiveExchangePairPatch, defensiveExchangePairPatch } from './defensiveExchanges';
 import { defensiveResponsibilityIssues } from './defensiveResponsibilityValidation';
+import { offensiveBlockingIssues } from './offensiveBlocking';
 
 export type InspectorTab = 'inspect' | 'layers' | 'validate' | 'review';
 
@@ -394,7 +395,7 @@ function LayersPanel({ design, selected, onSelect, onPlayer, onElement }: Pick<I
 
 function ValidationPanel({ design, legality, validationPending, validationError, onSelect, onTab }: Pick<InspectorProps, 'design' | 'legality' | 'validationPending' | 'validationError' | 'onSelect' | 'onTab'>) {
   const report = legality ?? { status: design.validation?.status ?? 'not_checked', issues: design.validation?.issues ?? [] };
-  const localIssues = defensiveResponsibilityIssues(design);
+  const localIssues = [...defensiveResponsibilityIssues(design), ...offensiveBlockingIssues(design)];
   const issueKeys = new Set(report.issues.map((issue) => `${issue.code ?? ''}:${issue.path ?? ''}`));
   const issues = [...report.issues, ...localIssues.filter((issue) => !issueKeys.has(`${issue.code ?? ''}:${issue.path ?? ''}`))];
   const blocking = issues.filter((issue) => issue.severity === 'error').length;
