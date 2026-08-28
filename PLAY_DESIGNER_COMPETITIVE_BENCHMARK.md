@@ -211,3 +211,11 @@ their exact field names. This is a deterministic comparison of structured
 play records and is separate from the visual diagrams, giving staff an
 explainable review signal before they open or approve a child. Full side-by-
 side field-level expansion and variant-specific transformations remain open.
+
+The review rail now expands those deterministic diffs inline. **Inspect
+field-level changes** reveals changed metadata names, changed assignment IDs
+with exact field names, and added/removed assignment IDs without requiring a
+coach to open each child editor. The expansion is native disclosure markup,
+keyboard reachable, and backed by a component regression test. Variant-specific
+assignment transformations and provider-grade release certification remain
+open.

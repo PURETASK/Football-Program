@@ -68,4 +68,19 @@ describe('TemplateLibraryPanel', () => {
     await user.click(screen.getByRole('button', { name: 'Capture template' }));
     expect(onSave).toHaveBeenCalledWith({ name: 'Boundary variation', description: '', tags: [], parentTemplateId: 'TPL-PARENT' });
   });
+
+  it('expands field-level changes for a generated variant', async () => {
+    const user = userEvent.setup();
+    const variant: PlayDesign = { ...DESIGN, id: 'PD-VARIANT', coverage: 'cover_3', elements: [{ ...DESIGN.elements![0], type: 'corner' }, { id: 'E-2', kind: 'route', type: 'flat', points: [{ x: 20, y: 32 }, { x: 30, y: 28 }] }] };
+    const onCreateVariants = vi.fn().mockResolvedValue({ variants: [variant], count: 1 });
+    render(<TemplateLibraryPanel templates={[]} design={DESIGN} onApply={vi.fn()} onCreateVariants={onCreateVariants} onOpenVariant={vi.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: 'Generate draft variants' }));
+    expect(screen.getByText(/1 metadata · 1 assignment changes/)).toBeVisible();
+    await user.click(screen.getByText('Inspect field-level changes'));
+    expect(screen.getAllByText('Coverage').at(-1)).toBeVisible();
+    expect(screen.getByText('E-1')).toBeVisible();
+    expect(screen.getByText('Type')).toBeVisible();
+    expect(screen.getByText('E-2')).toBeVisible();
+  });
 });
