@@ -200,6 +200,18 @@ def _accessible_text(design: dict[str, Any], *, role: str | None = None) -> str:
         for branch in branches:
             if isinstance(branch, dict):
                 lines.append(f"   Alternate path {branch.get('label') or branch.get('id') or 'branch'}; condition {branch.get('condition') or 'unspecified'}; timing {branch.get('start_ms', timing.get('start_ms', element.get('start_ms', 0)))}-{branch.get('end_ms', timing.get('end_ms', element.get('end_ms', 'end')))} ms.")
+    timeline = design.get("timeline") if isinstance(design.get("timeline"), dict) else {}
+    events = timeline.get("events") if isinstance(timeline.get("events"), list) else []
+    for event in sorted((item for item in events if isinstance(item, dict)), key=lambda item: (item.get("start_ms", item.get("at_ms", item.get("ms", 0))), str(item.get("id", "")))):
+        kind = event.get("kind") or event.get("type") or "cue"
+        start = event.get("start_ms", event.get("at_ms", event.get("ms", 0)))
+        end = event.get("end_ms")
+        clock = f"{start}-{end} ms" if end is not None else f"at {start} ms"
+        detail = event.get("label") or event.get("note") or event.get("description") or event.get("element_id") or "shared"
+        lines.append(f"Timeline {kind}: {detail}; {clock}.")
+    narration = timeline.get("narration") if isinstance(timeline.get("narration"), list) else []
+    for cue in sorted((item for item in narration if isinstance(item, dict)), key=lambda item: (item.get("start_ms", 0), str(item.get("id", "")))):
+        lines.append(f"Narration ({cue.get('role') or 'coach'}) {cue.get('start_ms', 0)}-{cue.get('end_ms', 'end')} ms: {cue.get('text') or 'Teaching cue.'}")
     return "\n".join(lines)
 
 

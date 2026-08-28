@@ -158,6 +158,17 @@ class PlayDesignExportTests(unittest.TestCase):
         self.assertTrue(preflight["can_render"])
         self.assertEqual(payload["designs"][0]["timeline"]["events"][0]["kind"], "rotation")
 
+    def test_accessible_export_text_includes_synchronized_events_and_narration(self):
+        candidate = design()
+        candidate["timeline"] = {
+            "events": [{"type": "qb_read", "at_ms": 300, "label": "Read the apex defender"}],
+            "narration": [{"start_ms": 350, "end_ms": 900, "role": "coach", "text": "Confirm the flat defender widens."}],
+        }
+        rendered = build_export(designs=[candidate], kind="play_card", format="svg")
+        payload = base64.b64decode(rendered["content_base64"]).decode("utf-8")
+        self.assertIn("Timeline read: Read the apex defender; at 300 ms.", payload)
+        self.assertIn("Narration (coach) 350-900 ms: Confirm the flat defender widens.", payload)
+
 
 if __name__ == "__main__":
     unittest.main()
