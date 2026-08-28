@@ -31,6 +31,18 @@ For a fast run that skips optional FFmpeg media generation:
 python scripts/stage0_rehearsal.py --database .runtime/stage0-demo.sqlite3 --no-media
 ```
 
+To verify the seeded database through the running HTTP application, use the
+bounded runtime smoke. It seeds only the synthetic tenant, starts an ephemeral
+local server, checks the React shell/assets and an authenticated Playbook
+workspace, then shuts the server down:
+
+```powershell
+python scripts/stage0_runtime_smoke.py --database .runtime/stage0-demo.sqlite3
+```
+
+The smoke is local-only and its report keeps production, stage advancement, and
+external-state flags disabled.
+
 The command prints JSON. The important safety fields must remain:
 
 ```json

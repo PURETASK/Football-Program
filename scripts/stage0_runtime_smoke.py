@@ -1,0 +1,98 @@
+"""Run a bounded HTTP smoke test against the synthetic Stage 0 organization."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import threading
+from pathlib import Path
+from urllib.request import Request, urlopen
+
+from nfl_fidos.auth import issue_token
+from nfl_fidos.demo_data import DEMO_ORGANIZATION_ID, DEMO_SEED_ID, open_repository, seed_demo_data
+from nfl_fidos.http_server import create_server
+
+
+DEMO_SECRET = "stage0-runtime-smoke-secret-012345678901234567890"
+
+
+def _get(base: str, path: str, headers: dict[str, str] | None = None) -> tuple[int, bytes]:
+    request = Request(base.rstrip("/") + path, headers=headers or {})
+    with urlopen(request, timeout=10) as response:
+        return response.status, response.read()
+
+
+def run_smoke(database: Path) -> dict[str, object]:
+    """Seed locally, exercise public and authenticated routes, then shut down."""
+    database = database.expanduser().resolve()
+    repository = open_repository(database)
+    try:
+        seed = seed_demo_data(repository, database_path=database, seed_id=DEMO_SEED_ID, generate_media=False)
+    finally:
+        close = getattr(repository, "close", None)
+        if close:
+            close()
+
+    previous_secret = os.environ.get("NFL_FIDOS_AUTH_SECRET")
+    os.environ["NFL_FIDOS_AUTH_SECRET"] = DEMO_SECRET
+    server, server_repository = create_server(host="127.0.0.1", port=0, database_path=database)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        base = f"http://127.0.0.1:{server.server_address[1]}"
+        checks: list[dict[str, object]] = []
+
+        def check(name: str, path: str, headers: dict[str, str] | None = None) -> bytes:
+            status, body = _get(base, path, headers)
+            checks.append({"name": name, "path": path, "status_code": status, "bytes": len(body), "passed": status == 200 and bool(body)})
+            return body
+
+        check("health", "/health")
+        index = check("react_shell", "/app/playbook/designer/new").decode("utf-8")
+        asset_paths = re.findall(r'(?:src|href)="(/app/assets/[^"]+)"', index)
+        for asset_path in asset_paths:
+            check("react_asset", asset_path)
+
+        token = issue_token(subject="DEMO-COACH", role="coach_staff", organization_id=DEMO_ORGANIZATION_ID, secret=DEMO_SECRET)
+        check(
+            "authenticated_playbook_workspace",
+            f"/v1/playbook/workspace?organization_id={DEMO_ORGANIZATION_ID}",
+            {"Authorization": f"Bearer {token}"},
+        )
+        passed = all(bool(item["passed"]) for item in checks) and bool(asset_paths)
+        return {
+            "status": "passed" if passed else "failed",
+            "database": str(database),
+            "organization_id": DEMO_ORGANIZATION_ID,
+            "seed_status": seed.get("status"),
+            "synthetic": True,
+            "checks": checks,
+            "safety": {"production_implementation_allowed": False, "external_state_changed": False, "stage_advance_authorized": False},
+        }
+    finally:
+        server.shutdown()
+        thread.join(timeout=3)
+        server.server_close()
+        close = getattr(server_repository, "close", None)
+        if close:
+            close()
+        if previous_secret is None:
+            os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
+        else:
+            os.environ["NFL_FIDOS_AUTH_SECRET"] = previous_secret
+
+
+def main(argv: list[str] | None = None) -> int:
+    root = Path(__file__).resolve().parents[1]
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--database", type=Path, default=root / ".runtime" / "stage0-demo.sqlite3")
+    args = parser.parse_args(argv)
+    result = run_smoke(args.database)
+    print(json.dumps(result, indent=2, sort_keys=True))
+    return 0 if result["status"] == "passed" else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
