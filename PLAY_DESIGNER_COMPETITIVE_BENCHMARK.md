@@ -111,3 +111,37 @@ penetrate/loop, rush/replace, drop/replace, carry/transfer, and rotate/replace
 semantics. The link is persisted for timeline, teaching, validation, review,
 and export consumers. Verification is 137 frontend tests across 33 files with
 passing typecheck and production build.
+
+## Capability reconciliation addendum — 2026-08-28
+
+The benchmark’s earlier “remaining parity” note has been reconciled against
+the current implementation. The following capabilities are now implemented in
+the React designer and are covered by the existing editor, geometry,
+defensive-authoring, timeline, API, and export tests:
+
+- Interactive spatial coverage-shell visualization with keyboard-accessible
+  zone toggles and canvas rendering.
+- Defensive front and strength authoring, including technique, alignment
+  relationship, canonical alignment keys, and formation-strength controls.
+- Full gap-ownership visualization with selectable owners, conflict states,
+  anchor links, and explainable unassigned gaps.
+- Rotation sequencing with trigger, order, vacated responsibility,
+  replacement zone, replacement defender, and communication fields.
+- Debounced, non-persisting validation of the current unsaved draft.
+- Multi-track timeline controls for phases, markers, narration, ball events,
+  reads, exchanges, rotations, playback speed, and pause cues.
+
+The remaining benchmark gaps are narrower and still active: true multi-user
+edit convergence under concurrent mutations, partial-play stencil inheritance
+with persisted batch variants against multiple looks, complete provider-grade
+export layout/device certification, authoritative depth for every supported
+rule profile, automated browser visual/screen-reader/tablet traces, and
+moderated coach/coordinator/player pilot evidence. These items must not be
+marked complete from static controls or local unit tests alone.
+
+Repository verification for this reconciliation: the frontend suite passes
+163 tests across 42 files, the Python suite passes 598 tests, TypeScript
+typecheck and the production build pass, and GitHub Actions validates the
+master-plan audit plus the production-configured container runtime. Those
+results prove the local and CI foundation; they do not prove production
+deployment, real organization adoption, or owner approval.
