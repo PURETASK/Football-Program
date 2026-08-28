@@ -800,6 +800,16 @@ class PlayDesignService:
             batches = [item for item in batches if item.get("source_design_id") == source_design_id]
         batches.sort(key=lambda item: (str(item.get("_saved_at", item.get("created_at", ""))), str(item.get("id", ""))), reverse=True)
         for batch in batches:
+            release_bundle = self.repository.get("play_design_variant_release_bundles", f"VARIANT-RELEASE-{batch.get('id')}")
+            if release_bundle is not None:
+                batch["release_bundle"] = {
+                    "id": release_bundle.get("id"),
+                    "status": release_bundle.get("status"),
+                    "immutable": bool(release_bundle.get("immutable")),
+                    "manifest_hash": release_bundle.get("manifest_hash"),
+                    "created_at": release_bundle.get("created_at"),
+                    "production_activation": bool(release_bundle.get("production_activation")),
+                }
             review_items = []
             for variant_id in batch.get("variant_ids", []):
                 design = self.repository.get("play_designs", variant_id)

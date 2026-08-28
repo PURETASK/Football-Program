@@ -150,7 +150,7 @@ export function createPlayTemplate(session: AppSession, input: { designId: strin
 }
 
 export interface PlayVariantBatchReview { ready: boolean; ready_count: number; blocked_count: number; items: Array<{ design_id: string; state: string; ready: boolean; validation_status?: string; lifecycle?: string; approval_state?: string; reasons: string[] }> }
-export interface PlayVariantBatchResult { id: string; source_design_id: string; variant_ids: string[]; variants: PlayDesign[]; count: number; status: string; human_review_required?: boolean; review?: PlayVariantBatchReview }
+export interface PlayVariantBatchResult { id: string; source_design_id: string; variant_ids: string[]; variants: PlayDesign[]; count: number; status: string; human_review_required?: boolean; review?: PlayVariantBatchReview; release_bundle?: Pick<PlayVariantReleaseBundle, 'id' | 'status' | 'immutable' | 'manifest_hash' | 'created_at' | 'production_activation'> }
 
 export interface PlayVariantBatchHistory { organization_id: string; source_design_id?: string | null; batches: PlayVariantBatchResult[]; count: number }
 
@@ -188,6 +188,7 @@ export interface PlayVariantReleaseBundle {
   status: 'frozen' | string;
   immutable: boolean;
   manifest_hash: string;
+  created_at: string;
   production_activation: boolean;
 }
 
