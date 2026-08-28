@@ -618,7 +618,7 @@ export function PlayDesignerCanvas({
         ) : null}
 
         {shellBoxes.length ? <g className="designer-coverage-shell" role="group" aria-label="Declared coverage shell zones">
-          {shellBoxes.map((box) => { const owners = elements.filter((element) => element.kind === 'coverage' || element.kind === 'rotation').filter((element) => element.zone === box.id || element.rotation_to_zone === box.id); const ownerLabel = owners.map((element) => element.player_id ?? element.type ?? element.id).join(' + ') || 'Unassigned'; return <g key={box.id} role="group" aria-label={`${box.label}: ${ownerLabel}`}>
+          {shellBoxes.map((box) => { const owners = elements.filter((element) => element.kind === 'coverage' || element.kind === 'rotation').filter((element) => element.zone === box.id || element.rotation_to_zone === box.id); const ownerLabel = owners.map((element) => `${element.player_id ?? element.type ?? element.id}${element.kind === 'rotation' && element.rotation_sequence !== undefined ? ` · step ${element.rotation_sequence}` : ''}`).join(' + ') || 'Unassigned'; return <g key={box.id} role="group" aria-label={`${box.label}: ${ownerLabel}`}>
             <rect x={box.x} y={box.y} width={box.width} height={box.height} rx="1" />
             <text x={box.x + box.width / 2} y={box.y + box.height / 2}>{box.label}</text>
             <text className="designer-coverage-shell__owner" x={box.x + box.width / 2} y={box.y + box.height / 2 + 2.5}>{ownerLabel}</text>

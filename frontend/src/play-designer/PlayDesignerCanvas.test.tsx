@@ -88,6 +88,12 @@ describe('PlayDesignerCanvas', () => {
     expect(screen.getByText('CB-L')).toBeInTheDocument();
   });
 
+  it('includes rotation order in a shell owner label', () => {
+    const callbacks = props();
+    render(<PlayDesignerCanvas {...callbacks} design={{ ...DESIGN, unit: 'defense', coverage_zones: ['flat_left'], elements: [{ id: 'ROTATE', kind: 'rotation', player_id: 'SS', rotation_to_zone: 'flat_left', zone: 'flat_left', rotation_sequence: 2, points: [{ x: 70, y: 12 }, { x: 14, y: 22 }] }] }} />);
+    expect(screen.getByRole('group', { name: 'Flat left: SS · step 2' })).toBeInTheDocument();
+  });
+
   it('renders the canonical ball and movable line context', () => {
     const callbacks = props();
     render(<PlayDesignerCanvas {...callbacks} design={{ ...DESIGN, field_context: { hash: 'left', ball_x: 38, ball_y: 20, line_of_scrimmage_y: 20 } }} />);
