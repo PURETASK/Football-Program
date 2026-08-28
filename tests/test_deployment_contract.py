@@ -35,6 +35,30 @@ class DeploymentContractTests(unittest.TestCase):
         finally:
             path.unlink(missing_ok=True)
 
+    def test_duplicate_services_and_invalid_storage_are_rejected(self):
+        root = Path(__file__).resolve().parents[1]
+        contract = json.loads((root / "deployment" / "nfl-fidos-deployment.json").read_text(encoding="utf-8"))
+        contract["services"].append(dict(contract["services"][0]))
+        contract["storage"][0]["mount"] = "relative-data"
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "deployment.json"
+            path.write_text(json.dumps(contract), encoding="utf-8")
+            result = validate_deployment_contract(path=path)
+        self.assertEqual(result["status"], "invalid")
+        self.assertTrue(any("service IDs must be unique" in issue for issue in result["issues"]))
+        self.assertTrue(any("absolute path" in issue for issue in result["issues"]))
+
+    def test_api_port_must_match_production_environment(self):
+        root = Path(__file__).resolve().parents[1]
+        contract = json.loads((root / "deployment" / "nfl-fidos-deployment.json").read_text(encoding="utf-8"))
+        contract["environment_contract"]["NFL_FIDOS_PORT"] = 9090
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "deployment.json"
+            path.write_text(json.dumps(contract), encoding="utf-8")
+            result = validate_deployment_contract(path=path)
+        self.assertEqual(result["status"], "invalid")
+        self.assertTrue(any("port must match" in issue for issue in result["issues"]))
+
 
 if __name__ == "__main__":
     unittest.main()
