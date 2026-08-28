@@ -18,6 +18,9 @@ class LocalEvidenceBundleTests(unittest.TestCase):
         self.assertEqual(bundle["synthetic_pilot_rehearsal"]["status"], "passed")
         self.assertFalse(bundle["synthetic_pilot_rehearsal"]["live_pilot"])
         self.assertFalse(bundle["synthetic_pilot_rehearsal"]["external_state_changed"])
+        self.assertEqual(bundle["synthetic_operating_set_rehearsal"]["component_count"], 13)
+        self.assertEqual(bundle["synthetic_operating_set_rehearsal"]["required_component_count"], 13)
+        self.assertFalse(bundle["synthetic_operating_set_rehearsal"]["external_state_changed"])
 
 
 if __name__ == "__main__":

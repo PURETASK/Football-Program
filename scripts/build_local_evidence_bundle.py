@@ -14,6 +14,10 @@ try:
     from scripts.pilot_rehearsal import run_rehearsal
 except ModuleNotFoundError:  # Direct execution places the scripts directory on sys.path.
     from pilot_rehearsal import run_rehearsal
+try:
+    from scripts.organization_operating_set_rehearsal import run_rehearsal as run_operating_set_rehearsal
+except ModuleNotFoundError:  # Direct execution places the scripts directory on sys.path.
+    from organization_operating_set_rehearsal import run_rehearsal as run_operating_set_rehearsal
 
 
 def build_bundle(*, root: Path, run_evals: bool = True) -> dict:
@@ -25,6 +29,7 @@ def build_bundle(*, root: Path, run_evals: bool = True) -> dict:
     gap_audit = json.loads((root / "control" / "stage-0-gap-audit.json").read_text(encoding="utf-8"))
     stage0_owner_packet = build_stage0_owner_packet(registry=registry, gap_audit=gap_audit)
     pilot_rehearsal = run_rehearsal(run_evaluations=False)
+    operating_set_rehearsal = run_operating_set_rehearsal()
     checks = {
         "project_audit": project["status"] == "foundation_verified",
         "feature_parity": parity["status"] == "ready_for_human_review" and not parity["errors"],
@@ -33,6 +38,7 @@ def build_bundle(*, root: Path, run_evals: bool = True) -> dict:
         "completion_not_claimed": project["completion_claimed"] is False,
         "stage0_owner_packet_ready": stage0_owner_packet["review_status"] == "ready_for_owner_review",
         "synthetic_pilot_rollback_rehearsed": pilot_rehearsal["status"] == "passed" and pilot_rehearsal["rollback"]["external_state_changed"] is False,
+        "synthetic_operating_set_rehearsed": operating_set_rehearsal["status"] == "passed" and operating_set_rehearsal["component_count"] == operating_set_rehearsal["required_component_count"],
     }
     return {
         "bundle_id": "LOCAL-EVIDENCE-BUNDLE-NFL-FIDOS-001",
@@ -43,6 +49,7 @@ def build_bundle(*, root: Path, run_evals: bool = True) -> dict:
         "browser_evidence": browser,
         "stage0_owner_packet": stage0_owner_packet,
         "synthetic_pilot_rehearsal": pilot_rehearsal,
+        "synthetic_operating_set_rehearsal": operating_set_rehearsal,
         "safety": {
             "external_state_changed": False,
             "production_implementation_allowed": False,

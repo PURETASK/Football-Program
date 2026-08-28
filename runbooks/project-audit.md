@@ -23,8 +23,9 @@ python scripts/build_local_evidence_bundle.py `
 ```
 
 The bundle is valid only when every included check passes. It includes the
-Stage 0 owner-review packet and a synthetic Stage 24 pilot/rollback rehearsal
-in addition to the project, parity, and browser evidence. It always preserves
+Stage 0 owner-review packet, a complete 13-component synthetic organization
+operating-set rehearsal, and a synthetic Stage 24 pilot/rollback rehearsal in
+addition to the project, parity, and browser evidence. It always preserves
 non-activating safety flags and does not replace owner approval, deployment
 evidence, or a moderated real-user pilot.
 
