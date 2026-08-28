@@ -1055,6 +1055,14 @@
 .designer-collision-badge text { fill: #190f1a; font-size: 1.5px; font-weight: 900; pointer-events: none; }
 .designer-collision-badge.is-intentional circle { fill: #56d8f6; stroke: #d9fbff; }
 .designer-collision-badge.is-intentional text { fill: #082033; }
+.designer-active-timeline-events { pointer-events: none; }
+.designer-active-timeline-event circle { fill: #d9a7ff; stroke: #20152f; stroke-width: .38; }
+.designer-active-timeline-event text { fill: #20152f; font-size: 1.45px; font-weight: 950; }
+.designer-active-timeline-event--exchange circle,
+.designer-active-timeline-event--block_exchange circle,
+.designer-active-timeline-event--rush_exchange circle { fill: #ff9b91; }
+.designer-active-timeline-event--rotation circle { fill: #ffd36e; }
+@media (prefers-reduced-motion: reduce) { .designer-active-timeline-event circle { stroke-width: .55; } }
 .assignment-fields-loading { padding: 0.75rem; border: 1px solid rgb(76 214 250 / 0.08); border-radius: 8px; color: #637b92; background: rgb(76 214 250 / 0.02); font-size: 0.5rem; }
 .inspector-field { display: grid; gap: 0.25rem; color: #7f93aa; font-size: 0.52rem; font-weight: 700; }
 .inspector-field input,

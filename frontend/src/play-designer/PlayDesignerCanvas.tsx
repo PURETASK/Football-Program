@@ -1,6 +1,6 @@
 import { useId, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
 
-import type { PlayAsset, PlayDesign, PlayElement, PlayPlayer, PlayPresence, Point } from '../types';
+import type { PlayAsset, PlayDesign, PlayElement, PlayPlayer, PlayPresence, PlayTimelineEvent, Point } from '../types';
 import type { EditorSelection, EditorTool } from './editorState';
 import {
   elementPoints,
@@ -256,6 +256,19 @@ export function PlayDesignerCanvas({
     }
     return output;
   }, [duration, elements, playbackTime, players]);
+
+  const activeTimelineEvents = useMemo(() => {
+    if (playbackTime === null) return [];
+    return (design.timeline?.events ?? []).filter((event) => {
+      const start = timelineEventStart(event);
+      const end = timelineEventEnd(event, duration);
+      return playbackTime >= start && playbackTime <= end && !['ball', 'handoff'].includes(timelineEventKind(event));
+    }).map((event: PlayTimelineEvent) => {
+      const element = event.element_id ? elements.find((item) => item.id === event.element_id) : undefined;
+      const point = element?.points?.at(-1) ?? element?.path?.at(-1) ?? (element?.player_id ? players.find((player) => player.id === element.player_id)?.start : undefined);
+      return point ? { event, point } : null;
+    }).filter((item): item is { event: PlayTimelineEvent; point: Point } => Boolean(item));
+  }, [design.timeline?.events, duration, elements, playbackTime, players]);
 
   const eventPoint = (event: { clientX: number; clientY: number }) => {
     const bounds = svgRef.current?.getBoundingClientRect();
@@ -647,6 +660,16 @@ export function PlayDesignerCanvas({
               <circle cx={target.x} cy={target.y} r="1.35" />
               <text x={target.x} y={target.y + 3.1} textAnchor="middle">{link.gap.replace('_', ' ')}</text>
               {link.conflict ? <text x={target.x} y={target.y + 0.65} textAnchor="middle">!</text> : null}
+            </g>;
+          })}
+        </g> : null}
+
+        {activeTimelineEvents.length ? <g className="designer-active-timeline-events" role="group" aria-label="Active synchronized teaching events">
+          {activeTimelineEvents.map(({ event, point }) => {
+            const kind = timelineEventKind(event);
+            const label = event.label ?? kind.replaceAll('_', ' ');
+            return <g className={`designer-active-timeline-event designer-active-timeline-event--${kind}`} key={event.id ?? `${kind}-${point.x}-${point.y}`} transform={`translate(${point.x} ${point.y})`} role="img" aria-label={`Active ${kind.replaceAll('_', ' ')}: ${label}`}>
+              <circle r="1.9" /><text y=".55" textAnchor="middle">{kind === 'read' ? 'R' : kind === 'rotation' ? '↻' : kind === 'exchange' || kind === 'block_exchange' || kind === 'rush_exchange' ? '↔' : kind.slice(0, 1).toUpperCase()}</text><title>{label}</title>
             </g>;
           })}
         </g> : null}

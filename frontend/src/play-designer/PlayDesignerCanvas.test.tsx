@@ -124,6 +124,12 @@ describe('PlayDesignerCanvas', () => {
     expect(screen.getByRole('img', { name: 'Ball at 22.0, 19.0 on the synchronized timeline' })).toBeInTheDocument();
   });
 
+  it('shows active synchronized teaching events on the field during playback', () => {
+    const callbacks = props();
+    render(<PlayDesignerCanvas {...callbacks} playbackTime={500} design={{ ...DESIGN, timeline: { duration_ms: 3000, events: [{ id: 'READ-1', kind: 'read', label: 'Read the boundary safety', element_id: 'ROUTE-X', start_ms: 300, end_ms: 700 }] } }} />);
+    expect(screen.getByRole('img', { name: 'Active read: Read the boundary safety' })).toBeInTheDocument();
+  });
+
   it('exposes explainable route collision diagnostics to field users', () => {
     const callbacks = props();
     const design = { ...DESIGN, elements: [
