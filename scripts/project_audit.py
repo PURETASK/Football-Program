@@ -16,8 +16,14 @@ def main() -> int:
     parser.add_argument("--markdown", type=Path)
     parser.add_argument("--docx", type=Path)
     parser.add_argument("--skip-evals", action="store_true")
+    parser.add_argument("--output", type=Path, help="Also persist the machine-readable checkpoint to this local JSON path")
     args = parser.parse_args()
     result = run_project_audit(root=args.root, markdown=args.markdown, docx=args.docx, run_evals=not args.skip_evals)
+    if args.output:
+        output = args.output.expanduser().resolve()
+        output.parent.mkdir(parents=True, exist_ok=True)
+        result["evidence_output"] = str(output)
+        output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0 if result["status"] == "foundation_verified" else 1
 
