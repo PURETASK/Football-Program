@@ -289,6 +289,8 @@ Compositional offensive, defensive, and special-teams models; scheme families; p
 
 Source-linked authority model, jurisdiction/effective-period handling, rule profiles, exceptions, refresh candidates, review state, and escalation. It separates authoritative rule facts from strategy recommendations.
 
+The Play Designer quality gates also compare the declarative `rules/play-design-rule-profiles.json` catalog with the executable legality policy. The check covers player count, line count, motion limits, blocking/contact policy, rush distance, local-adoption requirements, and source presence. Youth remains intentionally uncommitted until an adopting league provides its local rule source and values.
+
 ### Evidence and knowledge engine
 
 Claim classification, provenance, source authorization, evidence strength, context, sample limitations, knowledge search, source refresh, and disagreement preservation.

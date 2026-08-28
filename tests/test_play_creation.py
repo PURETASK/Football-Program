@@ -2,7 +2,7 @@ import unittest
 
 from src.nfl_fidos.play_creation import normalize_term, validate_legality, validate_play_design
 from src.nfl_fidos.play_assignment_graph import build_assignment_graph, validate_assignment_graph
-from src.nfl_fidos.play_legality import profile_metadata, validate_advanced_legality
+from src.nfl_fidos.play_legality import profile_metadata, validate_advanced_legality, validate_rule_profile_catalog
 from src.nfl_fidos.play_timeline import default_phases, normalize_timeline_design, validate_timeline
 
 
@@ -177,6 +177,12 @@ class PlayCreationTests(unittest.TestCase):
         self.assertEqual(profile["id"], "nfl")
         self.assertTrue(profile["source"]["uri"].startswith("https://"))
         self.assertIn("Rule 7-4-8", profile["source"]["rule_refs"])
+
+    def test_declarative_rule_profile_catalog_matches_executable_policy(self):
+        result = validate_rule_profile_catalog()
+        self.assertEqual(result["status"], "valid")
+        self.assertEqual(result["profile_count"], 5)
+        self.assertEqual(result["issues"], [])
 
 
 if __name__ == "__main__":

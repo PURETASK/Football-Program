@@ -15,7 +15,7 @@ class PlayDesignerQualityTests(unittest.TestCase):
         result = run_play_designer_quality_gates(root=Path(__file__).parents[1], element_count=80)
         self.assertEqual(result["status"], "passed")
         check_ids = {check["id"] for check in result["checks"]}
-        self.assertEqual(check_ids, {"PDQ-ACCESSIBILITY", "PDQ-KEYBOARD-AUTHORING", "PDQ-OFFLINE-ENCRYPTION", "PDQ-PRINT-ACCESSIBILITY", "PDQ-LARGE-PLAY-PERFORMANCE", "PDQ-COLLAB-CONVERGENCE-REHEARSAL", "PDQ-VISUAL-REGRESSION"})
+        self.assertEqual(check_ids, {"PDQ-ACCESSIBILITY", "PDQ-KEYBOARD-AUTHORING", "PDQ-OFFLINE-ENCRYPTION", "PDQ-PRINT-ACCESSIBILITY", "PDQ-LARGE-PLAY-PERFORMANCE", "PDQ-COLLAB-CONVERGENCE-REHEARSAL", "PDQ-RULE-PROFILE-CATALOG", "PDQ-VISUAL-REGRESSION"})
         self.assertFalse(result["external_state_changed"])
 
 

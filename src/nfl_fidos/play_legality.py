@@ -7,15 +7,17 @@ program-owner-approved override may be attached.
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any
 
 
 RULE_PROFILE_CATALOG: dict[str, dict[str, Any]] = {
     "nfl": {"label": "NFL tackle football", "players_on_field": 11, "minimum_line_players": 7, "max_motion_at_snap": 1, "allow_blocking": True, "min_rush_distance_yards": None, "no_contact": False, "qb_direct_run_allowed": True, "source": {"title": "NFL Football Operations Rulebook hub", "uri": "https://operations.nfl.com/the-rules/nfl-rulebook", "rule_refs": ["Rule 5-1-1", "Rule 7-4-7", "Rule 7-4-8", "Rule 7-5-1"]}},
     "ncaa": {"label": "NCAA college football", "players_on_field": 11, "minimum_line_players": 7, "max_motion_at_snap": 1, "allow_blocking": True, "min_rush_distance_yards": None, "no_contact": False, "qb_direct_run_allowed": True, "source": {"title": "2025 NCAA Football Rules and Interpretations", "uri": "https://ncaaorg.s3.amazonaws.com/championships/sports/football/rules/PRMFB_RulesBook.pdf", "rule_refs": ["Rule 7-1", "Rule 7-1-5", "Rule 7-3"]}},
-    "high_school": {"label": "NFHS high-school tackle football", "players_on_field": 11, "minimum_line_players": 7, "max_motion_at_snap": 1, "allow_blocking": True, "min_rush_distance_yards": None, "no_contact": False, "qb_direct_run_allowed": True, "source": {"title": "NFHS Football Rules and Rules Changes", "uri": "https://www.nfhs.org/sports/football/rules", "rule_refs": ["NFHS current rulebook and state adoption"]}},
-    "youth": {"label": "Youth tackle football - local rules required", "players_on_field": 11, "minimum_line_players": 7, "max_motion_at_snap": 1, "allow_blocking": True, "min_rush_distance_yards": None, "no_contact": False, "qb_direct_run_allowed": True, "requires_local_rules": True, "source": {"title": "Organization-defined youth rules profile", "uri": None, "rule_refs": ["Local league rulebook required"]}},
-    "flag": {"label": "NFL FLAG 5-on-5 baseline", "players_on_field": 5, "minimum_line_players": 0, "max_motion_at_snap": 1, "allow_blocking": False, "min_rush_distance_yards": 7, "no_contact": True, "qb_direct_run_allowed": False, "source": {"title": "NFL FLAG Football Rules", "uri": "https://nflflag.com/coaches/flag-football-rules", "rule_refs": ["Illegal motion", "Illegal rush", "No contact", "Forward-pass and quarterback restrictions"]}},
+    "high_school": {"label": "NFHS high-school tackle football", "players_on_field": 11, "minimum_line_players": 7, "max_motion_at_snap": 1, "allow_blocking": True, "min_rush_distance_yards": None, "no_contact": False, "qb_direct_run_allowed": True, "requires_local_rules": True, "source": {"title": "NFHS Football Rules and Rules Changes", "uri": "https://www.nfhs.org/sports/football/rules", "rule_refs": ["NFHS current rulebook and state adoption"]}},
+    "youth": {"label": "Youth tackle football - local rules required", "players_on_field": None, "minimum_line_players": None, "max_motion_at_snap": None, "allow_blocking": None, "min_rush_distance_yards": None, "no_contact": False, "qb_direct_run_allowed": None, "requires_local_rules": True, "source": {"title": "Organization-defined youth rules profile", "uri": None, "rule_refs": ["Local league rulebook required"]}},
+    "flag": {"label": "NFL FLAG 5-on-5 baseline", "players_on_field": 5, "minimum_line_players": 0, "max_motion_at_snap": 1, "allow_blocking": False, "min_rush_distance_yards": 7, "no_contact": True, "qb_direct_run_allowed": False, "requires_local_rules": True, "source": {"title": "NFL FLAG Football Rules", "uri": "https://nflflag.com/coaches/flag-football-rules", "rule_refs": ["Illegal motion", "Illegal rush", "No contact", "Forward-pass and quarterback restrictions"]}},
 }
 
 
@@ -23,6 +25,39 @@ def profile_metadata(profile: str) -> dict[str, Any]:
     if profile not in RULE_PROFILE_CATALOG:
         raise KeyError(f"Unknown rule profile: {profile}")
     return {"id": profile, **RULE_PROFILE_CATALOG[profile]}
+
+
+def validate_rule_profile_catalog(path: str | Path | None = None) -> dict[str, Any]:
+    """Check the declarative profile file against executable legality policy."""
+    contract_path = Path(path) if path else Path(__file__).resolve().parents[2] / "rules" / "play-design-rule-profiles.json"
+    issues: list[str] = []
+    try:
+        document = json.loads(contract_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        return {"status": "invalid", "path": str(contract_path), "issues": [f"profile catalog unreadable: {exc}"]}
+    declared = {str(item.get("id")): item for item in document.get("profiles", []) if isinstance(item, dict) and item.get("id")}
+    expected_ids = set(RULE_PROFILE_CATALOG)
+    if set(declared) != expected_ids:
+        issues.append(f"profile ids differ: declared={sorted(declared)} executable={sorted(expected_ids)}")
+    mappings = {
+        "players_on_field": "players_on_field",
+        "minimum_line_players": "minimum_line_players",
+        "max_motion_at_snap": "max_motion_at_snap",
+        "blocking_allowed": "allow_blocking",
+        "minimum_rush_distance_yards": "min_rush_distance_yards",
+    }
+    for profile_id in sorted(expected_ids & set(declared)):
+        executable = RULE_PROFILE_CATALOG[profile_id]
+        source = declared[profile_id]
+        for declared_key, executable_key in mappings.items():
+            if source.get(declared_key) != executable.get(executable_key):
+                issues.append(f"{profile_id}.{declared_key} differs from executable {executable_key}")
+        declared_local = bool(source.get("local_adoption_required") or source.get("local_variants_required"))
+        if declared_local != bool(executable.get("requires_local_rules")):
+            issues.append(f"{profile_id} local-rule requirement differs")
+        if not source.get("source"):
+            issues.append(f"{profile_id} is missing a source")
+    return {"status": "valid" if not issues else "invalid", "path": str(contract_path), "profile_count": len(declared), "issues": issues}
 
 
 def _finding(code: str, message: str, path: str, *, profile: str, source: dict[str, Any], severity: str = "warning", observed: Any = None, expected: Any = None, overrideable: bool = True) -> dict[str, Any]:
@@ -97,9 +132,9 @@ def validate_advanced_legality(design: dict[str, Any], *, rule_profile: str | No
     explicit_field_count = design.get("players_on_field")
     if explicit_field_count is None and profile == "flag":
         issues.append(_finding("LEGALITY-FLAG-FIELD-COUNT-UNDECLARED", "Flag profile needs an explicit players_on_field value before final validation.", "players_on_field", profile=profile, source=source, severity="warning", expected=5, observed=None))
-    elif explicit_field_count is not None and explicit_field_count != configuration["players_on_field"]:
+    elif explicit_field_count is not None and configuration["players_on_field"] is not None and explicit_field_count != configuration["players_on_field"]:
         issues.append(_finding("LEGALITY-FIELD-COUNT", "Declared on-field count does not match the selected rule profile.", "players_on_field", profile=profile, source=source, severity="error", expected=configuration["players_on_field"], observed=explicit_field_count, overrideable=False))
-    if profile != "flag" and len(players) != configuration["players_on_field"]:
+    if profile != "flag" and configuration["players_on_field"] is not None and len(players) != configuration["players_on_field"]:
         issues.append(_finding("LEGALITY-PLAYER-COUNT", "Tackle profile requires the configured number of players in the formation.", "players", profile=profile, source=source, severity="error", expected=configuration["players_on_field"], observed=len(players), overrideable=False))
     if profile == "flag" and len(players) != configuration["players_on_field"]:
         issues.append(_finding("LEGALITY-FLAG-PLAYER-COUNT", "The selected flag profile requires the configured number of players in the formation.", "players", profile=profile, source=source, severity="error", expected=configuration["players_on_field"], observed=len(players), overrideable=False))
@@ -108,7 +143,7 @@ def validate_advanced_legality(design: dict[str, Any], *, rule_profile: str | No
 
     alignments = [item.get("alignment", {}) for item in players if isinstance(item.get("alignment"), dict)]
     explicit_line = [item for item in alignments if item.get("on_line") is True]
-    if explicit_line and len(explicit_line) < configuration["minimum_line_players"]:
+    if explicit_line and configuration["minimum_line_players"] is not None and len(explicit_line) < configuration["minimum_line_players"]:
         issues.append(_finding("LEGALITY-FORMATION-LINE", "Formation declares too few players on the line of scrimmage.", "players[].alignment.on_line", profile=profile, source=source, severity="error", expected=f">={configuration['minimum_line_players']}", observed=len(explicit_line)))
     if explicit_line:
         line_eligible = [item for item in explicit_line if item.get("eligible") is True]
@@ -141,7 +176,7 @@ def validate_advanced_legality(design: dict[str, Any], *, rule_profile: str | No
 
     motions = [item for item in elements if item.get("kind") == "motion"]
     snap_motions = [item for item in motions if item.get("at_snap", item.get("active_at_snap", True)) is True]
-    if len(snap_motions) > configuration["max_motion_at_snap"]:
+    if configuration["max_motion_at_snap"] is not None and len(snap_motions) > configuration["max_motion_at_snap"]:
         issues.append(_finding("LEGALITY-MOTION-COUNT", "Too many players are declared in motion at the snap.", "elements[kind=motion]", profile=profile, source=source, severity="error", expected=f"<={configuration['max_motion_at_snap']}", observed=len(snap_motions)))
     for index, motion in enumerate(motions):
         if motion.get("player_id") and not any(player.get("id") == motion.get("player_id") for player in players):
