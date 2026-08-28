@@ -161,3 +161,15 @@ both assignments and the exchange-role selector records the paired semantic
 relationship for timeline, teaching, validation, review, and export workflows.
 Verification now passes 163/163 frontend tests across 42 files, 597/597 Python
 tests, passing typecheck/build, and a 45.88 KiB designer route entry.
+
+Governed legality approval addendum (2026-08-28): the React Play Designer
+Checks panel now lets authorized staff submit an override request for an
+overrideable finding with rationale, decision reference, evidence references,
+and an expiry. Pending requests are rendered in an owner-approval queue, and
+program owners can approve them with a separate approval decision reference.
+The server remains authoritative for role, organization, finding, state, and
+expiry enforcement; approval does not publish a play. Verification passes
+238/238 frontend tests across 49 files, 634/634 Python tests, typecheck, the
+production frontend build, and `git diff --check`. Stage 0 owner approval,
+production deployment, real-data integration, and moderated pilot evidence
+remain pending.
