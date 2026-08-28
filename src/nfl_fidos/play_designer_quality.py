@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from .play_design_exports import build_export
+from .play_design_convergence import run_convergence_rehearsal
 from .play_legality import validate_advanced_legality
 
 
@@ -74,6 +75,7 @@ def run_play_designer_quality_gates(*, root: str | Path, element_count: int = 25
     if parser.unlabelled_controls:
         accessibility_issues.append(f"{parser.unlabelled_controls} static form controls have no accessible identifier")
     performance = run_large_play_rehearsal(element_count=element_count)
+    convergence = run_convergence_rehearsal()
     renderer_sha256, svg_sha256 = _render_fingerprint()
     baseline_path = root_path / "control" / "play-designer-visual-baseline.json"
     baseline = json.loads(baseline_path.read_text(encoding="utf-8")) if baseline_path.is_file() else {}
@@ -86,6 +88,7 @@ def run_play_designer_quality_gates(*, root: str | Path, element_count: int = 25
         {"id": "PDQ-OFFLINE-ENCRYPTION", "status": "passed" if all(token in sync for token in ("AES-GCM", "crypto.subtle", "encrypted")) else "blocked", "issues": [] if all(token in sync for token in ("AES-GCM", "crypto.subtle", "encrypted")) else ["encrypted offline storage controls are incomplete"]},
         {"id": "PDQ-PRINT-ACCESSIBILITY", "status": "passed" if all(token in exports for token in ("accessible_text", "black_white", "Page ")) else "blocked", "issues": [] if all(token in exports for token in ("accessible_text", "black_white", "Page ")) else ["print export accessibility tokens are incomplete"]},
         {"id": "PDQ-LARGE-PLAY-PERFORMANCE", "status": performance["status"], **performance},
+        {"id": "PDQ-COLLAB-CONVERGENCE-REHEARSAL", "status": convergence["status"], **convergence},
         {"id": "PDQ-VISUAL-REGRESSION", "status": "passed" if not visual_issues else "blocked", "issues": visual_issues, "renderer_sha256": renderer_sha256, "svg_sha256": svg_sha256, "baseline_path": str(baseline_path)},
     ]
     return {"status": "passed" if all(item["status"] == "passed" for item in checks) else "blocked", "checks": checks, "limitations": ["Visual regression is deterministic SVG fingerprinting; moderated tablet and screen-reader sessions still require human pilot participants."], "production_implementation_allowed": False, "external_state_changed": False}

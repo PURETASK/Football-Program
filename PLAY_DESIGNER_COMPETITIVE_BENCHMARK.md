@@ -141,6 +141,13 @@ implemented locally, but they still require production-scale administration
 and real-team pilot evidence before they can be considered operationally
 complete.
 
+The local quality suite now includes a deterministic two-editor convergence
+rehearsal. It proves that disjoint formation/assignment edits converge to the
+same checksum regardless of merge order and that overlapping edits preserve a
+stable, explicit conflict path. This is stronger local merge evidence, but it
+does not replace network, transport-ordering, browser, or production-scale
+multi-client validation.
+
 Repository verification for this reconciliation: the frontend suite passes
 163 tests across 42 files, the Python suite passes 598 tests, TypeScript
 typecheck and the production build pass, and GitHub Actions validates the
