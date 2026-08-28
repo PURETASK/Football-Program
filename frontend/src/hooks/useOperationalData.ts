@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
 import { useSession } from '../auth/SessionContext';
+import { acceptSequencedEvent } from './sequencedStream';
 import {
   fetchAdminWorkspace,
   fetchCollaborationWorkspace,
@@ -78,8 +79,10 @@ export function useCollaborationEventStream(): { status: CollaborationStreamStat
             for (const block of blocks) {
               const parsed = parseServerEvent(block);
               if (!parsed) continue;
-              if (parsed.id !== undefined && Number.isFinite(parsed.id)) sequence = Math.max(sequence, parsed.id);
               if (parsed.event === 'stream_end') { ended = true; break; }
+              const sequencing = acceptSequencedEvent(sequence, parsed.id);
+              if (!sequencing.accepted) continue;
+              sequence = sequencing.nextCursor;
               try {
                 const event = JSON.parse(parsed.data) as CollaborationActivity;
                 setLastEvent(event);

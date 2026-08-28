@@ -1,0 +1,7 @@
+/** Keep replayable SSE consumers monotonic when a transport duplicates or reorders events. */
+export function acceptSequencedEvent(cursor: number, incoming?: number): { accepted: boolean; nextCursor: number; reason: 'accepted' | 'duplicate' | 'gap' | 'unsequenced' } {
+  if (incoming === undefined || !Number.isFinite(incoming)) return { accepted: true, nextCursor: cursor, reason: 'unsequenced' };
+  if (incoming <= cursor) return { accepted: false, nextCursor: cursor, reason: 'duplicate' };
+  if (cursor > 0 && incoming !== cursor + 1) return { accepted: false, nextCursor: cursor, reason: 'gap' };
+  return { accepted: true, nextCursor: incoming, reason: 'accepted' };
+}
