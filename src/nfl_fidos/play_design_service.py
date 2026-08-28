@@ -848,6 +848,37 @@ class PlayDesignService:
         batch["review_request"] = {"state": "pending_approval", "requester": actor, "decision_ref": decision, "requested_at": requested_at}
         return self.repository.put("play_design_variant_batches", batch_id, batch, actor=actor, reason="play_design_variant_batch_review_requested")
 
+    def approve_variant_batch_review(self, batch_id: str, *, actor: str, decision_ref: str) -> dict[str, Any]:
+        """Record owner approval for a fully reviewed batch without publishing children."""
+        batch = self.repository.get("play_design_variant_batches", batch_id)
+        if batch is None:
+            raise KeyError(f"Unknown variant batch: {batch_id}")
+        decision = _clean_required_text(decision_ref, "decision_ref")
+        if batch.get("status") != "under_review":
+            raise ValueError("Only a variant batch under review can be approved")
+        children = [self.repository.get("play_designs", design_id) for design_id in batch.get("variant_ids", [])]
+        if not children or any(child is None for child in children):
+            raise ValueError("Variant batch contains a missing draft child")
+        blocked = []
+        for child in children:
+            validation = child.get("validation", {}) if isinstance(child.get("validation"), dict) else {}
+            if validation.get("status") != "valid":
+                blocked.append(f"{child.get('id')}: validation is not valid")
+            if child.get("status") != "under_review" or (child.get("approval") or {}).get("state") != "pending_approval":
+                blocked.append(f"{child.get('id')}: child is not pending batch approval")
+            integrity = verify_design_integrity(child)
+            if not integrity["valid"]:
+                blocked.append(f"{child.get('id')}: integrity check failed")
+        if blocked:
+            raise ValueError({"code": "VARIANT-BATCH-APPROVAL-BLOCKED", "issues": blocked})
+        approved_at = datetime.now(timezone.utc).isoformat()
+        for child in children:
+            child["batch_approval"] = {"state": "approved_for_release", "approver": actor, "decision_ref": decision, "batch_id": batch_id, "approved_at": approved_at}
+            self.repository.put("play_designs", child["id"], child, actor=actor, reason="play_design_variant_batch_approved")
+        batch["status"] = "approved_for_release"
+        batch["review_request"] = {**(batch.get("review_request") or {}), "state": "approved_for_release", "approver": actor, "decision_ref": decision, "approved_at": approved_at}
+        return self.repository.put("play_design_variant_batches", batch_id, batch, actor=actor, reason="play_design_variant_batch_approved")
+
     def role_view(self, design_id: str, *, role: str, mode: str = "player", step: int | None = None, user_id: str | None = None) -> dict[str, Any]:
         design = self.repository.get("play_designs", design_id)
         if design is None:

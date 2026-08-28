@@ -23,7 +23,7 @@ import {
   ApiError,
   addPlayComment,
   branchPlayDesign,
-  createPlayTemplate, createPlayVariants, requestPlayVariantBatchReview,
+  createPlayTemplate, createPlayVariants, requestPlayVariantBatchReview, approvePlayVariantBatchReview,
   leavePlayPresence,
   mergePlayBranch,
   publishPlayDesign,
@@ -498,6 +498,13 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
     setActionMessage(`Variant batch ${batchId} is now under governed staff review.`);
   };
 
+  const approveVariantReview = async (batchId: string) => {
+    if (!session) return;
+    await approvePlayVariantBatchReview(session, batchId, `APPROVE-VARIANTS-${state.present.id}-${Date.now().toString(36).toUpperCase()}`);
+    await queryClient.invalidateQueries({ queryKey: ['play-variant-batches', session.organizationId, state.present.id] });
+    setActionMessage(`Variant batch ${batchId} is approved for release; publish each child when ready.`);
+  };
+
   const applyTemplate = (template: PlayTemplate, mode: 'replace' | 'layer') => {
     void import('../play-designer/templateMaterializer').then(({ applyPlayTemplate }) => {
       dispatch({ type: 'commit_design', design: applyPlayTemplate(state.present, template, mode) });
@@ -561,6 +568,7 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
             onCreateVariants={createVariants}
             variantBatches={variantBatchesQuery.data?.batches ?? []}
             onRequestVariantReview={requestVariantReview}
+            onApproveVariantReview={session?.role === 'program_owner' ? approveVariantReview : undefined}
             onOpenVariant={(designId) => navigate(`/playbook/designer/${encodeURIComponent(designId)}`)}
             selectedElementIds={state.selected.filter((selection): selection is { kind: 'element'; id: string } => selection.kind === 'element').map((selection) => selection.id)}
           />

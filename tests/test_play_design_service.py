@@ -171,6 +171,10 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertEqual(reviewed["review_request"]["decision_ref"], "DEC-REVIEW-BATCH-001")
         self.assertTrue(all(service.repository.get("play_designs", item)["status"] == "under_review" for item in batch["variant_ids"]))
         self.assertTrue(all(service.repository.get("play_designs", item)["approval"]["state"] == "pending_approval" for item in batch["variant_ids"]))
+        approved = service.approve_variant_batch_review(batch["id"], actor="owner", decision_ref="DEC-APPROVE-BATCH-001")
+        self.assertEqual(approved["status"], "approved_for_release")
+        self.assertEqual(approved["review_request"]["state"], "approved_for_release")
+        self.assertTrue(all(service.repository.get("play_designs", item)["batch_approval"]["state"] == "approved_for_release" for item in batch["variant_ids"]))
 
     def test_batch_variants_apply_bounded_assignment_transformations(self):
         service = self.service()

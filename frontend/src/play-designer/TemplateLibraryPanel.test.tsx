@@ -117,4 +117,13 @@ describe('TemplateLibraryPanel', () => {
     await user.click(screen.getByRole('button', { name: 'Request staff review' }));
     expect(onRequestVariantReview).toHaveBeenCalledWith('VARIANT-BATCH-REVIEW-001');
   });
+
+  it('shows the owner release-approval action for a batch under review', async () => {
+    const user = userEvent.setup();
+    const onApproveVariantReview = vi.fn().mockResolvedValue(undefined);
+    render(<TemplateLibraryPanel templates={[]} design={DESIGN} variantBatches={[{ id: 'VARIANT-BATCH-OWNER-001', variants: [], count: 1, status: 'under_review' }]} onApply={vi.fn()} onApproveVariantReview={onApproveVariantReview} />);
+
+    await user.click(screen.getByRole('button', { name: 'Approve batch for release' }));
+    expect(onApproveVariantReview).toHaveBeenCalledWith('VARIANT-BATCH-OWNER-001');
+  });
 });

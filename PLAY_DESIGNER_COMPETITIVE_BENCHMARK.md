@@ -325,3 +325,11 @@ children before mutating any of them, transitions every valid draft child to
 emits collaboration events for each child. Any missing, invalid, or already
 transitioned child blocks the whole request, preserving atomic review intent;
 owner publishing remains a separate per-design authorization boundary.
+
+Owner batch-approval addendum — 2026-08-28: program owners can now approve a
+complete variant batch for release through
+`POST /v1/playbook/designs/variants/approve-review`. The operation rechecks
+every child, records the owner decision and batch approval metadata, emits
+collaboration events, and deliberately leaves child lifecycle and release
+creation under the existing per-design publish controls. No batch approval can
+bypass legality, checksum, or human-release requirements.

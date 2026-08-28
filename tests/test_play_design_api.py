@@ -69,6 +69,29 @@ class PlayDesignApiTests(unittest.TestCase):
             self.assertEqual(child["status"], "under_review")
         os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
 
+    def test_variant_batch_approval_requires_program_owner_and_does_not_publish(self):
+        secret = "play-design-variant-approval-secret-012345678901234567890"
+        os.environ["NFL_FIDOS_AUTH_SECRET"] = secret
+        coach = {"Authorization": "Bearer " + issue_token(subject="COACH-APPROVAL", role="coach_staff", organization_id="ORG-DESIGN-APPROVAL", secret=secret)}
+        owner = {"Authorization": "Bearer " + issue_token(subject="OWNER-APPROVAL", role="program_owner", organization_id="ORG-DESIGN-APPROVAL", secret=secret)}
+        with tempfile.TemporaryDirectory() as directory:
+            service = FootballIntelligenceService(JsonRepository(Path(directory) / "state.json"))
+            status, created = handle_request(method="POST", path="/v1/playbook/designs", headers=coach, body={"organization_id":"ORG-DESIGN-APPROVAL", "design":design()}, service=service)
+            self.assertEqual(status, 201)
+            status, batch = handle_request(method="POST", path="/v1/playbook/designs/variants", headers=coach, body={"organization_id":"ORG-DESIGN-APPROVAL", "design_id":created["data"]["id"], "batch_id":"VARIANT-BATCH-APPROVAL-API-001", "variants":[{"label":"Cover 3", "patch":{"coverage":"cover_3"}}]}, service=service)
+            self.assertEqual(status, 201)
+            status, _ = handle_request(method="POST", path="/v1/playbook/designs/variants/request-review", headers=coach, body={"organization_id":"ORG-DESIGN-APPROVAL", "batch_id":batch["data"]["id"], "decision_ref":"DEC-REVIEW-APPROVAL-API"}, service=service)
+            self.assertEqual(status, 200)
+            denied_status, _ = handle_request(method="POST", path="/v1/playbook/designs/variants/approve-review", headers=coach, body={"organization_id":"ORG-DESIGN-APPROVAL", "batch_id":batch["data"]["id"], "decision_ref":"DEC-DENIED-APPROVAL-API"}, service=service)
+            self.assertEqual(denied_status, 403)
+            status, approved = handle_request(method="POST", path="/v1/playbook/designs/variants/approve-review", headers=owner, body={"organization_id":"ORG-DESIGN-APPROVAL", "batch_id":batch["data"]["id"], "decision_ref":"DEC-APPROVE-API"}, service=service)
+            self.assertEqual(status, 200)
+            self.assertEqual(approved["data"]["status"], "approved_for_release")
+            child = service.repository.get("play_designs", batch["data"]["variant_ids"][0])
+            self.assertEqual(child["status"], "under_review")
+            self.assertNotIn("release_id", child)
+        os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
+
     def test_export_preflight_is_org_scoped_and_returns_structured_blockers(self):
         secret = "play-design-preflight-api-secret-012345678901234567890"
         os.environ["NFL_FIDOS_AUTH_SECRET"] = secret
