@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import { CircleDot, Eraser, Film, Mic, Pause, Pencil, Play, SkipBack, SkipForward, Square, Scissors } from 'lucide-react';
 
 import { useSession } from '../auth/SessionContext';
@@ -12,6 +12,12 @@ function formatTime(seconds: number): string {
   if (!Number.isFinite(seconds)) return '0:00';
   const minutes = Math.floor(seconds / 60);
   return `${minutes}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
+}
+
+export const FILM_FRAME_RATE = 30;
+
+export function filmFrameStep(currentTime: number, direction: -1 | 1): number {
+  return Math.max(0, currentTime + direction / FILM_FRAME_RATE);
 }
 
 export function FilmStudioPanel({
@@ -111,6 +117,21 @@ export function FilmStudioPanel({
     setCurrentTime(next);
   }
 
+  function handleStageKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.target !== event.currentTarget) return;
+    if (event.key.toLowerCase() === 'j' || event.key === 'ArrowLeft') {
+      event.preventDefault();
+      seek(filmFrameStep(currentTime, -1));
+    } else if (event.key.toLowerCase() === 'l' || event.key === 'ArrowRight') {
+      event.preventDefault();
+      seek(filmFrameStep(currentTime, 1));
+    } else if (event.key.toLowerCase() === 'k' || event.key === ' ') {
+      event.preventDefault();
+      if (videoRef.current?.paused) void videoRef.current.play();
+      else videoRef.current?.pause();
+    }
+  }
+
   function addPoint(event: PointerEvent<HTMLDivElement>) {
     if (!stageRef.current) return;
     const rect = stageRef.current.getBoundingClientRect();
@@ -165,15 +186,15 @@ export function FilmStudioPanel({
       </header>
       <div className="film-studio__body">
         <div className="film-studio__stage-wrap">
-          <div className="film-studio__stage" ref={stageRef} onPointerDown={(event) => { if (tool === 'tracking') addPoint(event); else if (isDrawing) { stageRef.current?.setPointerCapture(event.pointerId); addPoint(event); } }} onPointerMove={tool === 'telestration' ? addPoint : undefined} onPointerUp={() => setIsDrawing(false)} role="img" aria-label="Film playback stage with telestration overlay and player tracking">
+          <div className="film-studio__stage" ref={stageRef} onKeyDown={handleStageKeyDown} onPointerDown={(event) => { if (tool === 'tracking') addPoint(event); else if (isDrawing) { stageRef.current?.setPointerCapture(event.pointerId); addPoint(event); } }} onPointerMove={tool === 'telestration' ? addPoint : undefined} onPointerUp={() => setIsDrawing(false)} role="img" tabIndex={0} aria-keyshortcuts="J K L ArrowLeft ArrowRight" aria-label="Film playback stage with telestration overlay and player tracking. Press J or left arrow for previous frame, K or space to play or pause, and L or right arrow for next frame.">
             {source ? <video aria-label={`Playback for ${asset?.id || 'film asset'}`} controls={false} onLoadedMetadata={(event) => setDuration(event.currentTarget.duration || asset?.duration_seconds || 0)} onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)} ref={videoRef} src={source} /> : <div className="film-studio__unavailable"><Film aria-hidden="true" size={28} /><strong>{mediaError ? 'Authorized media unavailable' : 'Select an authorized media asset'}</strong><span>{mediaError || 'The player will load the organization-scoped content stream here.'}</span></div>}
             <svg aria-hidden="true" className="film-studio__overlay" viewBox="0 0 100 100" preserveAspectRatio="none"><path d={drawingPath} fill="none" stroke="#53d8f9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.65" />{trackingPoint ? <circle cx={trackingPoint.x} cy={trackingPoint.y} fill="#ffbf69" r="1.5" stroke="#fff" strokeWidth="0.45" /> : null}</svg>
           </div>
           <div className="film-studio__transport">
-            <button aria-label="Step backward one frame" className="icon-button" onClick={() => seek(currentTime - 1 / 30)} type="button"><SkipBack size={16} /></button>
+            <button aria-label="Step backward one frame" className="icon-button" onClick={() => seek(filmFrameStep(currentTime, -1))} type="button"><SkipBack size={16} /></button>
             <button aria-label="Play film" className="icon-button" onClick={() => void videoRef.current?.play()} type="button"><Play size={16} /></button>
             <button aria-label="Pause film" className="icon-button" onClick={() => videoRef.current?.pause()} type="button"><Pause size={16} /></button>
-            <button aria-label="Step forward one frame" className="icon-button" onClick={() => seek(currentTime + 1 / 30)} type="button"><SkipForward size={16} /></button>
+            <button aria-label="Step forward one frame" className="icon-button" onClick={() => seek(filmFrameStep(currentTime, 1))} type="button"><SkipForward size={16} /></button>
             <span>{formatTime(currentTime)} / {formatTime(duration || asset?.duration_seconds || 0)}</span>
             <input aria-label="Film playback timeline" max={duration || asset?.duration_seconds || 0} min="0" onChange={(event) => seek(Number(event.target.value))} step="0.01" type="range" value={Math.min(currentTime, duration || asset?.duration_seconds || 0)} />
           </div>
@@ -185,7 +206,7 @@ export function FilmStudioPanel({
           {playOptions.length ? <label><span>Link evidence to Playbook calls <small>select canonical artifacts</small></span><select aria-label="Playbook calls linked to film evidence" multiple onChange={(event) => setLinkedPlayIds(Array.from(event.target.selectedOptions).map((option) => option.value))} size={Math.min(5, Math.max(3, playOptions.length))} value={linkedPlayIds}>{playOptions.map((play) => <option key={play.id} value={play.id}>{play.name || play.concept || play.id} Â· {play.unit} Â· v{play.version || '?'}</option>)}</select></label> : null}
           <label><span>Link evidence to downstream workspaces <small>type:id, comma separated</small></span><input aria-label="Downstream workspace links for film evidence" onChange={(event) => setLinkedRecordRefsText(event.target.value)} placeholder="scouting:SCOUT-REPORT-1, game_plan:GAMEPLAN-1" value={linkedRecordRefsText} /></label>
           {canAuthor ? <>
-            <div className="film-studio__section"><div className="workbench-pane__header"><div><h4><Scissors aria-hidden="true" size={15} /> Create bounded clip</h4><p>Clip the selected authorized asset without modifying the source file.</p></div></div><div className="workbench-form__grid"><label><span>Start seconds</span><input min="0" onChange={(event) => setClipStart(Number(event.target.value))} step="0.01" type="number" value={clipStart} /></label><label><span>End seconds</span><input min="0" onChange={(event) => setClipEnd(Number(event.target.value))} step="0.01" type="number" value={clipEnd} /></label></div><div className="workbench-form__actions"><button className="button button--primary" disabled={!canSaveClip || clipPending} onClick={() => onCreateClip({ clipId: recordId('CLIP-'), assetId: asset!.id, startSeconds: clipStart, endSeconds: clipEnd, team: clip?.context?.team || 'TEAM-UNKNOWN', opponent: clip?.context?.opponent || 'OPPONENT-UNKNOWN', situation: clip?.context?.situation || 'Film Studio review' })} type="button"><Scissors size={14} /> Save bounded clip</button></div></div>
+            <div className="film-studio__section"><div className="workbench-pane__header"><div><h4><Scissors aria-hidden="true" size={15} /> Create bounded clip</h4><p>Clip the selected authorized asset without modifying the source file.</p></div></div><div className="workbench-form__grid"><label><span>Start seconds</span><input min="0" onChange={(event) => setClipStart(Number(event.target.value))} step="0.01" type="number" value={clipStart} /></label><label><span>End seconds</span><input min="0" onChange={(event) => setClipEnd(Number(event.target.value))} step="0.01" type="number" value={clipEnd} /></label></div><div className="workbench-form__actions"><button className="button button--ghost" onClick={() => setClipStart(Math.min(currentTime, clipEnd))} type="button">Set start at current frame</button><button className="button button--ghost" onClick={() => setClipEnd(Math.max(currentTime, clipStart))} type="button">Set end at current frame</button><button className="button button--primary" disabled={!canSaveClip || clipPending} onClick={() => onCreateClip({ clipId: recordId('CLIP-'), assetId: asset!.id, startSeconds: clipStart, endSeconds: clipEnd, team: clip?.context?.team || 'TEAM-UNKNOWN', opponent: clip?.context?.opponent || 'OPPONENT-UNKNOWN', situation: clip?.context?.situation || 'Film Studio review' })} type="button"><Scissors size={14} /> Save bounded clip</button></div></div>
             <div className="film-studio__section"><div className="workbench-pane__header"><div><h4><CircleDot aria-hidden="true" size={15} /> Player tracking</h4><p>Capture a player location at the current frame for evidence-linked review.</p></div></div><label><span>Player or jersey identifier</span><input onChange={(event) => setTrackingPlayer(event.target.value)} placeholder="CB-2 or #24" value={trackingPlayer} /></label><div className="workbench-form__actions"><button className="button button--secondary" disabled={!trackingPlayer.trim() || !trackingPoint} onClick={() => { onSaveTracking(trackingPlayer.trim(), trackingPoint!, currentTime, linkedPlayIds, parseFilmLinkedRecordRefs(linkedRecordRefsText)); setTrackingPoint(null); }} type="button"><CircleDot size={14} /> Save tracking point</button><span className="workbench-form__hint">{trackingPoint ? `Frame ${currentTime.toFixed(2)}s marked.` : 'Choose Track player, then click the video frame.'}</span></div></div>
             <button className="button button--secondary" disabled={drawing.length < 2} onClick={() => onSaveTelestration(drawing, currentTime, linkedPlayIds, parseFilmLinkedRecordRefs(linkedRecordRefsText))} type="button"><Pencil size={14} /> Save telestration evidence</button>
             <div className="film-studio__section"><div className="workbench-pane__header"><div><h4><Mic aria-hidden="true" size={15} /> Voice note</h4><p>Capture a short spoken coaching note anchored to this frame; the transcript is retained for search and accessibility.</p></div></div><label><span>Transcript or coaching summary</span><textarea onChange={(event) => setVoiceTranscript(event.target.value)} placeholder="What should the staff or player notice?" value={voiceTranscript} /></label><div className="workbench-form__actions"><button className={isRecording ? 'button button--primary' : 'button button--secondary'} onClick={isRecording ? stopVoiceNote : startVoiceNote} type="button">{isRecording ? <><Square size={14} /> Stop and save</> : <><Mic size={14} /> Record voice note</>}</button><span className="workbench-form__hint">{isRecording ? 'Recording locally; stop to save the bounded note.' : 'Microphone permission is requested only when you record.'}</span></div>{voiceError ? <p className="mutation-notice mutation-notice--error" role="alert">{voiceError}</p> : null}</div>
