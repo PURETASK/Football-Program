@@ -9,3 +9,19 @@
 .delivery-packet-card__links { color: var(--ink-600); font-size: .68rem; }
 .delivery-packet-card details { color: var(--ink-500); font-size: .68rem; }
 .delivery-packet-card details ul { margin: .35rem 0 0; padding-left: 1rem; }
+.delivery-agenda { display: grid; gap: .8rem; margin-bottom: 1rem; }
+.delivery-agenda__grid { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.delivery-agenda__day { background: linear-gradient(145deg, #f8fbfc, #fff); border: 1px solid var(--line); border-radius: .8rem; display: grid; gap: .7rem; padding: .8rem; }
+.delivery-agenda__day--overdue { border-color: rgba(188, 65, 65, .45); box-shadow: inset 3px 0 #bc4141; }
+.delivery-agenda__day header { align-items: start; display: flex; gap: .6rem; justify-content: space-between; }
+.delivery-agenda__day h4 { margin: .1rem 0 0; }
+.delivery-agenda__count { color: var(--ink-500); font-size: .65rem; font-weight: 800; text-align: right; }
+.delivery-agenda__day ol { display: grid; gap: .35rem; list-style: none; margin: 0; padding: 0; }
+.delivery-agenda__task { align-items: flex-start; background: transparent; border: 0; color: var(--ink-700); cursor: pointer; display: flex; gap: .5rem; padding: .35rem 0; text-align: left; width: 100%; }
+.delivery-agenda__task:hover strong, .delivery-agenda__task:focus-visible strong { color: var(--accent-700); text-decoration: underline; }
+.delivery-agenda__task strong, .delivery-agenda__task small { display: block; }
+.delivery-agenda__task strong { font-size: .75rem; }
+.delivery-agenda__task small { color: var(--ink-500); font-size: .64rem; line-height: 1.35; margin-top: .15rem; }
+.delivery-agenda__dot { background: var(--accent-500); border-radius: 50%; flex: 0 0 .48rem; height: .48rem; margin-top: .25rem; }
+.delivery-agenda__dot--overdue { background: #bc4141; }
+.delivery-agenda__dot--completed, .delivery-agenda__dot--complete { background: #1b8f5e; }
