@@ -354,6 +354,14 @@
 .template-tags span { padding: 0.16rem 0.24rem; border-radius: 4px; color: #ad9cff; background: rgb(152 115 255 / 0.08); font-size: 0.43rem; }
 .template-companion { display: flex; grid-column: 1 / -1; align-items: center; gap: 0.24rem; color: #7790a7; font-size: 0.47rem; }
 .template-companion svg { color: #9d88ff; }
+.variant-review-rail { display: grid; grid-column: 1 / -1; gap: 0.35rem; margin-top: 0.4rem; }
+.variant-review-rail > strong { color: #eaf7ff; font-size: 0.55rem; }
+.variant-review-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.18rem 0.4rem; padding: 0.42rem; border: 1px solid rgb(76 214 250 / 0.14); border-radius: 6px; background: rgb(5 16 29 / 0.72); }
+.variant-review-card > div { display: grid; gap: 0.1rem; min-width: 0; }
+.variant-review-card strong { overflow: hidden; color: #eaf7ff; font-size: 0.52rem; text-overflow: ellipsis; white-space: nowrap; }
+.variant-review-card small, .variant-review-card > span { color: #8198ad; font-size: 0.44rem; }
+.variant-review-card > span { grid-column: 1 / -1; }
+.variant-review-card button { grid-column: 2; grid-row: 1; align-self: center; padding: 0.25rem 0.38rem; border: 1px solid rgb(90 220 247 / 0.28); border-radius: 4px; color: #93e9ff; background: transparent; font-size: 0.43rem; }
 .template-card footer { display: flex; grid-column: 1 / -1; gap: 0.32rem; }
 .template-action { display: inline-flex; min-height: 28px; align-items: center; justify-content: center; gap: 0.25rem; flex: 1; border: 1px solid rgb(76 214 250 / 0.22); border-radius: 7px; color: #dffaff; background: rgb(76 214 250 / 0.09); cursor: pointer; font-size: 0.5rem; font-weight: 850; }
 .template-action:hover { border-color: rgb(76 214 250 / 0.48); background: rgb(76 214 250 / 0.16); }

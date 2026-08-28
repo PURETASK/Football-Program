@@ -461,11 +461,12 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
   };
 
   const createVariants = async (input: { field: 'front' | 'coverage' | 'formation' | 'concept'; labels: string[] }) => {
-    if (!session) return;
+    if (!session) throw new Error('An authenticated organization session is required to generate variants.');
     const variants = input.labels.map((label) => ({ label, patch: { [input.field]: label.toLowerCase().replaceAll(' ', '_') } }));
     const report = await createPlayVariants(session, { designId: state.present.id, variants });
     setActionMessage(`${report.count} draft variants generated from ${state.present.name ?? state.present.id}. Each remains linked to the source play for review.`);
     await refreshPlayData();
+    return report;
   };
 
   const applyTemplate = (template: PlayTemplate, mode: 'replace' | 'layer') => {
@@ -529,6 +530,7 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
             onApplyTemplate={applyTemplate}
             onSaveTemplate={captureTemplate}
             onCreateVariants={createVariants}
+            onOpenVariant={(designId) => navigate(`/playbook/designer/${encodeURIComponent(designId)}`)}
             selectedElementIds={state.selected.filter((selection): selection is { kind: 'element'; id: string } => selection.kind === 'element').map((selection) => selection.id)}
           />
         </Suspense>

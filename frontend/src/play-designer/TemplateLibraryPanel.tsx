@@ -9,7 +9,8 @@ interface TemplateLibraryPanelProps {
   design: PlayDesign;
   onApply: (template: PlayTemplate, mode: 'replace' | 'layer') => void;
   onSave?: (input: { name: string; description: string; tags: string[]; elementIds?: string[]; parentTemplateId?: string }) => Promise<void>;
-  onCreateVariants?: (input: { field: 'front' | 'coverage' | 'formation' | 'concept'; labels: string[] }) => Promise<void>;
+  onCreateVariants?: (input: { field: 'front' | 'coverage' | 'formation' | 'concept'; labels: string[] }) => Promise<{ variants: PlayDesign[]; count: number }>;
+  onOpenVariant?: (designId: string) => void;
   selectedElementIds?: string[];
 }
 
@@ -37,7 +38,7 @@ function TemplatePreview({ template }: { template: PlayTemplate }) {
   );
 }
 
-export function TemplateLibraryPanel({ templates, design, onApply, onSave, onCreateVariants, selectedElementIds = [] }: TemplateLibraryPanelProps) {
+export function TemplateLibraryPanel({ templates, design, onApply, onSave, onCreateVariants, onOpenVariant, selectedElementIds = [] }: TemplateLibraryPanelProps) {
   const [search, setSearch] = useState('');
   const [kind, setKind] = useState('all');
   const [replaceConfirmation, setReplaceConfirmation] = useState<string | null>(null);
@@ -50,6 +51,7 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave, onCre
   const [variantField, setVariantField] = useState<'front' | 'coverage' | 'formation' | 'concept'>('coverage');
   const [variantLabels, setVariantLabels] = useState('Cover 3, Cover 1, Quarters');
   const [variantState, setVariantState] = useState<'idle' | 'saving' | 'error'>('idle');
+  const [generatedVariants, setGeneratedVariants] = useState<PlayDesign[]>([]);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const deferredSearch = useDeferredValue(search);
   const kinds = useMemo(() => [...new Set(templates.map((template) => template.template_kind ?? 'custom'))].sort(), [templates]);
@@ -91,7 +93,7 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave, onCre
     const labels = variantLabels.split(',').map((value) => value.trim()).filter(Boolean).slice(0, 32);
     if (!labels.length) return;
     setVariantState('saving');
-    try { await onCreateVariants({ field: variantField, labels }); setVariantState('idle'); } catch { setVariantState('error'); }
+    try { const report = await onCreateVariants({ field: variantField, labels }); setGeneratedVariants(report.variants); setVariantState('idle'); } catch { setVariantState('error'); }
   };
 
   return (
@@ -144,6 +146,7 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave, onCre
         <label><span>Look values <small>(comma separated, up to 32)</small></span><input value={variantLabels} onChange={(event) => setVariantLabels(event.target.value)} placeholder="Cover 3, Cover 1, Quarters" /></label>
         <button type="button" disabled={!variantLabels.trim() || variantState === 'saving'} onClick={() => void createVariants()}>{variantState === 'saving' ? 'Generating variants…' : 'Generate draft variants'}</button>
         {variantState === 'error' ? <span role="alert">The variant batch could not be generated.</span> : null}
+        {generatedVariants.length ? <div className="variant-review-rail" aria-label="Generated variant review"><strong>Generated review set</strong>{generatedVariants.map((variant) => <article className="variant-review-card" key={variant.id}><div><strong>{variant.name ?? variant.id}</strong><small>{variant.variant_look?.label ?? 'Look variant'} · {variant.status ?? 'draft'} · v{variant.version ?? '0.1.0'}</small></div><span>{variant.variant_look?.patch ? Object.entries(variant.variant_look.patch as Record<string, unknown>).map(([key, value]) => `${titleCase(key)}: ${String(value)}`).join(' · ') : 'Explicit look patch'}</span><button type="button" onClick={() => onOpenVariant?.(variant.id)} disabled={!onOpenVariant}>Open variant</button></article>)}</div> : null}
       </section> : null}
     </div>
   );
