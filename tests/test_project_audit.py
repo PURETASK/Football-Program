@@ -1,6 +1,8 @@
 import json
+import io
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
@@ -23,7 +25,8 @@ class ProjectAuditTests(unittest.TestCase):
         with patch("sys.argv", ["project_audit.py", "--root", str(root), "--skip-evals", "--output", str(output)]):
             from scripts import project_audit
 
-            self.assertEqual(project_audit.main(), 0)
+            with redirect_stdout(io.StringIO()):
+                self.assertEqual(project_audit.main(), 0)
         payload = json.loads(output.read_text(encoding="utf-8"))
         self.assertEqual(payload["status"], "foundation_verified")
         self.assertFalse(payload["completion_claimed"])
