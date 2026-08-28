@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src.nfl_fidos.play_design_exports import build_export, build_export_preflight, validate_export_design
+from src.nfl_fidos.play_design_exports import build_export, build_export_preflight, validate_export_design, verify_export_artifact
 from src.nfl_fidos.play_design_service import PlayDesignService
 from src.nfl_fidos.repository import JsonRepository
 from src.nfl_fidos.tenant_repository import TenantRepository
@@ -176,6 +176,34 @@ class PlayDesignExportTests(unittest.TestCase):
         rendered = build_export(designs=[candidate], kind="play_card", format="svg")
         payload = base64.b64decode(rendered["content_base64"]).decode("utf-8")
         self.assertIn("3-tech · outside eye", payload)
+
+    def test_artifact_integrity_is_verified_and_exposes_print_metadata(self):
+        rendered = build_export(designs=[design()], kind="play_card", format="svg")
+        self.assertEqual(rendered["integrity"]["status"], "verified")
+        self.assertEqual(rendered["page_size"], "letter")
+        self.assertEqual(rendered["page_count"], 1)
+        self.assertTrue(rendered["printer_safe"])
+        self.assertTrue(rendered["accessibility"]["has_alt_text"])
+        self.assertEqual(rendered["source_lock"]["status"], "review")
+
+    def test_artifact_verifier_detects_tampering(self):
+        rendered = build_export(designs=[design()], kind="play_card", format="json")
+        rendered["content_base64"] = base64.b64encode(b"tampered").decode("ascii")
+        verification = verify_export_artifact(rendered)
+        self.assertEqual(verification["status"], "invalid")
+        self.assertIn("EXPORT-ARTIFACT-HASH", {issue["code"] for issue in verification["issues"]})
+        self.assertIn("EXPORT-ARTIFACT-BYTES", {issue["code"] for issue in verification["issues"]})
+
+    def test_packet_metadata_uses_layout_capacity(self):
+        designs = []
+        for index in range(5):
+            candidate = design()
+            candidate["id"] = f"DESIGN-PACKET-{index:02d}"
+            designs.append(candidate)
+        grid = build_export(designs=designs, kind="play_card", format="pdf", layout="grid_2x2")
+        self.assertEqual(grid["page_count"], 2)
+        wristband = build_export(designs=designs, kind="wristband", format="pdf", layout="wristband_4col")
+        self.assertEqual(wristband["page_count"], 1)
 
 
 if __name__ == "__main__":

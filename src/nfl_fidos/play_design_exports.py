@@ -673,6 +673,79 @@ def _effective_layout(*, kind: str, format: str, layout: str | None) -> str:
     return layout or ({"call_sheet": "table", "wristband": "wristband_2col"}.get(kind, "single") if format not in {"svg", "png"} else "single")
 
 
+def _page_count(*, designs: list[dict[str, Any]], kind: str, layout: str) -> int:
+    """Return the deterministic page budget used by packet renderers."""
+    if kind == "call_sheet":
+        return max(1, math.ceil(len(designs) / 27))
+    if kind == "wristband":
+        config = WRISTBAND_LAYOUTS.get(layout, WRISTBAND_LAYOUTS["wristband_2col"])
+        return max(1, math.ceil(len(designs) / (config["columns"] * config["rows"])))
+    if layout == "grid_2x2":
+        return max(1, math.ceil(len(designs) / 4))
+    if layout == "grid_3x2":
+        return max(1, math.ceil(len(designs) / 6))
+    return max(1, len(designs))
+
+
+def _source_lock(designs: list[dict[str, Any]]) -> dict[str, Any]:
+    """Describe whether an export is tied to a persisted, render-identifiable source."""
+    issues: list[dict[str, str]] = []
+    for design in designs:
+        design_id = str(design.get("id") or "unknown")
+        required = {
+            "snapshot_id": design.get("latest_snapshot_id"),
+            "content_checksum": design.get("checksum"),
+            "renderer_version": design.get("renderer_version"),
+            "renderer_checksum": design.get("renderer_checksum"),
+        }
+        missing = [key for key, value in required.items() if not value]
+        if missing:
+            issues.append({"code": "EXPORT-SOURCE-LOCK-MISSING", "severity": "warning", "message": f"{design_id} is missing source lock fields: {', '.join(missing)}."})
+    return {"status": "locked" if not issues else "review", "issues": issues}
+
+
+def _artifact_page_metadata(*, designs: list[dict[str, Any]], kind: str, format: str, layout: str, role: str | None, black_white: bool) -> dict[str, Any]:
+    return {
+        "page_size": "letter",
+        "page_count": _page_count(designs=designs, kind=kind, layout=layout),
+        "printer_safe": format in {"pdf", "html", "svg", "png", "csv", "json"},
+        "black_white": black_white,
+        "accessibility": {"has_alt_text": format in {"svg", "html"}, "has_accessible_text": format in {"pdf", "svg", "html", "json"}, "role": role or "coach"},
+    }
+
+
+def verify_export_artifact(artifact: dict[str, Any]) -> dict[str, Any]:
+    """Verify an in-memory artifact's bytes, identity, source lock, and format signature."""
+    issues: list[dict[str, str]] = []
+    encoded = artifact.get("content_base64")
+    try:
+        payload = base64.b64decode(encoded, validate=True)
+    except (TypeError, ValueError):
+        payload = b""
+        issues.append({"code": "EXPORT-ARTIFACT-BASE64", "severity": "error", "message": "Artifact content is not valid base64."})
+    actual_hash = hashlib.sha256(payload).hexdigest()
+    if artifact.get("bytes") != len(payload):
+        issues.append({"code": "EXPORT-ARTIFACT-BYTES", "severity": "error", "message": "Declared byte length does not match artifact content."})
+    if artifact.get("sha256") != actual_hash:
+        issues.append({"code": "EXPORT-ARTIFACT-HASH", "severity": "error", "message": "Declared content hash does not match artifact content."})
+    if artifact.get("artifact_id") != f"EXPORT-{actual_hash[:16]}":
+        issues.append({"code": "EXPORT-ARTIFACT-ID", "severity": "error", "message": "Artifact identifier is not derived from its content hash."})
+    manifest = artifact.get("source_manifest")
+    canonical = json.dumps(manifest, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
+    manifest_hash = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    if artifact.get("source_manifest_hash") != manifest_hash:
+        issues.append({"code": "EXPORT-SOURCE-MANIFEST-HASH", "severity": "error", "message": "Source manifest hash does not match the manifest."})
+    signatures = {"pdf": b"%PDF", "png": b"\x89PNG\r\n\x1a\n", "svg": b"<svg", "html": b"<!doctype html", "json": b"{", "csv": b""}
+    expected = signatures.get(artifact.get("format"))
+    if expected and not payload.lstrip().lower().startswith(expected.lower()):
+        issues.append({"code": "EXPORT-FORMAT-SIGNATURE", "severity": "error", "message": f"Payload does not have the expected {artifact.get('format')} signature."})
+    if artifact.get("format") == "csv" and b"\n" not in payload:
+        issues.append({"code": "EXPORT-CSV-EMPTY", "severity": "error", "message": "CSV export does not contain a header or row terminator."})
+    if artifact.get("page_count", 0) < 1:
+        issues.append({"code": "EXPORT-PAGE-COUNT", "severity": "error", "message": "Export must contain at least one planned page."})
+    return {"status": "verified" if not issues else "invalid", "issues": issues, "sha256": actual_hash, "bytes": len(payload)}
+
+
 def build_export_preflight(*, designs: list[dict[str, Any]], kind: str, format: str, role: str | None = None, layout: str | None = None) -> dict[str, Any]:
     """Validate a packet without rendering or creating an external artifact.
 
@@ -691,6 +764,7 @@ def build_export_preflight(*, designs: list[dict[str, Any]], kind: str, format: 
         issues.extend(validate_export_design(design, kind=kind, format=format, role=role, layout=effective_layout))
     errors = [issue for issue in issues if issue.get("severity") == "error"]
     source_manifest, source_manifest_hash = _source_manifest(designs)
+    source_lock = _source_lock(designs)
     return {
         "kind": kind,
         "format": format,
@@ -701,6 +775,8 @@ def build_export_preflight(*, designs: list[dict[str, Any]], kind: str, format: 
         "validation": {"status": "invalid" if errors else "valid", "issues": issues},
         "source_manifest": source_manifest,
         "source_manifest_hash": source_manifest_hash,
+        **_artifact_page_metadata(designs=designs, kind=kind, format=format, layout=effective_layout, role=role, black_white=False),
+        "source_lock": source_lock,
     }
 
 
@@ -752,4 +828,10 @@ def build_export(*, designs: list[dict[str, Any]], kind: str, format: str, role:
     source_manifest, source_manifest_hash = _source_manifest(designs)
     first_id = _safe(designs[0].get("id"), "play")
     filename = f"{first_id}-{kind}{'-bw' if black_white else ''}.{extension}"
-    return {"artifact_id": f"EXPORT-{content_hash[:16]}", "filename": filename, "format": format, "kind": kind, "layout": effective_layout, "role": role or "coach", "mime_type": mime, "bytes": len(payload), "sha256": content_hash, "source_manifest": source_manifest, "source_manifest_hash": source_manifest_hash, "validation": {"status": "valid", "issues": issues}, "created_at": datetime.now(timezone.utc).isoformat(), "content_base64": base64.b64encode(payload).decode("ascii")}
+    artifact = {"artifact_id": f"EXPORT-{content_hash[:16]}", "filename": filename, "format": format, "kind": kind, "layout": effective_layout, "role": role or "coach", "mime_type": mime, "bytes": len(payload), "sha256": content_hash, "source_manifest": source_manifest, "source_manifest_hash": source_manifest_hash, "validation": {"status": "valid", "issues": issues}, "created_at": datetime.now(timezone.utc).isoformat(), "content_base64": base64.b64encode(payload).decode("ascii")}
+    artifact.update(_artifact_page_metadata(designs=designs, kind=kind, format=format, layout=effective_layout, role=role, black_white=black_white))
+    artifact["source_lock"] = _source_lock(designs)
+    artifact["integrity"] = verify_export_artifact(artifact)
+    if artifact["integrity"]["status"] != "verified":
+        raise ValueError({"code": "EXPORT-INTEGRITY-INVALID", "message": "Rendered export failed self-verification", "issues": artifact["integrity"]["issues"]})
+    return artifact
