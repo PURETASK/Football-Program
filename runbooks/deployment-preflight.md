@@ -1,6 +1,6 @@
 # NFL FIDOS Deployment Preflight
 
-Run `python scripts/deployment_preflight.py --environment validation` to produce value-free evidence for the design contract, configured secret source, and Stage 0 control plane. The command does not deploy, activate, migrate, or change production state.
+Run `python scripts/deployment_preflight.py --environment validation --output .runtime/deployment-preflight.json` to produce and persist value-free evidence for the design contract, configured secret source, and Stage 0 control plane. The command does not deploy, activate, migrate, or change production state. The output path is local evidence only and does not make a blocked report ready.
 
 Production preflight intentionally remains blocked until both conditions are true:
 
