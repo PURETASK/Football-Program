@@ -11,7 +11,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 from nfl_fidos.auth import issue_token
-from nfl_fidos.demo_data import DEMO_ORGANIZATION_ID, DEMO_SEED_ID, open_repository, seed_demo_data
+from nfl_fidos.demo_data import DEMO_ORGANIZATION_ID, DEMO_SEED_ID, find_demo_records, open_repository, purge_demo_data, seed_demo_data
 from nfl_fidos.http_server import create_server
 
 
@@ -77,7 +77,7 @@ def run_smoke(database: Path) -> dict[str, object]:
         else:
             checks.append({"name": "authenticated_media_job_detail", "path": "MEDIA-JOB-DEMO-THUMBNAIL", "status_code": 0, "bytes": 0, "passed": False})
         passed = all(bool(item["passed"]) for item in checks) and bool(asset_paths)
-        return {
+        result = {
             "status": "passed" if passed else "failed",
             "database": str(database),
             "organization_id": DEMO_ORGANIZATION_ID,
@@ -86,6 +86,7 @@ def run_smoke(database: Path) -> dict[str, object]:
             "checks": checks,
             "safety": {"production_implementation_allowed": False, "external_state_changed": False, "stage_advance_authorized": False},
         }
+        return result
     finally:
         server.shutdown()
         thread.join(timeout=3)
@@ -97,6 +98,19 @@ def run_smoke(database: Path) -> dict[str, object]:
             os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
         else:
             os.environ["NFL_FIDOS_AUTH_SECRET"] = previous_secret
+        cleanup_repository = open_repository(database)
+        try:
+            cleanup = purge_demo_data(cleanup_repository, database_path=database, organization_id=DEMO_ORGANIZATION_ID, seed_id=DEMO_SEED_ID)
+            # The return object is already constructed before finally runs, so
+            # retain cleanup evidence in the repository history and expose the
+            # postcondition through the smoke result when possible.
+            if "result" in locals():
+                result["cleanup"] = cleanup
+                result["cleanup_verification"] = find_demo_records(cleanup_repository, organization_id=DEMO_ORGANIZATION_ID, seed_id=DEMO_SEED_ID)
+        finally:
+            close = getattr(cleanup_repository, "close", None)
+            if close:
+                close()
 
 
 def main(argv: list[str] | None = None) -> int:
