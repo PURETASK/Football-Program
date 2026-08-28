@@ -242,6 +242,26 @@ def handle_request(*, method: str, path: str, body: dict[str, Any] | None = None
             return 400, _response("error", None, f"Missing required fields: {', '.join(missing)}")
         if not isinstance(body.get("variants"), list):
             return 400, _response("error", None, "variants must be a list")
+        if body.get("batch_id") is not None and not isinstance(body.get("batch_id"), str):
+            return 400, _response("error", None, "batch_id must be a string")
+        for index, variant in enumerate(body["variants"], start=1):
+            if not isinstance(variant, dict):
+                return 400, _response("error", None, f"variant {index} must be an object")
+            if "label" in variant and not isinstance(variant["label"], str):
+                return 400, _response("error", None, f"variant {index} label must be a string")
+            look_patch = variant.get("patch", variant.get("look", {}))
+            if not isinstance(look_patch, dict):
+                return 400, _response("error", None, f"variant {index} patch must be an object")
+            assignment_patches = variant.get("assignment_patches", [])
+            if assignment_patches is not None and not isinstance(assignment_patches, list):
+                return 400, _response("error", None, f"variant {index} assignment_patches must be a list")
+            for patch_index, assignment_patch in enumerate(assignment_patches or [], start=1):
+                if not isinstance(assignment_patch, dict):
+                    return 400, _response("error", None, f"variant {index} assignment patch {patch_index} must be an object")
+                if "element_id" in assignment_patch and not isinstance(assignment_patch["element_id"], str):
+                    return 400, _response("error", None, f"variant {index} assignment patch {patch_index} element_id must be a string")
+                if "patch" in assignment_patch and not isinstance(assignment_patch["patch"], dict):
+                    return 400, _response("error", None, f"variant {index} assignment patch {patch_index} patch must be an object")
         service = service or FootballIntelligenceService(JsonRepository(Path.cwd() / ".runtime" / "core-slice-state.json"))
         principal, denial = _authenticated(headers, action="draft_play", organization_id=body["organization_id"])
         if denial:

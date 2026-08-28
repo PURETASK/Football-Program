@@ -15,6 +15,24 @@ from tests.test_play_creation import design
 
 
 class PlayDesignApiTests(unittest.TestCase):
+    def test_variant_api_rejects_malformed_contract_shapes_before_service(self):
+        secret = "play-design-variant-shape-secret-012345678901234567890"
+        os.environ["NFL_FIDOS_AUTH_SECRET"] = secret
+        coach = {"Authorization": "Bearer " + issue_token(subject="COACH-VARIANT-SHAPE", role="coach_staff", organization_id="ORG-VARIANT-SHAPE", secret=secret)}
+        with tempfile.TemporaryDirectory() as directory:
+            service = FootballIntelligenceService(JsonRepository(Path(directory) / "state.json"))
+            cases = [
+                ({"label": 7, "patch": {"coverage": "cover_3"}}, "label must be a string"),
+                ({"label": "Cover 3", "patch": []}, "patch must be an object"),
+                ({"label": "Cover 3", "patch": {}, "assignment_patches": {}}, "assignment_patches must be a list"),
+                ({"label": "Cover 3", "patch": {}, "assignment_patches": [{"element_id": 7, "patch": {"type": "corner"}}]}, "element_id must be a string"),
+            ]
+            for variant, message in cases:
+                status, payload = handle_request(method="POST", path="/v1/playbook/designs/variants", headers=coach, body={"organization_id":"ORG-VARIANT-SHAPE", "design_id":"UNKNOWN", "variants":[variant]}, service=service)
+                self.assertEqual(status, 400)
+                self.assertIn(message, payload["error"])
+        os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
+
     def test_export_preflight_is_org_scoped_and_returns_structured_blockers(self):
         secret = "play-design-preflight-api-secret-012345678901234567890"
         os.environ["NFL_FIDOS_AUTH_SECRET"] = secret
