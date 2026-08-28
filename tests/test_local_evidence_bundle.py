@@ -13,6 +13,8 @@ class LocalEvidenceBundleTests(unittest.TestCase):
         self.assertFalse(bundle["safety"]["external_state_changed"])
         self.assertFalse(bundle["safety"]["production_implementation_allowed"])
         self.assertFalse(bundle["project_audit"]["completion_claimed"])
+        self.assertEqual(bundle["stage0_owner_packet"]["review_status"], "ready_for_owner_review")
+        self.assertFalse(bundle["stage0_owner_packet"]["safety"]["approval_recorded"])
 
 
 if __name__ == "__main__":
