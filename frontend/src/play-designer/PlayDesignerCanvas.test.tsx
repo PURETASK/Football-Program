@@ -81,6 +81,13 @@ describe('PlayDesignerCanvas', () => {
     expect(screen.getByText('3-tech · outside eye')).toBeInTheDocument();
   });
 
+  it('labels declared coverage shell zones with their assignment owner', () => {
+    const callbacks = props();
+    render(<PlayDesignerCanvas {...callbacks} design={{ ...DESIGN, unit: 'defense', coverage_zones: ['flat_left'], elements: [{ id: 'DROP', kind: 'coverage', player_id: 'CB-L', zone: 'flat_left', points: [{ x: 15, y: 30 }, { x: 14, y: 22 }] }] }} />);
+    expect(screen.getByRole('group', { name: 'Flat left: CB-L' })).toBeInTheDocument();
+    expect(screen.getByText('CB-L')).toBeInTheDocument();
+  });
+
   it('renders the canonical ball and movable line context', () => {
     const callbacks = props();
     render(<PlayDesignerCanvas {...callbacks} design={{ ...DESIGN, field_context: { hash: 'left', ball_x: 38, ball_y: 20, line_of_scrimmage_y: 20 } }} />);

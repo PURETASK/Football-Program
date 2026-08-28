@@ -731,6 +731,7 @@
 .designer-annotation circle { fill: #8067c9; stroke: #dfd5ff; stroke-width: 0.3; }
 .designer-annotation text { fill: #fff; font-family: var(--font-ui); font-size: 2.2px; font-weight: 900; pointer-events: none; text-anchor: middle; }
 .designer-annotation.is-selected circle { stroke: #fff; stroke-width: 0.72; }
+.designer-coverage-shell__owner { fill: #d6f8ff; font-size: 1.05px; font-weight: 800; text-anchor: middle; paint-order: stroke; stroke: #07111f; stroke-width: .22px; }
 
 .designer-field__legend {
   display: flex;
