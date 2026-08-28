@@ -70,6 +70,49 @@ class MediaWorkerTests(unittest.TestCase):
             result = probe_media_file(file_path=media, allowed_roots=[Path(directory) / "other"], runner=lambda arguments: (_ for _ in ()).throw(AssertionError("runner must not execute")))
             self.assertEqual(result["status"], "rejected")
 
+    def test_output_keeps_operation_identity_and_transform_failures_are_truthful(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            media = root / "game.mp4"
+            media.write_bytes(b"fixture")
+            repository = TenantRepository(JsonRepository(root / "state.json"), organization_id="ORG-MEDIA", actor="ANALYST")
+            jobs = MediaProcessingJobService(repository)
+            jobs.create_job(
+                job_id="MEDIA-JOB-OUTPUT-001",
+                asset_id="FILM-ASSET-OUTPUT-001",
+                operation="index",
+                payload={"file_path": str(media), "allowed_roots": [str(root)]},
+                requested_by="ANALYST",
+            )
+            completed = process_media_job(
+                repository=repository,
+                job_id="MEDIA-JOB-OUTPUT-001",
+                worker_id="MEDIA-WORKER-001",
+                runner=lambda arguments: (0, '{"format":{"duration":"4.0"},"streams":[]}', ""),
+            )
+            self.assertEqual(completed["status"], "completed")
+            output = repository.get("media_processing_outputs", "MEDIA-OUTPUT-OUTPUT-001")
+            self.assertEqual(output["operation"], "index")
+            self.assertEqual(output["asset_id"], "FILM-ASSET-OUTPUT-001")
+            self.assertEqual(output["worker_id"], "MEDIA-WORKER-001")
+
+            jobs.create_job(
+                job_id="MEDIA-JOB-THUMBNAIL-FAIL",
+                asset_id="FILM-ASSET-OUTPUT-001",
+                operation="thumbnail",
+                payload={"file_path": str(media), "output_path": str(root / "thumb.jpg"), "allowed_roots": [str(root)]},
+                requested_by="ANALYST",
+                max_attempts=1,
+            )
+            failed = process_media_job(
+                repository=repository,
+                job_id="MEDIA-JOB-THUMBNAIL-FAIL",
+                worker_id="MEDIA-WORKER-001",
+                runner=lambda arguments: (127, "", "ffmpeg unavailable"),
+            )
+            self.assertEqual(failed["status"], "failed")
+            self.assertEqual(failed["last_error"]["code"], "MEDIA-THUMBNAIL-FAILED")
+
 
 if __name__ == "__main__":
     unittest.main()

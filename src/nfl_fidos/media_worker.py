@@ -16,6 +16,14 @@ from .tenant_repository import TenantRepository
 
 ProbeRunner = Callable[[list[str]], tuple[int, str, str]]
 
+_SUCCESS_STATUSES = {"probed", "metadata_only", "indexed", "transformed"}
+
+
+def _operation_failure_code(operation: str) -> str:
+    """Return a stable, operation-specific code for retry and inbox consumers."""
+    normalized = "".join(character if character.isalnum() else "_" for character in operation.upper()).strip("_")
+    return f"MEDIA-{normalized or 'OPERATION'}-FAILED"
+
 
 def _configured_ffprobe(binary: str | None) -> str:
     return binary or os.environ.get("NFL_FIDOS_FFPROBE", "ffprobe")
@@ -122,8 +130,29 @@ def process_media_job(*, repository: TenantRepository, job_id: str, worker_id: s
         result = run_transform(operation=job["operation"], input_path=payload.get("file_path", ""), output_path=payload.get("output_path", ""), allowed_roots=roots, runner=runner, segment_seconds=payload.get("segment_seconds", 10))
     else:
         return jobs.fail_job(job_id=job_id, worker_id=worker_id, error_code="MEDIA-OPERATION-UNSUPPORTED", error_message="worker operation is not implemented")
-    if result.get("status") in {"probed", "metadata_only", "indexed", "transformed"}:
+    if result.get("status") in _SUCCESS_STATUSES:
         output_id = f"MEDIA-OUTPUT-{job_id.removeprefix('MEDIA-JOB-')}"
-        repository.put("media_processing_outputs", output_id, {"id":output_id, "organization_id":repository.organization_id, "job_id":job_id, "result":result}, actor=worker_id, reason="media_probe_output_saved")
+        repository.put(
+            "media_processing_outputs",
+            output_id,
+            {
+                "id": output_id,
+                "organization_id": repository.organization_id,
+                "job_id": job_id,
+                "asset_id": job.get("asset_id"),
+                "operation": job.get("operation"),
+                "worker_id": worker_id,
+                "attempt": job.get("attempt"),
+                "result": result,
+            },
+            actor=worker_id,
+            reason="media_processing_output_saved",
+        )
         return jobs.complete_job(job_id=job_id, worker_id=worker_id, output_refs=[output_id])
-    return jobs.fail_job(job_id=job_id, worker_id=worker_id, error_code="MEDIA-PROBE-FAILED", error_message="; ".join(result.get("issues", ["media probe failed"])))
+    operation = str(job.get("operation") or "operation")
+    return jobs.fail_job(
+        job_id=job_id,
+        worker_id=worker_id,
+        error_code=_operation_failure_code(operation),
+        error_message="; ".join(result.get("issues", [f"media {operation} failed"])),
+    )
