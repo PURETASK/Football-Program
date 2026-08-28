@@ -376,6 +376,19 @@
 .variant-review-card__details-body ul { display: grid; gap: 0.12rem; margin: 0; padding-left: 0.9rem; }
 .variant-review-card__details-body li { display: flex; flex-wrap: wrap; gap: 0.28rem; }
 .variant-review-card__details-body code { color: #ffd58a; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.variant-history-list { display: grid; gap: 0.35rem; margin-top: 0.35rem; }
+.variant-history-card { display: grid; gap: 0.35rem; padding: 0.45rem; border: 1px solid rgb(255 181 71 / 0.18); border-radius: 7px; background: linear-gradient(145deg, rgb(255 181 71 / 0.055), rgb(5 16 29 / 0.72)); }
+.variant-history-card > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.4rem; }
+.variant-history-card > header span:first-child { display: grid; min-width: 0; gap: 0.1rem; }
+.variant-history-card strong { overflow: hidden; color: #fff0c9; font-size: 0.52rem; text-overflow: ellipsis; white-space: nowrap; }
+.variant-history-card small, .variant-history-card > header span:last-child { color: #a99573; font-size: 0.43rem; }
+.variant-history-card > header span:last-child { color: #ffd48b; white-space: nowrap; }
+.variant-history-card__looks { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.variant-history-card__looks button { display: grid; gap: 0.08rem; min-width: 0; padding: 0.28rem 0.38rem; border: 1px solid rgb(255 181 71 / 0.2); border-radius: 5px; color: #ffe7b2; background: rgb(255 181 71 / 0.05); cursor: pointer; text-align: left; }
+.variant-history-card__looks button:hover, .variant-history-card__looks button:focus-visible { border-color: rgb(255 218 130 / 0.65); background: rgb(255 181 71 / 0.13); outline: none; }
+.variant-history-card__looks button:disabled { cursor: not-allowed; opacity: 0.55; }
+.variant-history-card__looks button span { font-size: 0.47rem; }
+.variant-history-card__looks button small { overflow: hidden; max-width: 13rem; color: #907e63; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; text-overflow: ellipsis; white-space: nowrap; }
 .merge-conflict-card__item { display: grid; gap: 0.22rem; margin-top: 0.28rem; padding: 0.25rem; border: 1px solid rgb(255 209 102 / 0.22); border-radius: 4px; background: rgb(27 22 9 / 0.45); }
 .merge-conflict-card__item summary { cursor: pointer; }
 .merge-conflict-card__values { display: grid; gap: 0.2rem; padding-left: 0.35rem; font-size: 0.45rem; }

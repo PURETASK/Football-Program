@@ -14,6 +14,7 @@ import {
   usePlayLegalityQuery,
   usePlayPresenceQuery,
   usePlayTemplatesQuery,
+  usePlayVariantBatchesQuery,
   usePlayDesignEventStream,
   usePlayVersionDiffQuery,
   usePlayVersionsQuery,
@@ -107,6 +108,7 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
   const queryClient = useQueryClient();
   const [state, dispatch] = useReducer(editorReducer, initialDesign, createEditorState);
   const assetsQuery = usePlayAssetsQuery(state.present);
+  const variantBatchesQuery = usePlayVariantBatchesQuery(state.serverRevision ? state.present.id : undefined);
   const assets = assetsQuery.data ?? [];
   const [playbackTime, setPlaybackTime] = useState<number | null>(null);
   const [inspectorTab, setInspectorTab] = useState<InspectorTab>('inspect');
@@ -550,6 +552,7 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
             onApplyTemplate={applyTemplate}
             onSaveTemplate={captureTemplate}
             onCreateVariants={createVariants}
+            variantBatches={variantBatchesQuery.data?.batches ?? []}
             onOpenVariant={(designId) => navigate(`/playbook/designer/${encodeURIComponent(designId)}`)}
             selectedElementIds={state.selected.filter((selection): selection is { kind: 'element'; id: string } => selection.kind === 'element').map((selection) => selection.id)}
           />

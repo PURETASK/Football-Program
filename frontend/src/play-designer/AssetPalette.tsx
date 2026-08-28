@@ -16,6 +16,7 @@ interface AssetPaletteProps {
   onApplyTemplate?: (template: PlayTemplate, mode: 'replace' | 'layer') => void;
   onSaveTemplate?: (input: { name: string; description: string; tags: string[]; elementIds?: string[]; parentTemplateId?: string }) => Promise<void>;
   onCreateVariants?: (input: { field: 'front' | 'coverage' | 'formation' | 'concept'; labels: string[] }) => Promise<{ variants: PlayDesign[]; count: number }>;
+  variantBatches?: Array<{ id: string; variants: PlayDesign[]; count: number; status: string; human_review_required?: boolean }>;
   onOpenVariant?: (designId: string) => void;
   selectedElementIds?: string[];
 }
@@ -64,7 +65,7 @@ function AssetGlyph({ asset }: { asset: PlayAsset }) {
   return <span className={`asset-glyph asset-glyph--${kind}`} aria-hidden="true"><i /></span>;
 }
 
-export function AssetPalette({ assets, design, activeAsset, templates = [], loading, onChoose, onApplyTemplate, onSaveTemplate, onCreateVariants, onOpenVariant, selectedElementIds = [] }: AssetPaletteProps) {
+export function AssetPalette({ assets, design, activeAsset, templates = [], variantBatches = [], loading, onChoose, onApplyTemplate, onSaveTemplate, onCreateVariants, onOpenVariant, selectedElementIds = [] }: AssetPaletteProps) {
   const [libraryMode, setLibraryMode] = useState<'assets' | 'templates'>('assets');
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
@@ -108,7 +109,7 @@ export function AssetPalette({ assets, design, activeAsset, templates = [], load
 
       {libraryMode === 'templates' ? (
         <Suspense fallback={<div className="asset-list__loading"><i /><i /><i /><i /></div>}>
-          <TemplateLibraryPanel templates={templates} design={design} selectedElementIds={selectedElementIds} onApply={onApplyTemplate ?? (() => undefined)} onSave={onSaveTemplate} onCreateVariants={onCreateVariants} onOpenVariant={onOpenVariant} />
+          <TemplateLibraryPanel templates={templates} design={design} variantBatches={variantBatches} selectedElementIds={selectedElementIds} onApply={onApplyTemplate ?? (() => undefined)} onSave={onSaveTemplate} onCreateVariants={onCreateVariants} onOpenVariant={onOpenVariant} />
         </Suspense>
       ) : null}
 

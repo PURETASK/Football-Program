@@ -11,6 +11,7 @@ interface TemplateLibraryPanelProps {
   onApply: (template: PlayTemplate, mode: 'replace' | 'layer') => void;
   onSave?: (input: { name: string; description: string; tags: string[]; elementIds?: string[]; parentTemplateId?: string }) => Promise<void>;
   onCreateVariants?: (input: { field: 'front' | 'coverage' | 'formation' | 'concept'; labels: string[]; assignmentPatches?: Array<{ element_id: string; patch: Record<string, unknown> }> }) => Promise<{ variants: PlayDesign[]; count: number }>;
+  variantBatches?: Array<{ id: string; variants: PlayDesign[]; count: number; status: string; human_review_required?: boolean }>;
   onOpenVariant?: (designId: string) => void;
   selectedElementIds?: string[];
 }
@@ -66,7 +67,7 @@ function TemplatePreview({ template }: { template: PlayTemplate }) {
   );
 }
 
-export function TemplateLibraryPanel({ templates, design, onApply, onSave, onCreateVariants, onOpenVariant, selectedElementIds = [] }: TemplateLibraryPanelProps) {
+export function TemplateLibraryPanel({ templates, design, variantBatches = [], onApply, onSave, onCreateVariants, onOpenVariant, selectedElementIds = [] }: TemplateLibraryPanelProps) {
   const [search, setSearch] = useState('');
   const [kind, setKind] = useState('all');
   const [replaceConfirmation, setReplaceConfirmation] = useState<string | null>(null);
@@ -188,6 +189,13 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave, onCre
         <button type="button" disabled={!variantLabels.trim() || variantState === 'saving'} onClick={() => void createVariants()}>{variantState === 'saving' ? 'Generating variants…' : 'Generate draft variants'}</button>
         {variantState === 'error' ? <span role="alert">The variant batch could not be generated.</span> : null}
         {generatedVariants.length ? <div className="variant-review-rail" aria-label="Generated variant review"><strong>Generated review set</strong>{generatedVariants.map((variant) => { const diff = diffPlayVariant(design, variant); return <article className="variant-review-card" key={variant.id}><div className="variant-review-card__diagrams"><div><DesignPreview design={design} label="Source" /><small>Source</small></div><span aria-hidden="true">→</span><div><DesignPreview design={variant} label={variant.variant_look?.label ?? 'Variant'} /><small>{variant.variant_look?.label ?? 'Variant'}</small></div></div><div><strong>{variant.name ?? variant.id}</strong><small>{variant.variant_look?.label ?? 'Look variant'} · {variant.status ?? 'draft'} · v{variant.version ?? '0.1.0'}</small></div><span>{variant.variant_look?.patch ? Object.entries(variant.variant_look.patch as Record<string, unknown>).map(([key, value]) => `${titleCase(key)}: ${String(value)}`).join(' · ') : 'Explicit look patch'}</span><small className="variant-review-card__diff" aria-label={`${diff.metadata.length} metadata changes, ${diff.elements.changed.length} changed assignments, ${diff.elements.added.length} added assignments, ${diff.elements.removed.length} removed assignments`}>{diff.metadata.length} metadata · {diff.elements.changed.length} assignment changes · +{diff.elements.added.length} / −{diff.elements.removed.length} assignments · {diff.unchanged_elements} unchanged</small><details className="variant-review-card__details"><summary>Inspect field-level changes</summary><div className="variant-review-card__details-body">{diff.metadata.length ? <div><strong>Metadata</strong><span>{diff.metadata.map(diffDetailLabel).join(', ')}</span></div> : null}{diff.elements.changed.length ? <div><strong>Changed assignments</strong><ul>{diff.elements.changed.map((item) => <li key={item.id}><code>{item.id}</code><span>{item.changes.map((change) => `${diffDetailLabel(change.field)}: ${diffDetailValue(change.before)} → ${diffDetailValue(change.after)}`).join(' · ')}</span></li>)}</ul></div> : null}{diff.elements.added.length ? <div><strong>Added assignments</strong><span>{diff.elements.added.map((id) => <code key={id}>{id}</code>)}</span></div> : null}{diff.elements.removed.length ? <div><strong>Removed assignments</strong><span>{diff.elements.removed.map((id) => <code key={id}>{id}</code>)}</span></div> : null}{!diff.metadata.length && !diff.elements.changed.length && !diff.elements.added.length && !diff.elements.removed.length ? <span>No field-level changes.</span> : null}</div></details><button type="button" onClick={() => onOpenVariant?.(variant.id)} disabled={!onOpenVariant}>Open variant</button></article>; })}</div> : null}
+      </section> : null}
+      {variantBatches.length ? <section className="template-capture template-variant-history" aria-label="Persisted variant history">
+        <div className="template-library__intro"><Layers3 size={15} /><span><strong>Saved review sets</strong><small>Reopen draft looks generated for this source play. These records remain human-review-required until staff approval.</small></span></div>
+        <div className="variant-history-list">{variantBatches.map((batch) => <article className="variant-history-card" key={batch.id}>
+          <header><span><strong>{batch.id}</strong><small>{batch.count} draft look{batch.count === 1 ? '' : 's'} · {batch.status}</small></span><span>{batch.human_review_required ? 'Review required' : 'Recorded'}</span></header>
+          <div className="variant-history-card__looks">{batch.variants.map((variant) => <button type="button" key={variant.id} onClick={() => onOpenVariant?.(variant.id)} disabled={!onOpenVariant}><span>{variant.variant_look?.label ?? variant.name ?? variant.id}</span><small>{variant.id}</small></button>)}</div>
+        </article>)}</div>
       </section> : null}
     </div>
   );

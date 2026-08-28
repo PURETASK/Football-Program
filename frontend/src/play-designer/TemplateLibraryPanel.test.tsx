@@ -95,4 +95,16 @@ describe('TemplateLibraryPanel', () => {
     expect(screen.getByText('Type: post → corner')).toBeVisible();
     expect(screen.getByText('E-2')).toBeVisible();
   });
+
+  it('restores persisted variant batches and exposes draft children for reopening', async () => {
+    const user = userEvent.setup();
+    const variant: PlayDesign = { ...DESIGN, id: 'PD-SAVED-VARIANT', variant_look: { label: 'Cover 3', patch: { coverage: 'cover_3' } } };
+    const onOpenVariant = vi.fn();
+    render(<TemplateLibraryPanel templates={[]} design={DESIGN} variantBatches={[{ id: 'VARIANT-BATCH-SAVED-001', variants: [variant], count: 1, status: 'created', human_review_required: true }]} onApply={vi.fn()} onOpenVariant={onOpenVariant} />);
+
+    expect(screen.getByText('Saved review sets')).toBeVisible();
+    expect(screen.getByText('VARIANT-BATCH-SAVED-001')).toBeVisible();
+    await user.click(screen.getByRole('button', { name: /Cover 3/ }));
+    expect(onOpenVariant).toHaveBeenCalledWith('PD-SAVED-VARIANT');
+  });
 });
