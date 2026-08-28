@@ -58,6 +58,29 @@ export function routeConstructionPatch(element: PlayElement, design: PlayDesign,
     nextPoints[breakIndex].y = depthY(start, design, breakDepth);
     nextPoints[breakIndex] = normalizePoint(nextPoints[breakIndex], false);
   }
+  if (patch.break_type && nextPoints.length >= 2) {
+    const breakIndex = nextPoints.length >= 3 ? nextPoints.length - 2 : nextPoints.length - 1;
+    const breakPoint = nextPoints[breakIndex];
+    const finish = nextPoints[nextPoints.length - 1];
+    const outside = start.x <= 50 ? -1 : 1;
+    const inside = -outside;
+    const breakType = patch.break_type;
+    const lateral = (amount: number) => { finish.x = clamp(breakPoint.x + amount, 0, 100); };
+    if (breakType === 'speed_out') lateral(outside * 9);
+    if (breakType === 'dig' || breakType === 'over') lateral(inside * (breakType === 'over' ? 12 : 9));
+    if (breakType === 'post') lateral(inside * 7);
+    if (breakType === 'corner') lateral(outside * 7);
+    if (breakType === 'comeback' || breakType === 'curl') {
+      lateral(outside * 2);
+      finish.y = clamp(breakPoint.y + (design.unit === 'defense' ? -4 : 4), 0, 53);
+    }
+    if (breakType === 'whip') {
+      lateral(outside * 6);
+      finish.y = clamp(breakPoint.y + (design.unit === 'defense' ? 2 : -2), 0, 53);
+    }
+    nextPoints[breakIndex] = normalizePoint(breakPoint, false);
+    nextPoints[nextPoints.length - 1] = normalizePoint(finish, false);
+  }
   if (patch.finish_direction && nextPoints.length >= 2) {
     const finish = nextPoints[nextPoints.length - 1];
     const direction = patch.finish_direction === 'inside' ? (start.x <= 50 ? 1 : -1)

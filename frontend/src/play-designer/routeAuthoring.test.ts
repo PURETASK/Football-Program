@@ -15,4 +15,11 @@ describe('route construction authoring', () => {
     expect(patch.points?.[2]).toEqual({ x: 20, y: 20 });
     expect(patch.points?.[3]).toEqual({ x: 24, y: 12 });
   });
+
+  it('materializes common break selections into editable football geometry', () => {
+    const element = { id: 'R1', kind: 'route', points: [{ x: 20, y: 30 }, { x: 20, y: 20 }, { x: 20, y: 20 }] };
+    const patch = routeConstructionPatch(element, { id: 'D1', unit: 'offense' }, { break_type: 'speed_out' });
+    expect(patch).toMatchObject({ phase: 'route', break_type: 'speed_out' });
+    expect(patch.points?.at(-1)).toEqual({ x: 11, y: 20 });
+  });
 });
