@@ -34,6 +34,7 @@ import type {
 } from '../types';
 import type { EditorSelection } from './editorState';
 import { DesignerSectionGuide } from './DesignerSectionGuide';
+import { AssignmentGraphFields } from './AssignmentGraphFields';
 import { PositionToolkit } from './PositionToolkit';
 import { DEFENSIVE_GAP_OPTIONS, defensiveGapOwners, defensiveGapSummary } from './defensiveFront';
 import { routeCollisions } from './geometry';
@@ -42,8 +43,6 @@ import { CoverageShellEditor } from './CoverageShellEditor';
 import { rotationLabel } from './rotationSequencing';
 import { DEFENSIVE_EXCHANGE_ROLES, clearDefensiveExchangePairPatch, defensiveExchangePairPatch } from './defensiveExchanges';
 import { defensiveResponsibilityIssues } from './defensiveResponsibilityValidation';
-
-const AssignmentGraphFields = lazy(() => import('./AssignmentGraphFields').then((module) => ({ default: module.AssignmentGraphFields })));
 
 export type InspectorTab = 'inspect' | 'layers' | 'validate' | 'review';
 
