@@ -160,3 +160,15 @@ slot-relative geometry, player binding, namespaced timing, undo, validation,
 save, version, collaboration, teaching, and export behavior. This closes the
 basic partial-capture path; inherited parent stencils, multi-look batch
 variant generation, and visual inheritance/override diffing remain open.
+
+The first lineage slice is now implemented as well. When capturing a new
+organization template, staff may optionally select an existing compatible
+package as its parent. The saved child records `parent_template_id` and a
+resolved `inherited_assignments` payload; child assignments take precedence
+by assignment key during materialization. The library displays the inherited
+parent so a coach can distinguish a reusable variation from an unrelated
+copy. This establishes traceable parent reuse while leaving visual local
+override diffs, parent-change propagation, and multi-look batch generation
+for the next slice. Verification for this slice is 165 frontend tests and 24
+focused Play Designer backend/API tests, with typecheck and production build
+passing locally.

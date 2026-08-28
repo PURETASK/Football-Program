@@ -438,6 +438,8 @@ export interface PlayTemplate {
   source_design_id?: string;
   source_snapshot_id?: string;
   source_checksum?: string;
+  parent_template_id?: string;
+  inherited_assignments?: PlayTemplateAssignment[];
 }
 
 export interface PlayTemplateAssignment {

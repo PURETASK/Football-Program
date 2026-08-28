@@ -247,7 +247,7 @@ class PlayDesignService:
         templates = [*system_templates, *organization_templates]
         return [deepcopy(template) for template in templates if not unit or template.get("unit") == unit]
 
-    def create_template(self, design_id: str, *, name: str, actor: str, description: str = "", tags: list[str] | None = None, template_kind: str = "custom", layer: str = "complete_call", element_ids: list[str] | None = None) -> dict[str, Any]:
+    def create_template(self, design_id: str, *, name: str, actor: str, description: str = "", tags: list[str] | None = None, template_kind: str = "custom", layer: str = "complete_call", element_ids: list[str] | None = None, parent_template_id: str | None = None) -> dict[str, Any]:
         """Capture a saved play or selected assignment stencil as a reusable template."""
         design = self.repository.get("play_designs", design_id)
         if design is None:
@@ -255,6 +255,11 @@ class PlayDesignService:
         clean_name = _clean_required_text(name, "name")
         if template_kind not in {"complete_call", "concept_layer", "protection_layer", "coverage_layer", "pressure_layer", "custom"}:
             raise ValueError("Unknown template_kind")
+        parent = next((item for item in self.templates() if item.get("id") == parent_template_id), None) if parent_template_id else None
+        if parent_template_id and parent is None:
+            raise ValueError("Unknown parent template")
+        if parent and parent.get("unit") != design.get("unit"):
+            raise ValueError("Parent template unit must match the saved design")
         players = {player.get("id"): player for player in design.get("players", []) if isinstance(player, dict) and player.get("id")}
         requested_ids = {str(item) for item in (element_ids or []) if str(item).strip()}
         source_elements = [element for element in design.get("elements", []) if isinstance(element, dict) and (not requested_ids or str(element.get("id")) in requested_ids)]
@@ -319,6 +324,8 @@ class PlayDesignService:
             "source_checksum": design.get("checksum"),
             "source_element_ids": sorted(requested_ids) if requested_ids else None,
             "capture_scope": "selection" if requested_ids else "full_play",
+            "parent_template_id": parent_template_id,
+            "inherited_assignments": deepcopy(parent.get("inherited_assignments", [])) + deepcopy(parent.get("assignments", [])) if parent else [],
             "alignment": deepcopy(alignment_presets.get((unit, alignment_category, str(alignment_term)))),
         }
         return self.repository.put("play_design_templates", template_id, template, actor=actor, reason="play_design_template_created")

@@ -54,4 +54,18 @@ describe('TemplateLibraryPanel', () => {
     await user.click(screen.getByRole('button', { name: 'Capture selected stencil' }));
     expect(onSave).toHaveBeenCalledWith({ name: 'Clear-out stencil', description: '', tags: [], elementIds: ['E-1'] });
   });
+
+  it('shows inherited package lineage and sends the selected parent', async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const parent = { ...TEMPLATE, id: 'TPL-PARENT', name: 'Base route family' };
+    render(<TemplateLibraryPanel templates={[parent]} design={DESIGN} onApply={vi.fn()} onSave={onSave} />);
+
+    expect(screen.getByText('Base route family')).toBeVisible();
+    await user.click(screen.getByRole('button', { name: 'Save current play as template' }));
+    await user.type(screen.getByLabelText('Template name'), 'Boundary variation');
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Inherit from existing package' }), 'TPL-PARENT');
+    await user.click(screen.getByRole('button', { name: 'Capture template' }));
+    expect(onSave).toHaveBeenCalledWith({ name: 'Boundary variation', description: '', tags: [], parentTemplateId: 'TPL-PARENT' });
+  });
 });

@@ -1,4 +1,4 @@
-import type { PlayDesign, PlayElement, PlayPlayer, PlayTemplate } from '../types';
+import type { PlayDesign, PlayElement, PlayPlayer, PlayTemplate, PlayTemplateAssignment } from '../types';
 import { normalizePoint } from './geometry';
 import { defaultTimelinePhases } from './timelineModel';
 
@@ -42,7 +42,9 @@ function namespaceTimeline(template: PlayTemplate, design: PlayDesign, applicati
 /** Materialize a reusable slot-relative package into this team's canonical play record. */
 export function applyPlayTemplate(design: PlayDesign, template: PlayTemplate, mode: 'replace' | 'layer' = 'replace'): PlayDesign {
   if (template.unit !== design.unit) return design;
-  const assignments = template.assignments ?? [];
+  const assignmentByKey = new Map<string, PlayTemplateAssignment>();
+  for (const assignment of [...(template.inherited_assignments ?? []), ...(template.assignments ?? [])]) assignmentByKey.set(assignment.key, assignment);
+  const assignments = [...assignmentByKey.values()];
   if (!assignments.length) return { ...design, formation: template.formation ?? design.formation, front: template.front ?? design.front, coverage: template.coverage ?? design.coverage, personnel: template.personnel ?? design.personnel, concept: template.concept ?? design.concept };
   const priorApplications = Array.isArray(design.template_applications) ? design.template_applications as Array<Record<string, unknown>> : [];
   const applicationId = `APP-${identifier(template.id)}-${priorApplications.length + 1}`;

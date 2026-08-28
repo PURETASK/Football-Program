@@ -214,6 +214,8 @@ def handle_request(*, method: str, path: str, body: dict[str, Any] | None = None
             return 400, _response("error", None, "tags must be a list")
         if body.get("element_ids") is not None and (not isinstance(body.get("element_ids"), list) or not all(isinstance(item, str) for item in body["element_ids"])):
             return 400, _response("error", None, "element_ids must be a list of strings")
+        if body.get("parent_template_id") is not None and not isinstance(body.get("parent_template_id"), str):
+            return 400, _response("error", None, "parent_template_id must be a string")
         service = service or FootballIntelligenceService(JsonRepository(Path.cwd() / ".runtime" / "core-slice-state.json"))
         principal, denial = _authenticated(headers, action="draft_play", organization_id=body["organization_id"])
         if denial:
@@ -228,6 +230,7 @@ def handle_request(*, method: str, path: str, body: dict[str, Any] | None = None
                 template_kind=body.get("template_kind", "custom"),
                 layer=body.get("layer", "complete_call"),
                 element_ids=body.get("element_ids"),
+                parent_template_id=body.get("parent_template_id"),
             )
         except (KeyError, TypeError, ValueError) as exc:
             return 422, _response("invalid", None, str(exc))

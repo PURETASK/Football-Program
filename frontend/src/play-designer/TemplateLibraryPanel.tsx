@@ -7,7 +7,7 @@ interface TemplateLibraryPanelProps {
   templates: PlayTemplate[];
   design: PlayDesign;
   onApply: (template: PlayTemplate, mode: 'replace' | 'layer') => void;
-  onSave?: (input: { name: string; description: string; tags: string[]; elementIds?: string[] }) => Promise<void>;
+  onSave?: (input: { name: string; description: string; tags: string[]; elementIds?: string[]; parentTemplateId?: string }) => Promise<void>;
   selectedElementIds?: string[];
 }
 
@@ -44,6 +44,7 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave, selec
   const [templateDescription, setTemplateDescription] = useState('');
   const [templateTags, setTemplateTags] = useState('');
   const [captureSelection, setCaptureSelection] = useState(false);
+  const [parentTemplateId, setParentTemplateId] = useState('');
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const deferredSearch = useDeferredValue(search);
   const kinds = useMemo(() => [...new Set(templates.map((template) => template.template_kind ?? 'custom'))].sort(), [templates]);
@@ -68,11 +69,12 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave, selec
     if (!onSave || !templateName.trim()) return;
     setSaveState('saving');
     try {
-      await onSave({ name: templateName.trim(), description: templateDescription.trim(), tags: templateTags.split(',').map((tag) => tag.trim()).filter(Boolean), ...(captureSelection && selectedElementIds.length ? { elementIds: selectedElementIds } : {}) });
+      await onSave({ name: templateName.trim(), description: templateDescription.trim(), tags: templateTags.split(',').map((tag) => tag.trim()).filter(Boolean), ...(captureSelection && selectedElementIds.length ? { elementIds: selectedElementIds } : {}), ...(parentTemplateId ? { parentTemplateId } : {}) });
       setSaveState('saved');
       setTemplateName('');
       setTemplateDescription('');
       setTemplateTags('');
+      setParentTemplateId('');
       setSaveOpen(false);
     } catch {
       setSaveState('error');
@@ -98,6 +100,7 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave, selec
             <header><span><strong>{template.name}</strong><small>{titleCase(template.template_kind ?? 'custom')} · {template.scope ?? 'system'} · v{template.version ?? '1.0.0'}</small></span><span className={`template-status template-status--${template.status ?? 'active'}`}>{template.status ?? 'active'}</span></header>
             <p>{template.description ?? 'Reusable organization football package.'}</p>
             <div className="template-card__meta"><span>{template.formation ?? template.front ?? 'Any look'}</span><span>{template.personnel ?? 'Open personnel'}</span><span>{template.assignments?.length ?? 0} assignments</span></div>
+            {template.parent_template_id ? <small className="template-companion"><Layers3 size={12} /> Inherits from {templates.find((parent) => parent.id === template.parent_template_id)?.name ?? template.parent_template_id}</small> : null}
             {template.tags?.length ? <div className="template-tags">{template.tags.slice(0, 4).map((tag) => <span key={tag}>{tag}</span>)}</div> : null}
             {template.expected_companion_layers?.length ? <small className="template-companion"><Layers3 size={12} /> Pair with: {template.expected_companion_layers.map(titleCase).join(', ')}</small> : <small className="template-companion"><Check size={12} /> Complete package</small>}
             {confirming ? <div className="template-replace-warning" role="alert"><ShieldAlert size={14} /><span>This replaces the current {design.elements?.length ?? 0} assignments. Click again to confirm.</span></div> : null}
@@ -117,6 +120,7 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave, selec
           <label><span>Description</span><textarea rows={2} value={templateDescription} onChange={(event) => setTemplateDescription(event.target.value)} placeholder="When and how staff should use this package." /></label>
           <label><span>Tags</span><input value={templateTags} onChange={(event) => setTemplateTags(event.target.value)} placeholder="third-down, boundary, install-2" /></label>
           {selectedElementIds.length ? <label className="template-capture__scope"><input type="checkbox" checked={captureSelection} onChange={(event) => setCaptureSelection(event.target.checked)} /> Capture only the {selectedElementIds.length} selected assignment{selectedElementIds.length === 1 ? '' : 's'} as a reusable stencil</label> : null}
+          {templates.some((template) => template.unit === design.unit && template.assignments?.length) ? <label><span>Inherit from existing package <small>(optional)</small></span><select aria-label="Inherit from existing package" value={parentTemplateId} onChange={(event) => setParentTemplateId(event.target.value)}><option value="">No parent package</option>{templates.filter((template) => template.unit === design.unit && template.assignments?.length).map((template) => <option value={template.id} key={template.id}>{template.name} · {template.scope ?? 'system'}</option>)}</select></label> : null}
           <button type="button" disabled={!templateName.trim() || saveState === 'saving'} onClick={() => void save()}>{saveState === 'saving' ? 'Saving...' : captureSelection && selectedElementIds.length ? 'Capture selected stencil' : 'Capture template'}</button>
           {saveState === 'error' ? <span role="alert">The template could not be saved.</span> : null}
         </div> : null}

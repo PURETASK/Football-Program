@@ -453,7 +453,7 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
     dispatch({ type: 'update_meta', patch: { timeline: { ...state.present.timeline, markers } } });
   };
 
-  const captureTemplate = async (input: { name: string; description: string; tags: string[]; elementIds?: string[] }) => {
+  const captureTemplate = async (input: { name: string; description: string; tags: string[]; elementIds?: string[]; parentTemplateId?: string }) => {
     if (!session || !state.present._revision) throw new Error('Save the play before capturing a reusable template.');
     await createPlayTemplate(session, { designId: state.present.id, ...input, templateKind: input.elementIds?.length ? 'custom' : 'complete_call', layer: input.elementIds?.length ? 'concept_layer' : 'complete_call' });
     await queryClient.invalidateQueries({ queryKey: ['play-templates', session.organizationId] });

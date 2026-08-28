@@ -131,7 +131,7 @@ export async function fetchPlayTemplates(session: AppSession, signal?: AbortSign
   return payload.templates ?? [];
 }
 
-export function createPlayTemplate(session: AppSession, input: { designId: string; name: string; description?: string; tags?: string[]; templateKind?: string; layer?: string; elementIds?: string[] }): Promise<PlayTemplate> {
+export function createPlayTemplate(session: AppSession, input: { designId: string; name: string; description?: string; tags?: string[]; templateKind?: string; layer?: string; elementIds?: string[]; parentTemplateId?: string }): Promise<PlayTemplate> {
   return request<PlayTemplate>('/v1/playbook/designs/templates', session, {
     method: 'POST',
     body: organizationBody(session, {
@@ -142,6 +142,7 @@ export function createPlayTemplate(session: AppSession, input: { designId: strin
       template_kind: input.templateKind ?? 'custom',
       layer: input.layer ?? 'complete_call',
       ...(input.elementIds?.length ? { element_ids: input.elementIds } : {}),
+      ...(input.parentTemplateId ? { parent_template_id: input.parentTemplateId } : {}),
     }),
   });
 }

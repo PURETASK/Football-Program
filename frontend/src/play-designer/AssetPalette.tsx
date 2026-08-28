@@ -14,7 +14,7 @@ interface AssetPaletteProps {
   loading?: boolean;
   onChoose: (asset: PlayAsset) => void;
   onApplyTemplate?: (template: PlayTemplate, mode: 'replace' | 'layer') => void;
-  onSaveTemplate?: (input: { name: string; description: string; tags: string[]; elementIds?: string[] }) => Promise<void>;
+  onSaveTemplate?: (input: { name: string; description: string; tags: string[]; elementIds?: string[]; parentTemplateId?: string }) => Promise<void>;
   selectedElementIds?: string[];
 }
 

@@ -64,6 +64,16 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertEqual([item["key"] for item in stencil["assignments"]], ["A-01"])
         self.assertEqual(stencil["assignments"][0]["slot"], "X")
 
+    def test_template_can_inherit_a_parent_assignment_package(self):
+        service = self.service()
+        candidate = design()
+        candidate["elements"][0]["id"] = "E-CHILD"
+        saved = service.save(design=candidate, actor="coach")
+        parent = service.create_template(saved["id"], name="Base package", actor="coach")
+        child = service.create_template(saved["id"], name="Child variation", actor="coach", parent_template_id=parent["id"])
+        self.assertEqual(child["parent_template_id"], parent["id"])
+        self.assertEqual(len(child["inherited_assignments"]), len(parent["assignments"]))
+
     def test_registry_returns_authoritative_compatibility_and_alignment_presets(self):
         service = self.service()
         assets = service.assets(unit="offense", context_formation="shotgun_trips", personnel="11", rule_profile="nfl")
