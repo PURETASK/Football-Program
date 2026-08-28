@@ -12,6 +12,14 @@ export const DEFENSIVE_EXCHANGE_ROLES: Array<{ value: DefensiveExchangeRole; lab
   { value: 'rotate_replace', label: 'Rotate → replace', reciprocal: 'rotate_replace', description: 'Rotate into the destination while the partner replaces the shell responsibility.' },
 ];
 
+export const DEFENSIVE_EXCHANGE_PRESETS: Array<{ value: string; label: string; firstRole: DefensiveExchangeRole; secondRole: DefensiveExchangeRole; description: string }> = [
+  { value: 'tex', label: 'TEX — tackle penetrates / end loops', firstRole: 'penetrate_loop', secondRole: 'loop_penetrate', description: 'Interior tackle-end exchange.' },
+  { value: 'et', label: 'ET — end penetrates / tackle loops', firstRole: 'penetrate_loop', secondRole: 'loop_penetrate', description: 'Edge end-tackle exchange.' },
+  { value: 'cross_dog', label: 'Cross-dog — first penetrates / second loops', firstRole: 'penetrate_loop', secondRole: 'loop_penetrate', description: 'Two-level linebacker cross exchange.' },
+  { value: 'rush_replace', label: 'Rush and replace coverage', firstRole: 'rush_replace', secondRole: 'drop_replace', description: 'Rush lane paired with replacement responsibility.' },
+  { value: 'carry_transfer', label: 'Carry and transfer', firstRole: 'carry_transfer', secondRole: 'carry_transfer', description: 'Pass the threat between two coverage defenders.' },
+];
+
 export function exchangeRole(value: string | undefined) {
   return DEFENSIVE_EXCHANGE_ROLES.find((role) => role.value === value);
 }
@@ -34,6 +42,15 @@ export function defensiveExchangePairPatch(firstId: string, secondId: string, ro
   const source = context.vacated_zone ? { responsibility: `Vacate ${context.vacated_zone}` } : {};
   const replacement = context.replacement_zone ? { rotation_to_zone: context.replacement_zone, zone: context.replacement_zone, responsibility: `Replace ${context.replacement_zone}` } : {};
   return [[firstId, { ...exchangePatch(secondId, role), ...source }], [secondId, { ...reciprocalExchangePatch(firstId, role), ...replacement }]];
+}
+
+/** Materialize a named coach-facing exchange pattern onto both assignments. */
+export function defensiveExchangePresetPatch(value: string, firstId: string, secondId: string, context: { vacated_zone?: string; replacement_zone?: string } = {}): Array<[string, Partial<PlayElement>]> {
+  const preset = DEFENSIVE_EXCHANGE_PRESETS.find((item) => item.value === value);
+  if (!preset || !firstId || !secondId || firstId === secondId) return [];
+  const first = { ...exchangePatch(secondId, preset.firstRole), ...(context.vacated_zone ? { responsibility: `Vacate ${context.vacated_zone}` } : {}) };
+  const second = { ...exchangePatch(firstId, preset.secondRole), ...(context.replacement_zone ? { rotation_to_zone: context.replacement_zone, zone: context.replacement_zone, responsibility: `Replace ${context.replacement_zone}` } : {}) };
+  return [[firstId, first], [secondId, second]];
 }
 
 export function clearDefensiveExchangePairPatch(firstId: string, secondId: string): Array<[string, Partial<PlayElement>]> {

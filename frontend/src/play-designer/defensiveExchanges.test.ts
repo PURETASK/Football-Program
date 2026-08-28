@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { clearDefensiveExchangePairPatch, defensiveExchangeLinks, defensiveExchangePairPatch, defensiveExchangeProgress, exchangePatch, reciprocalExchangePatch } from './defensiveExchanges';
+import { clearDefensiveExchangePairPatch, defensiveExchangeLinks, defensiveExchangePairPatch, defensiveExchangePresetPatch, defensiveExchangeProgress, exchangePatch, reciprocalExchangePatch } from './defensiveExchanges';
 import type { PlayDesign } from '../types';
 
 describe('defensive exchange relationships', () => {
@@ -29,6 +29,14 @@ describe('defensive exchange relationships', () => {
       ['RUSH-1', expect.objectContaining({ exchange_with: 'DROP-1', exchange_role: 'rush_replace', phase: 'exchange' })],
       ['DROP-1', expect.objectContaining({ exchange_with: 'RUSH-1', exchange_role: 'drop_replace', phase: 'exchange' })],
     ]);
+  });
+
+  it('materializes named TEX and replacement patterns as reciprocal pair patches', () => {
+    expect(defensiveExchangePresetPatch('tex', 'TACKLE', 'END')).toEqual([
+      ['TACKLE', expect.objectContaining({ exchange_with: 'END', exchange_role: 'penetrate_loop' })],
+      ['END', expect.objectContaining({ exchange_with: 'TACKLE', exchange_role: 'loop_penetrate' })],
+    ]);
+    expect(defensiveExchangePresetPatch('rush_replace', 'RUSH', 'DROP', { replacement_zone: 'flat_left' })[1][1]).toMatchObject({ rotation_to_zone: 'flat_left', responsibility: 'Replace flat_left' });
   });
 
   it('persists vacated and replacement responsibility context on the appropriate sides', () => {
