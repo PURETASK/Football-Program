@@ -18,6 +18,19 @@ function titleCase(value: string): string {
   return value.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function DesignPreview({ design, label }: { design: PlayDesign; label: string }) {
+  return <svg className="variant-design-preview" viewBox="0 0 100 53" role="img" aria-label={`${label} structured play diagram`}>
+    <rect x="0" y="0" width="100" height="53" rx="3" />
+    <line className="template-preview__los" x1="0" x2="100" y1="26.5" y2="26.5" />
+    {(design.elements ?? []).map((element) => {
+      const points = element.points ?? element.path ?? [];
+      if (points.length < 2) return null;
+      return <polyline className={`template-preview__path template-preview__path--${element.kind}`} key={element.id} points={points.map((point) => `${point.x},${point.y}`).join(' ')} />;
+    })}
+    {(design.players ?? []).map((player) => player.start ? <circle className="variant-design-preview__player" key={player.id} cx={player.start.x} cy={player.start.y} r="1.7" /> : null)}
+  </svg>;
+}
+
 function TemplatePreview({ template }: { template: PlayTemplate }) {
   const slots = template.alignment?.slots ?? [];
   const slotByKey = new Map(slots.map((slot) => [slot.key, slot]));
@@ -146,7 +159,7 @@ export function TemplateLibraryPanel({ templates, design, onApply, onSave, onCre
         <label><span>Look values <small>(comma separated, up to 32)</small></span><input value={variantLabels} onChange={(event) => setVariantLabels(event.target.value)} placeholder="Cover 3, Cover 1, Quarters" /></label>
         <button type="button" disabled={!variantLabels.trim() || variantState === 'saving'} onClick={() => void createVariants()}>{variantState === 'saving' ? 'Generating variants…' : 'Generate draft variants'}</button>
         {variantState === 'error' ? <span role="alert">The variant batch could not be generated.</span> : null}
-        {generatedVariants.length ? <div className="variant-review-rail" aria-label="Generated variant review"><strong>Generated review set</strong>{generatedVariants.map((variant) => <article className="variant-review-card" key={variant.id}><div><strong>{variant.name ?? variant.id}</strong><small>{variant.variant_look?.label ?? 'Look variant'} · {variant.status ?? 'draft'} · v{variant.version ?? '0.1.0'}</small></div><span>{variant.variant_look?.patch ? Object.entries(variant.variant_look.patch as Record<string, unknown>).map(([key, value]) => `${titleCase(key)}: ${String(value)}`).join(' · ') : 'Explicit look patch'}</span><button type="button" onClick={() => onOpenVariant?.(variant.id)} disabled={!onOpenVariant}>Open variant</button></article>)}</div> : null}
+        {generatedVariants.length ? <div className="variant-review-rail" aria-label="Generated variant review"><strong>Generated review set</strong>{generatedVariants.map((variant) => <article className="variant-review-card" key={variant.id}><div className="variant-review-card__diagrams"><div><DesignPreview design={design} label="Source" /><small>Source</small></div><span aria-hidden="true">→</span><div><DesignPreview design={variant} label={variant.variant_look?.label ?? 'Variant'} /><small>{variant.variant_look?.label ?? 'Variant'}</small></div></div><div><strong>{variant.name ?? variant.id}</strong><small>{variant.variant_look?.label ?? 'Look variant'} · {variant.status ?? 'draft'} · v{variant.version ?? '0.1.0'}</small></div><span>{variant.variant_look?.patch ? Object.entries(variant.variant_look.patch as Record<string, unknown>).map(([key, value]) => `${titleCase(key)}: ${String(value)}`).join(' · ') : 'Explicit look patch'}</span><button type="button" onClick={() => onOpenVariant?.(variant.id)} disabled={!onOpenVariant}>Open variant</button></article>)}</div> : null}
       </section> : null}
     </div>
   );

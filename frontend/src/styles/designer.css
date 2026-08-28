@@ -362,6 +362,12 @@
 .variant-review-card small, .variant-review-card > span { color: #8198ad; font-size: 0.44rem; }
 .variant-review-card > span { grid-column: 1 / -1; }
 .variant-review-card button { grid-column: 2; grid-row: 1; align-self: center; padding: 0.25rem 0.38rem; border: 1px solid rgb(90 220 247 / 0.28); border-radius: 4px; color: #93e9ff; background: transparent; font-size: 0.43rem; }
+.variant-review-card__diagrams { display: flex; grid-column: 1 / -1; align-items: center; gap: 0.28rem; }
+.variant-review-card__diagrams > span { color: #718aa0; font-size: 0.65rem; }
+.variant-review-card__diagrams > div { display: grid; flex: 1; gap: 0.1rem; min-width: 0; }
+.variant-review-card__diagrams small { color: #7790a7; font-size: 0.4rem; text-align: center; }
+.variant-design-preview { width: 100%; min-height: 2.7rem; border: 1px solid rgb(76 214 250 / 0.12); border-radius: 4px; background: #071725; }
+.variant-design-preview__player { fill: #f4f7fb; stroke: #0b2032; stroke-width: 0.55; }
 .template-card footer { display: flex; grid-column: 1 / -1; gap: 0.32rem; }
 .template-action { display: inline-flex; min-height: 28px; align-items: center; justify-content: center; gap: 0.25rem; flex: 1; border: 1px solid rgb(76 214 250 / 0.22); border-radius: 7px; color: #dffaff; background: rgb(76 214 250 / 0.09); cursor: pointer; font-size: 0.5rem; font-weight: 850; }
 .template-action:hover { border-color: rgb(76 214 250 / 0.48); background: rgb(76 214 250 / 0.16); }
