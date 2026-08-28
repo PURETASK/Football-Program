@@ -100,6 +100,42 @@ def load_asset_registry() -> list[dict[str, Any]]:
     return [deepcopy(asset) for asset in ASSET_REGISTRY]
 
 
+def validate_asset_registry(assets: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+    """Validate the professional catalog contract before it reaches the editor palette."""
+    catalog = deepcopy(assets if assets is not None else load_asset_registry())
+    errors: list[dict[str, Any]] = []
+    required_categories = {"formation", "route", "protection", "run", "front", "coverage", "pressure", "stunt", "rotation", "check", "teaching"}
+    seen_ids: set[str] = set()
+    seen_terms: set[tuple[str, str, str]] = set()
+    categories = {str(item.get("category")) for item in catalog if isinstance(item, dict)}
+    missing_categories = sorted(required_categories - categories)
+    if missing_categories:
+        errors.append({"code": "ASSET-CATEGORIES-MISSING", "categories": missing_categories})
+    for index, asset in enumerate(catalog):
+        if not isinstance(asset, dict):
+            errors.append({"code": "ASSET-NOT-OBJECT", "index": index})
+            continue
+        asset_id = str(asset.get("id", "")).strip()
+        key = (str(asset.get("unit", "")), str(asset.get("category", "")), str(asset.get("term", "")))
+        required = [field for field in ("id", "category", "kind", "term", "unit", "description", "accessibility", "version", "status") if not str(asset.get(field, "")).strip()]
+        if required:
+            errors.append({"code": "ASSET-METADATA-MISSING", "index": index, "fields": required})
+        if asset_id and asset_id in seen_ids:
+            errors.append({"code": "ASSET-ID-DUPLICATE", "id": asset_id})
+        if asset_id:
+            seen_ids.add(asset_id)
+        if all(key):
+            if key in seen_terms:
+                errors.append({"code": "ASSET-TERM-DUPLICATE", "key": key})
+            seen_terms.add(key)
+        aliases = asset.get("aliases", [])
+        if not isinstance(aliases, list) or any(not isinstance(alias, str) or not alias.strip() for alias in aliases):
+            errors.append({"code": "ASSET-ALIASES-INVALID", "id": asset_id})
+        if asset.get("status") in {"deprecated", "retired"} and asset.get("replacement_id") == asset_id:
+            errors.append({"code": "ASSET-REPLACEMENT-SELF", "id": asset_id})
+    return {"status": "valid" if not errors else "invalid", "asset_count": len(catalog), "category_count": len(categories), "categories": sorted(categories), "errors": errors}
+
+
 def load_concept_templates() -> list[dict[str, Any]]:
     """Load reusable, slot-relative concept packages and verify their graph."""
     if not CONCEPT_TEMPLATES_PATH.exists():

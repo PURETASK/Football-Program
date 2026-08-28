@@ -4,7 +4,7 @@ import json
 import unittest
 from pathlib import Path
 
-from src.nfl_fidos.play_design_service import PlayDesignService
+from src.nfl_fidos.play_design_service import PlayDesignService, load_asset_registry, validate_asset_registry
 from src.nfl_fidos.play_design_collaboration import PlayDesignCollaborationService
 from src.nfl_fidos.repository import JsonRepository
 from src.nfl_fidos.tenant_repository import TenantRepository
@@ -43,6 +43,12 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertEqual(len(dagger["alignment"]["slots"]), 11)
         self.assertEqual(dagger["template_kind"], "concept_layer")
         self.assertTrue(any("jet" in alias for item in service.assets(query="jet") for alias in item.get("aliases", [])))
+
+    def test_professional_asset_registry_contract_is_complete_and_unique(self):
+        report = validate_asset_registry(load_asset_registry())
+        self.assertEqual(report["status"], "valid", report["errors"])
+        self.assertGreaterEqual(report["asset_count"], 60)
+        self.assertTrue({"formation", "route", "protection", "run", "front", "coverage", "pressure", "stunt", "rotation", "check", "teaching"}.issubset(set(report["categories"])))
 
     def test_saved_design_can_be_captured_as_org_scoped_relative_template(self):
         service = self.service()
