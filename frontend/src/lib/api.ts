@@ -15,6 +15,7 @@ import type {
   FilmPlaylist,
   FilmVoiceNote,
   FilmWorkspaceData,
+  MediaProcessingJobsData,
   FootballRecord,
   GamePlanData,
   GamePlanThread,
@@ -408,6 +409,12 @@ export async function fetchFilmWorkspace(session: AppSession, query = '', signal
     sessions: sessions.sessions ?? [],
     voice_notes: voiceNotes.voice_notes ?? [],
   };
+}
+
+export async function fetchMediaProcessingJobs(session: AppSession, status = '', signal?: AbortSignal): Promise<MediaProcessingJobsData> {
+  const params = new URLSearchParams({ organization_id: session.organizationId });
+  if (status) params.set('status', status);
+  return request<MediaProcessingJobsData>(`/v1/media/jobs?${params}`, session, { signal });
 }
 
 export function createFilmPlaylist(session: AppSession, values: {

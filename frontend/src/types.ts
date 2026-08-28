@@ -768,6 +768,20 @@ export interface FilmWorkspaceData {
   voice_notes: FilmVoiceNote[];
 }
 
+export interface MediaProcessingJob extends FootballRecord {
+  asset_id?: string;
+  operation?: string;
+  attempt?: number;
+  max_attempts?: number;
+  worker_id?: string;
+  output_refs?: string[];
+  last_error?: { code?: string; message?: string };
+}
+
+export interface MediaProcessingJobsData {
+  jobs: MediaProcessingJob[];
+}
+
 export interface PracticePeriod extends FootballRecord {
   type: string;
   objective: string;

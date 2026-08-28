@@ -13,7 +13,7 @@ import {
   WorkbenchStats,
   WorkbenchTabs,
 } from '../components/OperationalWorkbench';
-import { useFilmWorkspaceQuery } from '../hooks/useOperationalData';
+import { useFilmWorkspaceQuery, useMediaProcessingJobsQuery } from '../hooks/useOperationalData';
 import { usePlayDesignsQuery } from '../hooks/useWorkspaceData';
 import { appendFilmAnnotation, createFilmAnnotationSession, createFilmClip, createFilmObservation, createFilmPlaylist, createFilmVoiceNote } from '../lib/api';
 import { compactValue, recordId, recordLabel, sentenceCase, splitList } from '../lib/format';
@@ -103,6 +103,7 @@ export function FilmPage() {
   const { session } = useSession();
   const queryClient = useQueryClient();
   const filmQuery = useFilmWorkspaceQuery();
+  const mediaJobsQuery = useMediaProcessingJobsQuery();
   const playbookQuery = usePlayDesignsQuery();
   const [tab, setTab] = useState<FilmTab>('library');
   const [search, setSearch] = useState('');
@@ -236,7 +237,12 @@ export function FilmPage() {
               { label: 'Evidence tags', value: data?.observations.length ?? 0, hint: 'confidence visible' },
               { label: 'Open sessions', value: data?.sessions.filter((item) => item.status === 'open').length ?? 0, hint: 'staff annotation' },
               { label: 'Voice notes', value: data?.voice_notes.length ?? 0, hint: 'frame-linked audio' },
+              { label: 'Media jobs', value: mediaJobsQuery.data?.jobs.length ?? 0, hint: 'worker queue' },
             ]} />
+            <div className="workbench-pane workbench-pane--soft film-processing-status" aria-label="Media processing status">
+              <div className="workbench-pane__header"><div><h3>Media processing status</h3><p>Authorized worker activity for this organization. Failures remain reviewable and never silently disappear.</p></div><a className="button button--ghost" href="/inbox">Open Operations Inbox</a></div>
+              {mediaJobsQuery.isLoading ? <p className="workbench-form__hint">Loading worker status…</p> : mediaJobsQuery.error ? <p className="approval-boundary">Worker status could not be loaded. Check the Operations Inbox for persisted job records.</p> : mediaJobsQuery.data?.jobs.length ? <div className="film-processing-status__grid">{mediaJobsQuery.data.jobs.slice(0, 6).map((job) => <div className={`film-processing-job film-processing-job--${String(job.status || 'queued')}`} key={job.id}><div><strong>{job.operation || 'media'} · {job.asset_id || job.id}</strong><span>{job.status || 'queued'} · attempt {job.attempt ?? 0}{job.max_attempts ? `/${job.max_attempts}` : ''}</span></div>{job.last_error ? <small>{job.last_error.code || 'worker error'}: {job.last_error.message || 'Review required'}</small> : job.output_refs?.length ? <small>{job.output_refs.length} output reference{job.output_refs.length === 1 ? '' : 's'} recorded</small> : <small>Waiting for an approved worker</small>}</div>)}</div> : <p className="workbench-form__hint">No media processing jobs are currently recorded.</p>}
+            </div>
             <div className="workbench-toolbar">
               <WorkbenchSearch label="Search Film Room records" onChange={setSearch} placeholder={`Search ${sentenceCase(tab).toLowerCase()}…`} value={search} />
               <span className="workbench-form__hint">Showing {records.length} organization-scoped records</span>
