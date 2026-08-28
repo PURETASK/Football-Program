@@ -16,7 +16,7 @@ DEFAULT_DURATION_MS = 3000
 DEFAULT_ELEMENT_DURATION_MS = 1200
 MIN_TIMELINE_MS = -5000
 MARKER_KINDS = {"snap", "cue", "pause", "read", "rotation", "exchange", "ball", "handoff"}
-EVENT_KINDS = {"ball", "handoff", "exchange", "read", "rotation", "throw", "catch", "contact", "cue"}
+EVENT_KINDS = {"ball", "handoff", "exchange", "block_exchange", "rush_exchange", "read", "rotation", "throw", "catch", "contact", "cue"}
 EVENT_KIND_ALIASES = {"qb_read": "read", "coverage_rotation": "rotation", "pass": "throw", "completion": "catch"}
 
 PHASE_TEMPLATES: dict[str, tuple[tuple[str, str, float, float], ...]] = {

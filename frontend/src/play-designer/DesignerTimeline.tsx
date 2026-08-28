@@ -18,6 +18,7 @@ interface TimelineProps {
 
 const SPEEDS = [0.5, 1, 1.5, 2];
 const MARKER_KINDS = ['snap', 'cue', 'pause', 'read', 'rotation', 'exchange', 'ball', 'handoff'] as const;
+const EVENT_KINDS = [...MARKER_KINDS, 'block_exchange', 'rush_exchange'] as const;
 
 function formatTime(ms: number): string {
   const sign = ms < 0 ? '-' : '';
@@ -158,11 +159,11 @@ export function DesignerTimeline({ design, selectedElement, playbackTime, onPlay
     updateTimeline({ events: [...events, { id: `BALL-${Date.now().toString(36).toUpperCase()}`, kind: 'ball', label: `Ball follows ${selectedElement.type ?? selectedElement.kind} · ${pathLabel}`, element_id: selectedElement.id, branch_id: selectedBranchId ?? undefined, start_ms: timing.start, end_ms: timing.end }] });
   };
 
-  const addSynchronizedEvent = (kind: 'handoff' | 'read' | 'exchange' | 'rotation') => {
+  const addSynchronizedEvent = (kind: 'handoff' | 'read' | 'exchange' | 'rotation' | 'block_exchange' | 'rush_exchange') => {
     if (!selectedElement) return;
     const timing = elementTiming(selectedElement);
     const pathLabel = selectedBranchId ? selectedElement.branches?.find((branch) => branch.id === selectedBranchId)?.label ?? 'alternate path' : 'primary path';
-    const label = kind === 'handoff' ? `Handoff at ${selectedElement.type ?? selectedElement.kind}` : kind === 'read' ? `QB read: ${selectedElement.type ?? selectedElement.kind}` : `${kind} with ${selectedElement.type ?? selectedElement.kind}`;
+    const label = kind === 'handoff' ? `Handoff at ${selectedElement.type ?? selectedElement.kind}` : kind === 'read' ? `QB read: ${selectedElement.type ?? selectedElement.kind}` : kind === 'block_exchange' ? `Block exchange: ${selectedElement.type ?? selectedElement.kind}` : kind === 'rush_exchange' ? `Rush exchange: ${selectedElement.type ?? selectedElement.kind}` : `${kind} with ${selectedElement.type ?? selectedElement.kind}`;
     updateTimeline({ events: [...events, { id: `${kind.toUpperCase()}-${Date.now().toString(36).toUpperCase()}`, kind, label: `${label} · ${pathLabel}`, element_id: selectedElement.id, branch_id: selectedBranchId ?? undefined, start_ms: timing.start, end_ms: timing.end }] });
   };
 
@@ -251,10 +252,10 @@ export function DesignerTimeline({ design, selectedElement, playbackTime, onPlay
               <button type="button" aria-label="Delete narration cue" onClick={() => updateTimeline({ narration: narration.filter((item) => item.id !== cue.id) })}><Trash2 size={14} /></button>
             </div>)}</div>
           </section>
-          <section><header><div><strong>Ball and synchronized events</strong><small>Bind ball travel, handoffs, QB reads, exchanges, and rotations to canonical assignment timing.</small></div><div className="timeline-event-actions"><button type="button" aria-label="Ball on selected path" disabled={!selectedElement} onClick={addBallEvent}><Plus size={14} /> Ball</button><button type="button" disabled={!selectedElement} onClick={() => addSynchronizedEvent('handoff')}><Plus size={14} /> Handoff</button><button type="button" disabled={!selectedElement} onClick={() => addSynchronizedEvent('read')}><Plus size={14} /> QB read</button><button type="button" disabled={!selectedElement} onClick={() => addSynchronizedEvent('exchange')}><Plus size={14} /> Exchange</button><button type="button" disabled={!selectedElement} onClick={() => addSynchronizedEvent('rotation')}><Plus size={14} /> Rotation</button></div></header>
+          <section><header><div><strong>Ball and synchronized events</strong><small>Bind ball travel, handoffs, QB reads, exchanges, rotations, and block/rush exchanges to canonical assignment timing.</small></div><div className="timeline-event-actions"><button type="button" aria-label="Ball on selected path" disabled={!selectedElement} onClick={addBallEvent}><Plus size={14} /> Ball</button><button type="button" disabled={!selectedElement} onClick={() => addSynchronizedEvent('handoff')}><Plus size={14} /> Handoff</button><button type="button" disabled={!selectedElement} onClick={() => addSynchronizedEvent('read')}><Plus size={14} /> QB read</button><button type="button" disabled={!selectedElement} onClick={() => addSynchronizedEvent('exchange')}><Plus size={14} /> Exchange</button><button type="button" disabled={!selectedElement} onClick={() => addSynchronizedEvent('block_exchange')}><Plus size={14} /> Block exchange</button><button type="button" disabled={!selectedElement} onClick={() => addSynchronizedEvent('rush_exchange')}><Plus size={14} /> Rush exchange</button><button type="button" disabled={!selectedElement} onClick={() => addSynchronizedEvent('rotation')}><Plus size={14} /> Rotation</button></div></header>
             {selectedElement?.branches?.length ? <div className="timeline-path-selector" role="group" aria-label="Timeline route path"><span>Attach cues to</span><button type="button" className={!selectedBranchId ? 'is-selected' : ''} onClick={() => setSelectedBranchId(null)}>Primary path</button>{selectedElement.branches.map((branch) => <button type="button" className={selectedBranchId === branch.id ? 'is-selected' : ''} key={branch.id} onClick={() => setSelectedBranchId(branch.id)}>{branch.label}</button>)}</div> : null}
             <div className="timeline-event-list">{events.map((event, index) => <div className="timeline-event-row" key={event.id ?? `${event.kind}-${index}`}>
-              <select aria-label={`Synchronized event ${index + 1} kind`} value={timelineEventKind(event)} onChange={(input) => updateEvent(index, { kind: input.target.value })}>{MARKER_KINDS.map((kind) => <option value={kind} key={kind}>{kind}</option>)}</select>
+              <select aria-label={`Synchronized event ${index + 1} kind`} value={timelineEventKind(event)} onChange={(input) => updateEvent(index, { kind: input.target.value })}>{EVENT_KINDS.map((kind) => <option value={kind} key={kind}>{kind}</option>)}</select>
               <input aria-label={`Synchronized event ${index + 1} label`} value={event.label ?? ''} placeholder="Event label" onChange={(input) => updateEvent(index, { label: input.target.value })} />
               <input aria-label={`Synchronized event ${index + 1} start`} type="number" value={timelineEventStart(event)} onChange={(input) => updateEvent(index, { start_ms: Number(input.target.value), ms: Number(input.target.value) })} />
               <input aria-label={`Synchronized event ${index + 1} end`} type="number" value={timelineEventEnd(event, duration)} onChange={(input) => updateEvent(index, { end_ms: Number(input.target.value) })} />

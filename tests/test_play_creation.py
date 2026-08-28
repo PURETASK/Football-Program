@@ -68,6 +68,17 @@ class PlayCreationTests(unittest.TestCase):
         self.assertEqual(normalized["timeline"]["events"][0]["start_ms"], -100)
         self.assertEqual(validate_timeline(normalized), [])
 
+    def test_timeline_accepts_explicit_block_and_rush_exchange_cues(self):
+        candidate = design()
+        candidate["elements"][0]["id"] = "ROUTE-1"
+        candidate["timeline"]["events"] = [
+            {"id": "BLOCK-X", "kind": "block_exchange", "element_id": candidate["elements"][0]["id"], "start_ms": 300, "end_ms": 700},
+            {"id": "RUSH-X", "kind": "rush_exchange", "element_id": candidate["elements"][0]["id"], "start_ms": 700, "end_ms": 1100},
+        ]
+        normalized = normalize_timeline_design(candidate)
+        self.assertEqual([event["kind"] for event in normalized["timeline"]["events"]], ["block_exchange", "rush_exchange"])
+        self.assertEqual(validate_timeline(normalized), [])
+
     def test_timeline_validation_explains_phase_and_exchange_errors(self):
         candidate = normalize_timeline_design(design())
         candidate["elements"][0]["exchange_with"] = "E-MISSING"

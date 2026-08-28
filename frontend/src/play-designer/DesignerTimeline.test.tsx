@@ -56,10 +56,14 @@ describe('DesignerTimeline', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Handoff' }));
     fireEvent.click(screen.getByRole('button', { name: 'QB read' }));
     fireEvent.click(screen.getByRole('button', { name: 'Exchange' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Block exchange' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Rush exchange' }));
     fireEvent.click(screen.getByRole('button', { name: 'Rotation' }));
     expect(onUpdateTimeline).toHaveBeenCalledWith(expect.objectContaining({ events: expect.arrayContaining([expect.objectContaining({ kind: 'handoff', element_id: 'ROUTE-X' })]) }));
     expect(onUpdateTimeline).toHaveBeenCalledWith(expect.objectContaining({ events: expect.arrayContaining([expect.objectContaining({ kind: 'read', element_id: 'ROUTE-X' })]) }));
     expect(onUpdateTimeline).toHaveBeenCalledWith(expect.objectContaining({ events: expect.arrayContaining([expect.objectContaining({ kind: 'exchange', element_id: 'ROUTE-X' })]) }));
+    expect(onUpdateTimeline).toHaveBeenCalledWith(expect.objectContaining({ events: expect.arrayContaining([expect.objectContaining({ kind: 'block_exchange', element_id: 'ROUTE-X' })]) }));
+    expect(onUpdateTimeline).toHaveBeenCalledWith(expect.objectContaining({ events: expect.arrayContaining([expect.objectContaining({ kind: 'rush_exchange', element_id: 'ROUTE-X' })]) }));
     expect(onUpdateTimeline).toHaveBeenCalledWith(expect.objectContaining({ events: expect.arrayContaining([expect.objectContaining({ kind: 'rotation', element_id: 'ROUTE-X' })]) }));
   });
 
