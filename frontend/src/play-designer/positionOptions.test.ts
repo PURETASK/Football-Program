@@ -1,7 +1,7 @@
 import type { PlayAsset, PlayDesign, PlayPlayer, PlayTemplate } from '../types';
-import { positionAssetOptions, positionProfile, positionTemplateOptions } from './positionOptions';
+import { positionAssetFit, positionAssetOptions, positionProfile, positionTemplateOptions } from './positionOptions';
 
-const OFFENSE: PlayDesign = { id: 'OFF-1', unit: 'offense', formation: 'shotgun_2x2', players: [], elements: [] };
+const OFFENSE: PlayDesign = { id: 'OFF-1', unit: 'offense', formation: 'shotgun_2x2', personnel: '11', rule_profile: 'nfl', players: [], elements: [] };
 const DEFENSE: PlayDesign = { id: 'DEF-1', unit: 'defense', front: '4-2-5_over', players: [], elements: [] };
 
 function asset(id: string, category: string, unit: string = 'offense'): PlayAsset {
@@ -46,5 +46,17 @@ describe('position-aware play authoring options', () => {
     ];
 
     expect(positionTemplateOptions(player, OFFENSE, templates).map((item) => item.id)).toEqual(['ROUTE', 'PROTECTION']);
+  });
+
+  it('explains formation, personnel, rule, and lifecycle incompatibilities', () => {
+    const candidate = { ...asset('POST', 'route'), compatible_formations: ['empty'], compatible_personnel: ['12'], compatible_rule_profiles: ['ncaa'], status: 'deprecated' };
+    const fit = positionAssetFit(candidate, OFFENSE);
+    expect(fit.compatible).toBe(false);
+    expect(fit.reasons).toEqual(expect.arrayContaining([
+      'Not cataloged for shotgun 2x2.',
+      'Not cataloged for 11 personnel.',
+      'Not approved for nfl rules.',
+      'Lifecycle state is deprecated.',
+    ]));
   });
 });

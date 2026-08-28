@@ -1147,6 +1147,8 @@
 .position-toolkit__options { display: grid; gap: 0.28rem; }
 .position-option { display: grid; min-height: 39px; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 0.42rem; padding: 0.32rem 0.38rem; border: 1px solid rgb(255 255 255 / 0.065); border-radius: 8px; color: #a9bdd0; background: rgb(255 255 255 / 0.018); text-align: left; transition: border-color 140ms ease, background 140ms ease, transform 140ms ease; }
 .position-option:hover, .position-option:focus-visible { border-color: rgb(76 214 250 / 0.3); background: rgb(76 214 250 / 0.06); transform: translateX(2px); }
+.position-option.is-review { border-color: rgb(246 204 101 / 0.2); }
+.position-option.is-review .position-option__copy small { color: #d6b86e; }
 .position-option:focus-within, .position-template:focus-visible { outline: 2px solid #58d9f5; outline-offset: 2px; }
 .position-option__glyph { display: grid; width: 26px; height: 26px; place-items: center; border-radius: 7px; color: #63dcf5; background: rgb(76 214 250 / 0.075); font-family: var(--font-display); font-size: 0.82rem; }
 .position-option__glyph--block, .position-option__glyph--protection { color: #d9e6f4; background: rgb(220 230 244 / 0.08); }

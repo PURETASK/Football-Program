@@ -8,6 +8,11 @@ export interface PositionProfile {
   templateLayers: string[];
 }
 
+export interface PositionAssetFit {
+  compatible: boolean;
+  reasons: string[];
+}
+
 const OFFENSE_PROFILES: Array<{ tokens: string[]; profile: PositionProfile }> = [
   { tokens: ['QB', 'QUARTERBACK'], profile: { family: 'quarterback', title: 'Quarterback toolkit', description: 'Reads, checks, movement, and ball-carrier actions that start with the quarterback.', preferredCategories: ['teaching', 'check', 'run', 'motion', 'route'], templateLayers: ['run_concept', 'route_concept', 'protection', 'check'] } },
   { tokens: ['LT', 'LG', 'C', 'RG', 'RT', 'OL', 'OT', 'OG', 'CENTER', 'GUARD', 'TACKLE'], profile: { family: 'offensive-line', title: 'Offensive line toolkit', description: 'Protection, leverage, combination, pull, and run-game responsibilities for the front.', preferredCategories: ['protection', 'block', 'run', 'teaching', 'check'], templateLayers: ['protection', 'run_concept'] } },
@@ -37,6 +42,18 @@ export function assetName(asset: PlayAsset): string {
   return asset.display_name ?? asset.term.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+/** Explain why an asset is or is not safe to suggest for the active play. */
+export function positionAssetFit(asset: PlayAsset, design: PlayDesign): PositionAssetFit {
+  const reasons: string[] = [];
+  if (asset.unit !== design.unit && asset.unit !== 'shared') reasons.push(`Designed for ${asset.unit}.`);
+  if (asset.compatible_formations?.length && design.formation && !asset.compatible_formations.includes(design.formation)) reasons.push(`Not cataloged for ${design.formation.replaceAll('_', ' ')}.`);
+  if (asset.compatible_personnel?.length && design.personnel && !asset.compatible_personnel.includes(design.personnel)) reasons.push(`Not cataloged for ${design.personnel} personnel.`);
+  if (asset.compatible_rule_profiles?.length && design.rule_profile && !asset.compatible_rule_profiles.includes(design.rule_profile)) reasons.push(`Not approved for ${design.rule_profile.replaceAll('_', ' ')} rules.`);
+  if (asset.compatibility && !asset.compatibility.compatible) reasons.push(...asset.compatibility.reasons);
+  if (!['active', 'approved'].includes(asset.status ?? 'active')) reasons.push(`Lifecycle state is ${asset.status}.`);
+  return { compatible: reasons.length === 0, reasons: [...new Set(reasons)] };
+}
+
 export function positionAssetOptions(player: PlayPlayer, design: PlayDesign, assets: PlayAsset[]): PlayAsset[] {
   const profile = positionProfile(player, design.unit);
   return assets
@@ -45,7 +62,8 @@ export function positionAssetOptions(player: PlayPlayer, design: PlayDesign, ass
       const category = asset.category ?? asset.kind;
       const preference = profile.preferredCategories.indexOf(category);
       const unitFit = asset.unit === design.unit || asset.unit === 'shared' ? 30 : -80;
-      const compatibility = asset.compatibility?.compatible ? 20 : asset.compatibility ? -25 : 0;
+      const fit = positionAssetFit(asset, design);
+      const compatibility = fit.compatible ? 20 : -25;
       const lifecycle = ['active', 'approved'].includes(asset.status ?? 'active') ? 10 : -30;
       return { asset, score: (preference < 0 ? -10 : 100 - preference * 8) + unitFit + compatibility + lifecycle };
     })
