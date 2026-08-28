@@ -724,6 +724,19 @@ def verify_export_artifact(artifact: dict[str, Any]) -> dict[str, Any]:
         payload = b""
         issues.append({"code": "EXPORT-ARTIFACT-BASE64", "severity": "error", "message": "Artifact content is not valid base64."})
     actual_hash = hashlib.sha256(payload).hexdigest()
+    artifact_format = artifact.get("format")
+    artifact_kind = artifact.get("kind")
+    artifact_layout = artifact.get("layout")
+    if artifact_format not in EXPORT_FORMATS:
+        issues.append({"code": "EXPORT-ARTIFACT-FORMAT", "severity": "error", "message": "Artifact format is not supported by the export contract."})
+    if artifact_kind not in EXPORT_KINDS:
+        issues.append({"code": "EXPORT-ARTIFACT-KIND", "severity": "error", "message": "Artifact kind is not supported by the export contract."})
+    if artifact_layout not in EXPORT_LAYOUTS:
+        issues.append({"code": "EXPORT-ARTIFACT-LAYOUT", "severity": "error", "message": "Artifact layout is not supported by the export contract."})
+    if artifact_kind == "wristband" and artifact_layout not in WRISTBAND_LAYOUTS:
+        issues.append({"code": "EXPORT-ARTIFACT-LAYOUT-KIND", "severity": "error", "message": "Wristband artifacts must use a wristband layout."})
+    if artifact_format in {"svg", "png"} and artifact_layout != "single":
+        issues.append({"code": "EXPORT-ARTIFACT-LAYOUT-FORMAT", "severity": "error", "message": "SVG and PNG artifacts must use the single layout."})
     if artifact.get("bytes") != len(payload):
         issues.append({"code": "EXPORT-ARTIFACT-BYTES", "severity": "error", "message": "Declared byte length does not match artifact content."})
     if artifact.get("sha256") != actual_hash:
@@ -736,11 +749,16 @@ def verify_export_artifact(artifact: dict[str, Any]) -> dict[str, Any]:
     if artifact.get("source_manifest_hash") != manifest_hash:
         issues.append({"code": "EXPORT-SOURCE-MANIFEST-HASH", "severity": "error", "message": "Source manifest hash does not match the manifest."})
     signatures = {"pdf": b"%PDF", "png": b"\x89PNG\r\n\x1a\n", "svg": b"<svg", "html": b"<!doctype html", "json": b"{", "csv": b""}
-    expected = signatures.get(artifact.get("format"))
+    expected = signatures.get(artifact_format)
     if expected and not payload.lstrip().lower().startswith(expected.lower()):
-        issues.append({"code": "EXPORT-FORMAT-SIGNATURE", "severity": "error", "message": f"Payload does not have the expected {artifact.get('format')} signature."})
-    if artifact.get("format") == "csv" and b"\n" not in payload:
+        issues.append({"code": "EXPORT-FORMAT-SIGNATURE", "severity": "error", "message": f"Payload does not have the expected {artifact_format} signature."})
+    if artifact_format == "csv" and (b"\n" not in payload or payload.lstrip().startswith((b"%PDF", b"\x89PNG", b"<svg"))):
         issues.append({"code": "EXPORT-CSV-EMPTY", "severity": "error", "message": "CSV export does not contain a header or row terminator."})
+    if artifact_format == "json":
+        try:
+            json.loads(payload.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            issues.append({"code": "EXPORT-JSON-INVALID", "severity": "error", "message": "JSON export is not parseable UTF-8 JSON."})
     if artifact.get("page_count", 0) < 1:
         issues.append({"code": "EXPORT-PAGE-COUNT", "severity": "error", "message": "Export must contain at least one planned page."})
     return {"status": "verified" if not issues else "invalid", "issues": issues, "sha256": actual_hash, "bytes": len(payload)}

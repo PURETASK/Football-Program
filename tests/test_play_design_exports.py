@@ -194,6 +194,13 @@ class PlayDesignExportTests(unittest.TestCase):
         self.assertIn("EXPORT-ARTIFACT-HASH", {issue["code"] for issue in verification["issues"]})
         self.assertIn("EXPORT-ARTIFACT-BYTES", {issue["code"] for issue in verification["issues"]})
 
+    def test_artifact_verifier_detects_metadata_tampering(self):
+        rendered = build_export(designs=[design()], kind="play_card", format="pdf")
+        rendered["format"] = "png"
+        verification = verify_export_artifact(rendered)
+        self.assertEqual(verification["status"], "invalid")
+        self.assertIn("EXPORT-FORMAT-SIGNATURE", {issue["code"] for issue in verification["issues"]})
+
     def test_packet_metadata_uses_layout_capacity(self):
         designs = []
         for index in range(5):
