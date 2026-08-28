@@ -101,6 +101,15 @@ export function AssignmentGraphFields({ design, element, onElement }: Assignment
         <label className="inspector-field"><span>Block target</span><select value={element.block_target_element_id ?? element.target_element_id ?? ''} onChange={(event) => onElement(element.id, blockingConstructionPatch(element, design, { block_target_element_id: event.target.value || undefined, target_element_id: event.target.value || undefined }))}><option value="">No assignment target</option>{otherElements.map((item) => <option value={item.id} key={item.id}>{item.type ?? item.kind} · {item.id}</option>)}</select></label>
         <label className="inspector-field"><span>Combo / partner</span><select value={element.block_partner_element_id ?? ''} onChange={(event) => onElement(element.id, offensiveBlockingPatch({ block_partner_element_id: event.target.value || undefined }))}><option value="">No partner</option>{otherElements.map((item) => <option value={item.id} key={item.id}>{item.type ?? item.kind} · {item.id}</option>)}</select></label>
       </div>
+      <fieldset className="protection-detail-editor">
+        <legend>Protection responsibility</legend>
+        <p>Make the protected surface and communication order explicit for teaching and synchronized timeline cues.</p>
+        <div className="inspector-form inspector-form--two inspector-form--nested">
+          <label className="inspector-field"><span>Protected target / threat</span><select aria-label="Protected target / threat" value={(element.protection_target_element_id as string | undefined) ?? ''} onChange={(event) => onElement(element.id, { protection_target_element_id: event.target.value || undefined })}><option value="">No explicit threat</option>{otherElements.map((item) => <option value={item.id} key={item.id}>{item.type ?? item.kind} · {item.id}</option>)}</select></label>
+          <label className="inspector-field"><span>Slide direction</span><select aria-label="Protection slide direction" value={(element.protection_slide_direction as string | undefined) ?? ''} onChange={(event) => onElement(element.id, { protection_slide_direction: event.target.value || undefined })}><option value="">Not specified</option><option value="left">Left</option><option value="right">Right</option><option value="away">Away from back</option><option value="toward">Toward back</option></select></label>
+        </div>
+        <CommitInput label="Scan order / communication" value={element.protection_scan_order as string | undefined} onCommit={(value) => onElement(element.id, { protection_scan_order: value || undefined })} />
+      </fieldset>
     </fieldset> : null}
     {isRoute ? <fieldset className="route-authoring-editor">
       <legend>Route construction</legend>

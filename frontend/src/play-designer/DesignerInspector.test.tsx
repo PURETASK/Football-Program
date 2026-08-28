@@ -183,6 +183,27 @@ describe('DesignerInspector assignment graph controls', () => {
     expect(screen.getByText(/Choose the adjacent blocker or partner assignment/)).toBeInTheDocument();
   });
 
+  it('authors protection target, slide direction, and communication order', async () => {
+    const props = inspectorProps();
+    const offenseDesign = {
+      ...DESIGN,
+      unit: 'offense' as const,
+      elements: [
+        { id: 'BLOCK', kind: 'block', type: 'pass pro', blocking_primitive: 'base' },
+        { id: 'THREAT', kind: 'rush', type: 'edge' },
+      ],
+    };
+    render(<DesignerInspector {...props} design={offenseDesign} selected={[{ kind: 'element', id: 'BLOCK' }]} />);
+    fireEvent.change(await screen.findByLabelText('Protected target / threat'), { target: { value: 'THREAT' } });
+    expect(props.onElement).toHaveBeenCalledWith('BLOCK', { protection_target_element_id: 'THREAT' });
+    fireEvent.change(screen.getByLabelText('Protection slide direction'), { target: { value: 'left' } });
+    expect(props.onElement).toHaveBeenCalledWith('BLOCK', { protection_slide_direction: 'left' });
+    const scan = screen.getByLabelText('Scan order / communication');
+    fireEvent.change(scan, { target: { value: 'Mike to Will' } });
+    fireEvent.blur(scan);
+    expect(props.onElement).toHaveBeenCalledWith('BLOCK', { protection_scan_order: 'Mike to Will' });
+  });
+
   it('declares coverage-shell zones for server ownership checks', () => {
     const props = inspectorProps();
     render(<DesignerInspector {...props} />);
