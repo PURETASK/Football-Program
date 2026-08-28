@@ -1154,6 +1154,12 @@
 .validation-locate { display: inline-flex; min-height: 27px; align-items: center; margin-top: 0.4rem; padding: 0 0.45rem; border: 1px solid rgb(76 214 250 / 0.14); border-radius: 7px; color: #62d5ef; background: rgb(76 214 250 / 0.04); cursor: pointer; font-size: 0.46rem; font-weight: 750; }
 .validation-finding small { color: #566c84; font-size: 0.45rem; }
 .validation-finding a { display: block; margin-top: 0.4rem; color: #54d3f2; font-size: 0.47rem; text-decoration: none; }
+.legality-override-form { display: grid; gap: 0.45rem; margin-top: 0.55rem; padding: 0.55rem; border: 1px solid rgb(76 214 250 / 0.14); border-radius: 8px; background: rgb(5 18 29 / 0.72); }
+.legality-override-form label { display: grid; gap: 0.22rem; }
+.legality-override-form label > span { color: #9cb0c4; font-size: 0.46rem; font-weight: 750; }
+.legality-override-form label small { color: #61758b; font-weight: 500; }
+.legality-override-form input, .legality-override-form textarea { width: 100%; border: 1px solid rgb(125 160 187 / 0.2); border-radius: 6px; padding: 0.42rem; color: #dbe8f2; background: rgb(6 17 27 / 0.9); font: inherit; font-size: 0.5rem; }
+.legality-override-form textarea { min-height: 4rem; resize: vertical; }
 .inspector-help { color: #5f748c; font-size: 0.49rem; line-height: 1.55; }
 
 .position-toolkit { display: grid; gap: 0.55rem; margin-top: 0.75rem; padding-top: 0.72rem; border-top: 1px solid rgb(255 255 255 / 0.06); }

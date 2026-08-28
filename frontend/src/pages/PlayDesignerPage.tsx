@@ -26,6 +26,7 @@ import {
   leavePlayPresence,
   mergePlayBranch,
   publishPlayDesign,
+  requestPlayLegalityOverride,
   requestPlayReview,
   savePlayDesign,
   updatePlayPresence,
@@ -332,7 +333,7 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
     dispatch({ type: 'set_tool', tool: toolForAsset(asset), asset });
   };
 
-  const runAction = async (action: () => Promise<PlayDesign>, success: (design: PlayDesign) => void, message: string) => {
+  const runAction = async <T,>(action: () => Promise<T>, success: (result: T) => void, message: string) => {
     setActionBusy(true);
     setActionMessage('');
     try {
@@ -419,6 +420,15 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
     } finally {
       setActionBusy(false);
     }
+  };
+
+  const requestLegalityOverride = (values: { issueCode: string; rationale: string; decisionRef: string; evidenceRefs: string[]; expiresAt: string }) => {
+    if (!session) return;
+    void runAction(
+      () => requestPlayLegalityOverride(session, { designId: state.present.id, ...values, expiresAt: new Date(values.expiresAt).toISOString() }),
+      () => undefined,
+      `Owner review requested for ${values.issueCode}. The finding remains active until an authorized owner approves it.`,
+    );
   };
 
   const saveConflictCopy = async () => {
@@ -645,6 +655,7 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
             onCompare={(baseId, snapshotId) => { setCompareBaseId(baseId); setCompareSnapshotId(snapshotId); setCompareVisible(false); }}
             onToggleCompare={setCompareVisible}
             onMerge={mergeBranch}
+            onRequestLegalityOverride={requestLegalityOverride}
           />
         </Suspense>
       </div>

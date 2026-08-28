@@ -1,7 +1,7 @@
 import { beforeEach, expect, vi } from 'vitest';
 
 import type { AppSession, PracticePlan } from '../types';
-import { appendCollaborationComment, createCollaborationThread, createDeliveryPacket, createPilotDeliveryPackage, createPlayTemplate, createPlayVariants, evaluatePilotReadiness, exportPlayDesign, fetchAdminWorkspace, fetchCollaborationWorkspace, fetchCollaborationStream, fetchOrganizationPopulationReadiness, fetchPlayAssets, fetchPlayCollaborationStream, fetchStage25Acceptance, fetchPracticeAttendance, markCollaborationNotificationsRead, createFilmClip, createFilmObservation, createFilmVoiceNote, createGamePlanReleaseSnapshot, createPracticePlan, fetchFilmWorkspace, fetchMediaProcessingJob, fetchMediaProcessingJobs, fetchOperationsInbox, fetchPlayRoleView, fetchPlayVersionDiff, fetchPracticeDrills, fetchScoutingTendencies, markOperationsNotificationsRead, mergePlayBranch, preflightPlayDesignExport, recordAnalyticsOutcome, recordPlayMastery, recordPracticeAttendance, registerFilmAsset, reviewGovernanceItem, selectPilotOrganization, submitPlayQuiz, submitStage25Acceptance, submitUsabilityFeedback, validatePlayDesignDraft } from './api';
+import { appendCollaborationComment, createCollaborationThread, createDeliveryPacket, createPilotDeliveryPackage, createPlayTemplate, createPlayVariants, evaluatePilotReadiness, exportPlayDesign, fetchAdminWorkspace, fetchCollaborationWorkspace, fetchCollaborationStream, fetchOrganizationPopulationReadiness, fetchPlayAssets, fetchPlayCollaborationStream, fetchStage25Acceptance, fetchPracticeAttendance, markCollaborationNotificationsRead, createFilmClip, createFilmObservation, createFilmVoiceNote, createGamePlanReleaseSnapshot, createPracticePlan, fetchFilmWorkspace, fetchMediaProcessingJob, fetchMediaProcessingJobs, fetchOperationsInbox, fetchPlayRoleView, fetchPlayVersionDiff, fetchPracticeDrills, fetchScoutingTendencies, markOperationsNotificationsRead, mergePlayBranch, preflightPlayDesignExport, recordAnalyticsOutcome, recordPlayMastery, recordPracticeAttendance, registerFilmAsset, requestPlayLegalityOverride, reviewGovernanceItem, selectPilotOrganization, submitPlayQuiz, submitStage25Acceptance, submitUsabilityFeedback, validatePlayDesignDraft } from './api';
 
 const SESSION: AppSession = {
   organizationId: 'ORG-TEST-001',
@@ -373,6 +373,17 @@ describe('operational API wiring', () => {
     expect(String(path)).toContain('base_snapshot_id=SNAP-1');
     expect(String(path)).toContain('compare_snapshot_id=SNAP-2');
     expect((options?.headers as Record<string, string>).Authorization).toBe('Bearer test-token');
+  });
+
+  it('submits a governed legality override request with evidence and expiry', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => response({ id: 'OVERRIDE-1', status: 'pending_owner_approval' }, 201));
+
+    const result = await requestPlayLegalityOverride(SESSION, { designId: 'PLAY-1', issueCode: 'LEGALITY-ELIGIBILITY', rationale: 'Local league rulebook permits this declared exception.', decisionRef: 'DEC-LEGALITY-1', evidenceRefs: ['RULEBOOK-1', 'FILM-CLIP-1'], expiresAt: '2026-09-01T16:00:00.000Z' });
+
+    expect(result).toMatchObject({ id: 'OVERRIDE-1', status: 'pending_owner_approval' });
+    const [path, options] = fetchMock.mock.calls[0];
+    expect(path).toBe('/v1/playbook/designs/legality/override');
+    expect(JSON.parse(String(options?.body))).toMatchObject({ organization_id: 'ORG-TEST-001', design_id: 'PLAY-1', issue_code: 'LEGALITY-ELIGIBILITY', decision_ref: 'DEC-LEGALITY-1', evidence_refs: ['RULEBOOK-1', 'FILM-CLIP-1'], expires_at: '2026-09-01T16:00:00.000Z' });
   });
 
   it('loads a role-filtered teaching view with progressive reveal parameters', async () => {

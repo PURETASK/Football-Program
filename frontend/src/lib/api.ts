@@ -216,6 +216,27 @@ export function fetchPlayLegality(session: AppSession, designId: string, signal?
   return request<PlayLegalityReport>(`/v1/playbook/designs/${encodeURIComponent(designId)}/legality?${params}`, session, { signal });
 }
 
+export function requestPlayLegalityOverride(session: AppSession, values: {
+  designId: string;
+  issueCode: string;
+  rationale: string;
+  decisionRef: string;
+  evidenceRefs: string[];
+  expiresAt: string;
+}): Promise<Record<string, unknown>> {
+  return request<Record<string, unknown>>('/v1/playbook/designs/legality/override', session, {
+    method: 'POST',
+    body: organizationBody(session, {
+      design_id: values.designId,
+      issue_code: values.issueCode,
+      rationale: values.rationale,
+      decision_ref: values.decisionRef,
+      evidence_refs: values.evidenceRefs,
+      expires_at: values.expiresAt,
+    }),
+  });
+}
+
 export function fetchPlayRoleView(
   session: AppSession,
   designId: string,

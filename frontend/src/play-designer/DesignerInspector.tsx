@@ -79,6 +79,7 @@ interface InspectorProps {
   onCompare: (baseSnapshotId: string, compareSnapshotId: string) => void;
   onToggleCompare?: (visible: boolean) => void;
   onMerge: (branchId: string) => void;
+  onRequestLegalityOverride?: (values: { issueCode: string; rationale: string; decisionRef: string; evidenceRefs: string[]; expiresAt: string }) => void;
   assets?: PlayAsset[];
   templates?: PlayTemplate[];
   onChooseAsset?: (asset: PlayAsset) => void;
@@ -422,7 +423,8 @@ function LayersPanel({ design, selected, onSelect, onPlayer, onElement }: Pick<I
   );
 }
 
-function ValidationPanel({ design, legality, validationPending, validationError, onSelect, onTab }: Pick<InspectorProps, 'design' | 'legality' | 'validationPending' | 'validationError' | 'onSelect' | 'onTab'>) {
+function ValidationPanel({ design, legality, validationPending, validationError, onSelect, onTab, onRequestLegalityOverride }: Pick<InspectorProps, 'design' | 'legality' | 'validationPending' | 'validationError' | 'onSelect' | 'onTab' | 'onRequestLegalityOverride'>) {
+  const [overrideIssue, setOverrideIssue] = useState<string | null>(null);
   const report = legality ?? { status: design.validation?.status ?? 'not_checked', issues: design.validation?.issues ?? [] };
   const localIssues = [...defensiveResponsibilityIssues(design), ...offensiveBlockingIssues(design), ...timelineIntegrityIssues(design)];
   const issueKeys = new Set(report.issues.map((issue) => `${issue.code ?? ''}:${issue.path ?? ''}`));
@@ -463,6 +465,21 @@ function ValidationPanel({ design, legality, validationPending, validationError,
             {issue.path ? <small>{issue.path}</small> : null}
             {issue.path && /^(elements|players)\[\d+\]/.test(issue.path) ? <button type="button" className="validation-locate" onClick={() => locate(issue.path)}>Locate on canvas</button> : null}
             {issue.source?.uri ? <a href={issue.source.uri} target="_blank" rel="noreferrer">{issue.source.title ?? 'Authoritative source'}</a> : null}
+            {issue.overrideable && issue.status !== 'overridden' && onRequestLegalityOverride ? <>
+              <button type="button" className="validation-locate" aria-expanded={overrideIssue === (issue.code ?? String(index))} onClick={() => setOverrideIssue((current) => current === (issue.code ?? String(index)) ? null : (issue.code ?? String(index)))}>Request owner override</button>
+              {overrideIssue === (issue.code ?? String(index)) ? <form className="legality-override-form" onSubmit={(event) => {
+                event.preventDefault();
+                const form = new FormData(event.currentTarget);
+                onRequestLegalityOverride({ issueCode: issue.code ?? 'VALIDATION', rationale: String(form.get('rationale') || ''), decisionRef: String(form.get('decision_ref') || ''), evidenceRefs: String(form.get('evidence_refs') || '').split(',').map((value) => value.trim()).filter(Boolean), expiresAt: String(form.get('expires_at') || '') });
+                setOverrideIssue(null);
+              }}>
+                <label htmlFor={`override-rationale-${index}`}><span>Rationale</span><textarea id={`override-rationale-${index}`} name="rationale" required placeholder="Explain the local rule context and why this exception needs owner review." /></label>
+                <label htmlFor={`override-decision-${index}`}><span>Decision reference</span><input id={`override-decision-${index}`} name="decision_ref" required placeholder="DEC-LEGALITY-001" /></label>
+                <label htmlFor={`override-evidence-${index}`}><span>Evidence references <small>comma separated</small></span><input id={`override-evidence-${index}`} name="evidence_refs" required placeholder="SOURCE-001, FILM-CLIP-001" /></label>
+                <label htmlFor={`override-expires-${index}`}><span>Expires at <small>ISO-8601</small></span><input id={`override-expires-${index}`} name="expires_at" required type="datetime-local" /></label>
+                <button className="button button--secondary" type="submit">Submit governed request</button>
+              </form> : null}
+            </> : null}
           </article>
         ))}
       </div>

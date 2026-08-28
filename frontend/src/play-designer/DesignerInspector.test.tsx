@@ -268,6 +268,18 @@ describe('DesignerInspector assignment graph controls', () => {
     expect(props.onTab).toHaveBeenCalledWith('inspect');
   });
 
+  it('collects governed override evidence before submitting an owner request', () => {
+    const props = { ...inspectorProps(), onRequestLegalityOverride: vi.fn() };
+    render(<DesignerInspector {...props} tab="validate" legality={{ design_id: DESIGN.id, rule_profile: 'nfl', status: 'invalid', issues: [{ code: 'LEGALITY-ELIGIBILITY', message: 'Eligibility exception needs review.', severity: 'warning', overrideable: true }], overrides: [] }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Request owner override' }));
+    fireEvent.change(screen.getByLabelText('Rationale'), { target: { value: 'Local rulebook permits this exception.' } });
+    fireEvent.change(screen.getByLabelText('Decision reference'), { target: { value: 'DEC-LEGALITY-1' } });
+    fireEvent.change(screen.getByLabelText(/Evidence references/), { target: { value: 'RULEBOOK-1, FILM-CLIP-1' } });
+    fireEvent.change(screen.getByLabelText(/Expires at/), { target: { value: '2026-09-01T16:00' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Submit governed request' }));
+    expect(props.onRequestLegalityOverride).toHaveBeenCalledWith({ issueCode: 'LEGALITY-ELIGIBILITY', rationale: 'Local rulebook permits this exception.', decisionRef: 'DEC-LEGALITY-1', evidenceRefs: ['RULEBOOK-1', 'FILM-CLIP-1'], expiresAt: '2026-09-01T16:00' });
+  });
+
   it('expands exact base, target, and branch values for a merge conflict', () => {
     const props = inspectorProps();
     render(<DesignerInspector {...props} tab="review" mergeConflict={{ status: 'conflict', branch_id: 'BR-1', conflicts: [{ path: 'elements.FIT-WLB.type', base: 'fit', target: 'spill', branch: 'box', message: 'Both branches changed the assignment.' }] }} />);
