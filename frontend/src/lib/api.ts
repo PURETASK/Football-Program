@@ -167,6 +167,13 @@ export function createPlayVariants(session: AppSession, input: { designId: strin
   });
 }
 
+export function requestPlayVariantBatchReview(session: AppSession, batchId: string, decisionRef: string): Promise<PlayVariantBatchResult> {
+  return request<PlayVariantBatchResult>('/v1/playbook/designs/variants/request-review', session, {
+    method: 'POST',
+    body: organizationBody(session, { batch_id: batchId, decision_ref: decisionRef }),
+  });
+}
+
 export function savePlayDesign(session: AppSession, design: PlayDesign, expectedRevision?: number): Promise<PlayDesign> {
   return request<PlayDesign>('/v1/playbook/designs', session, {
     method: 'POST',

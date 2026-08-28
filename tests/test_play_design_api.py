@@ -50,6 +50,25 @@ class PlayDesignApiTests(unittest.TestCase):
             self.assertEqual(payload["data"]["batches"][0]["id"], "VARIANT-BATCH-HISTORY-API-001")
         os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
 
+    def test_variant_batch_review_request_is_role_scoped_and_updates_children(self):
+        secret = "play-design-variant-review-secret-012345678901234567890"
+        os.environ["NFL_FIDOS_AUTH_SECRET"] = secret
+        coach = {"Authorization": "Bearer " + issue_token(subject="COACH-REVIEW-BATCH", role="coach_staff", organization_id="ORG-DESIGN-REVIEW-BATCH", secret=secret)}
+        with tempfile.TemporaryDirectory() as directory:
+            service = FootballIntelligenceService(JsonRepository(Path(directory) / "state.json"))
+            status, created = handle_request(method="POST", path="/v1/playbook/designs", headers=coach, body={"organization_id":"ORG-DESIGN-REVIEW-BATCH", "design":design()}, service=service)
+            self.assertEqual(status, 201)
+            design_id = created["data"]["id"]
+            status, batch = handle_request(method="POST", path="/v1/playbook/designs/variants", headers=coach, body={"organization_id":"ORG-DESIGN-REVIEW-BATCH", "design_id":design_id, "batch_id":"VARIANT-BATCH-REVIEW-API-001", "variants":[{"label":"Cover 3", "patch":{"coverage":"cover_3"}}]}, service=service)
+            self.assertEqual(status, 201)
+            status, reviewed = handle_request(method="POST", path="/v1/playbook/designs/variants/request-review", headers=coach, body={"organization_id":"ORG-DESIGN-REVIEW-BATCH", "batch_id":batch["data"]["id"], "decision_ref":"DEC-REVIEW-BATCH-API-001"}, service=service)
+            self.assertEqual(status, 200)
+            self.assertEqual(reviewed["data"]["status"], "under_review")
+            self.assertEqual(reviewed["data"]["review_request"]["decision_ref"], "DEC-REVIEW-BATCH-API-001")
+            child = service.repository.get("play_designs", batch["data"]["variant_ids"][0])
+            self.assertEqual(child["status"], "under_review")
+        os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
+
     def test_export_preflight_is_org_scoped_and_returns_structured_blockers(self):
         secret = "play-design-preflight-api-secret-012345678901234567890"
         os.environ["NFL_FIDOS_AUTH_SECRET"] = secret

@@ -108,4 +108,13 @@ describe('TemplateLibraryPanel', () => {
     await user.click(screen.getByRole('button', { name: /Cover 3/ }));
     expect(onOpenVariant).toHaveBeenCalledWith('PD-SAVED-VARIANT');
   });
+
+  it('requests governed review for a ready persisted batch', async () => {
+    const user = userEvent.setup();
+    const onRequestVariantReview = vi.fn().mockResolvedValue(undefined);
+    render(<TemplateLibraryPanel templates={[]} design={DESIGN} variantBatches={[{ id: 'VARIANT-BATCH-REVIEW-001', variants: [], count: 0, status: 'created', review: { ready: true, ready_count: 0, blocked_count: 0 } }]} onApply={vi.fn()} onRequestVariantReview={onRequestVariantReview} />);
+
+    await user.click(screen.getByRole('button', { name: 'Request staff review' }));
+    expect(onRequestVariantReview).toHaveBeenCalledWith('VARIANT-BATCH-REVIEW-001');
+  });
 });

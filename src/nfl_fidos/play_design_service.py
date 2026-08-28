@@ -820,6 +820,34 @@ class PlayDesignService:
             batch["review"] = {"ready": bool(review_items) and ready_count == len(review_items), "ready_count": ready_count, "blocked_count": len(review_items) - ready_count, "items": review_items}
         return batches
 
+    def request_variant_batch_review(self, batch_id: str, *, actor: str, decision_ref: str) -> dict[str, Any]:
+        """Submit every valid draft child in a batch for one governed review request."""
+        batch = self.repository.get("play_design_variant_batches", batch_id)
+        if batch is None:
+            raise KeyError(f"Unknown variant batch: {batch_id}")
+        decision = _clean_required_text(decision_ref, "decision_ref")
+        children = [self.repository.get("play_designs", design_id) for design_id in batch.get("variant_ids", [])]
+        if not children or any(child is None for child in children):
+            raise ValueError("Variant batch contains a missing draft child")
+        blocked = []
+        for child in children:
+            validation = child.get("validation", {}) if isinstance(child.get("validation"), dict) else {}
+            if validation.get("status") != "valid":
+                blocked.append(f"{child.get('id')}: validation is not valid")
+            if child.get("status") != "draft":
+                blocked.append(f"{child.get('id')}: lifecycle is {child.get('status', 'unknown')}")
+        if blocked:
+            raise ValueError({"code": "VARIANT-BATCH-REVIEW-BLOCKED", "issues": blocked})
+        requested_at = datetime.now(timezone.utc).isoformat()
+        for child in children:
+            child["status"] = "under_review"
+            child["approval"] = {"state": "pending_approval", "requester": actor, "decision_ref": decision, "batch_id": batch_id, "requested_at": requested_at}
+            self.repository.put("play_designs", child["id"], child, actor=actor, reason="play_design_variant_review_requested")
+        batch["status"] = "under_review"
+        batch["human_review_required"] = True
+        batch["review_request"] = {"state": "pending_approval", "requester": actor, "decision_ref": decision, "requested_at": requested_at}
+        return self.repository.put("play_design_variant_batches", batch_id, batch, actor=actor, reason="play_design_variant_batch_review_requested")
+
     def role_view(self, design_id: str, *, role: str, mode: str = "player", step: int | None = None, user_id: str | None = None) -> dict[str, Any]:
         design = self.repository.get("play_designs", design_id)
         if design is None:

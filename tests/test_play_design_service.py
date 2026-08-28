@@ -162,6 +162,16 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertTrue(history[0]["review"]["ready"])
         self.assertEqual(service.workspace()["variant_batches"][0]["id"], "VARIANT-BATCH-HISTORY-002")
 
+    def test_variant_batch_review_moves_all_valid_children_under_review(self):
+        service = self.service()
+        source = service.save(design(), actor="coach")
+        batch = service.create_batch_variants(source["id"], actor="coach", variants=[{"label": "Cover 3", "patch": {"coverage": "cover_3"}}, {"label": "Quarters", "patch": {"coverage": "quarters"}}], batch_id="VARIANT-BATCH-REVIEW-001")
+        reviewed = service.request_variant_batch_review(batch["id"], actor="coach", decision_ref="DEC-REVIEW-BATCH-001")
+        self.assertEqual(reviewed["status"], "under_review")
+        self.assertEqual(reviewed["review_request"]["decision_ref"], "DEC-REVIEW-BATCH-001")
+        self.assertTrue(all(service.repository.get("play_designs", item)["status"] == "under_review" for item in batch["variant_ids"]))
+        self.assertTrue(all(service.repository.get("play_designs", item)["approval"]["state"] == "pending_approval" for item in batch["variant_ids"]))
+
     def test_batch_variants_apply_bounded_assignment_transformations(self):
         service = self.service()
         candidate = design()

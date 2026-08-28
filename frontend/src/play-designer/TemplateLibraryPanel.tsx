@@ -12,6 +12,7 @@ interface TemplateLibraryPanelProps {
   onSave?: (input: { name: string; description: string; tags: string[]; elementIds?: string[]; parentTemplateId?: string }) => Promise<void>;
   onCreateVariants?: (input: { field: 'front' | 'coverage' | 'formation' | 'concept'; labels: string[]; assignmentPatches?: Array<{ element_id: string; patch: Record<string, unknown> }> }) => Promise<{ variants: PlayDesign[]; count: number }>;
   variantBatches?: Array<{ id: string; variants: PlayDesign[]; count: number; status: string; human_review_required?: boolean; review?: { ready: boolean; ready_count: number; blocked_count: number } }>;
+  onRequestVariantReview?: (batchId: string) => Promise<void>;
   onOpenVariant?: (designId: string) => void;
   selectedElementIds?: string[];
 }
@@ -67,7 +68,7 @@ function TemplatePreview({ template }: { template: PlayTemplate }) {
   );
 }
 
-export function TemplateLibraryPanel({ templates, design, variantBatches = [], onApply, onSave, onCreateVariants, onOpenVariant, selectedElementIds = [] }: TemplateLibraryPanelProps) {
+export function TemplateLibraryPanel({ templates, design, variantBatches = [], onRequestVariantReview, onApply, onSave, onCreateVariants, onOpenVariant, selectedElementIds = [] }: TemplateLibraryPanelProps) {
   const [search, setSearch] = useState('');
   const [kind, setKind] = useState('all');
   const [replaceConfirmation, setReplaceConfirmation] = useState<string | null>(null);
@@ -82,6 +83,7 @@ export function TemplateLibraryPanel({ templates, design, variantBatches = [], o
   const [variantAssignmentPatches, setVariantAssignmentPatches] = useState('');
   const [variantState, setVariantState] = useState<'idle' | 'saving' | 'error'>('idle');
   const [generatedVariants, setGeneratedVariants] = useState<PlayDesign[]>([]);
+  const [reviewBatchId, setReviewBatchId] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const deferredSearch = useDeferredValue(search);
   const kinds = useMemo(() => [...new Set(templates.map((template) => template.template_kind ?? 'custom'))].sort(), [templates]);
@@ -195,6 +197,7 @@ export function TemplateLibraryPanel({ templates, design, variantBatches = [], o
         <div className="variant-history-list">{variantBatches.map((batch) => <article className="variant-history-card" key={batch.id}>
           <header><span><strong>{batch.id}</strong><small>{batch.count} draft look{batch.count === 1 ? '' : 's'} · {batch.status}</small></span><span>{batch.review ? `${batch.review.ready_count}/${batch.count} ready for review` : batch.human_review_required ? 'Review required' : 'Recorded'}</span></header>
           <div className="variant-history-card__looks">{batch.variants.map((variant) => <button type="button" key={variant.id} onClick={() => onOpenVariant?.(variant.id)} disabled={!onOpenVariant}><span>{variant.variant_look?.label ?? variant.name ?? variant.id}</span><small>{variant.id}</small></button>)}</div>
+          {onRequestVariantReview && batch.status === 'created' && batch.review?.ready ? <button type="button" className="variant-history-card__review" disabled={reviewBatchId === batch.id} onClick={async () => { setReviewBatchId(batch.id); try { await onRequestVariantReview(batch.id); } finally { setReviewBatchId(null); } }}>{reviewBatchId === batch.id ? 'Requesting review…' : 'Request staff review'}</button> : null}
         </article>)}</div>
       </section> : null}
     </div>

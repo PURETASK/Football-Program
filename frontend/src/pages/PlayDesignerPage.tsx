@@ -23,7 +23,7 @@ import {
   ApiError,
   addPlayComment,
   branchPlayDesign,
-  createPlayTemplate, createPlayVariants,
+  createPlayTemplate, createPlayVariants, requestPlayVariantBatchReview,
   leavePlayPresence,
   mergePlayBranch,
   publishPlayDesign,
@@ -491,6 +491,13 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
     return report;
   };
 
+  const requestVariantReview = async (batchId: string) => {
+    if (!session) return;
+    await requestPlayVariantBatchReview(session, batchId, `REVIEW-VARIANTS-${state.present.id}-${Date.now().toString(36).toUpperCase()}`);
+    await queryClient.invalidateQueries({ queryKey: ['play-variant-batches', session.organizationId, state.present.id] });
+    setActionMessage(`Variant batch ${batchId} is now under governed staff review.`);
+  };
+
   const applyTemplate = (template: PlayTemplate, mode: 'replace' | 'layer') => {
     void import('../play-designer/templateMaterializer').then(({ applyPlayTemplate }) => {
       dispatch({ type: 'commit_design', design: applyPlayTemplate(state.present, template, mode) });
@@ -553,6 +560,7 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
             onSaveTemplate={captureTemplate}
             onCreateVariants={createVariants}
             variantBatches={variantBatchesQuery.data?.batches ?? []}
+            onRequestVariantReview={requestVariantReview}
             onOpenVariant={(designId) => navigate(`/playbook/designer/${encodeURIComponent(designId)}`)}
             selectedElementIds={state.selected.filter((selection): selection is { kind: 'element'; id: string } => selection.kind === 'element').map((selection) => selection.id)}
           />
