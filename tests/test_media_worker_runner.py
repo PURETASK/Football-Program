@@ -100,6 +100,22 @@ class MediaWorkerRunnerTests(unittest.TestCase):
             self.assertEqual(len(payload["data"]["batches"]), 1)
         os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
 
+    def test_media_job_detail_cannot_cross_organization_boundary(self):
+        secret = "media-job-detail-tenant-secret-012345678901234567890"
+        os.environ["NFL_FIDOS_AUTH_SECRET"] = secret
+        owner_token = issue_token(subject="OWNER-TENANT-A", role="program_owner", organization_id="ORG-TENANT-A", secret=secret)
+        other_token = issue_token(subject="OWNER-TENANT-B", role="program_owner", organization_id="ORG-TENANT-B", secret=secret)
+        with tempfile.TemporaryDirectory() as directory:
+            repository = JsonRepository(Path(directory) / "state.json")
+            service = FootballIntelligenceService(repository)
+            TenantRepository(repository, organization_id="ORG-TENANT-A", actor="OWNER-TENANT-A").put("media_processing_jobs", "MEDIA-JOB-TENANT-A", {"organization_id": "ORG-TENANT-A", "asset_id": "FILM-TENANT-A", "operation": "index", "status": "queued"}, actor="OWNER-TENANT-A", reason="fixture")
+            status, payload = handle_request(method="GET", path="/v1/media/jobs/MEDIA-JOB-TENANT-A?organization_id=ORG-TENANT-A", headers={"Authorization": "Bearer " + owner_token}, service=service)
+            self.assertEqual(status, 200)
+            self.assertEqual(payload["data"]["job"]["organization_id"], "ORG-TENANT-A")
+            status, _ = handle_request(method="GET", path="/v1/media/jobs/MEDIA-JOB-TENANT-A?organization_id=ORG-TENANT-A", headers={"Authorization": "Bearer " + other_token}, service=service)
+            self.assertEqual(status, 403)
+        os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
+
 
 if __name__ == "__main__":
     unittest.main()
