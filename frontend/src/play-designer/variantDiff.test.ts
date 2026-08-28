@@ -13,6 +13,6 @@ describe('variant diff', () => {
       { ...SOURCE.elements![0], type: 'post' },
       { id: 'ROUTE-Z', kind: 'route', type: 'out', points: [{ x: 30, y: 30 }, { x: 40, y: 20 }] },
     ] };
-    expect(diffPlayVariant(SOURCE, variant)).toEqual({ metadata: ['coverage'], elements: { added: ['ROUTE-Z'], removed: ['ROUTE-Y'], changed: [{ id: 'ROUTE-X', fields: ['type'] }] }, unchanged_elements: 0 });
+    expect(diffPlayVariant(SOURCE, variant)).toEqual({ metadata: ['coverage'], elements: { added: ['ROUTE-Z'], removed: ['ROUTE-Y'], changed: [{ id: 'ROUTE-X', fields: ['type'], changes: [{ field: 'type', before: 'go', after: 'post' }] }] }, unchanged_elements: 0 });
   });
 });

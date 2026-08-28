@@ -80,7 +80,7 @@ describe('TemplateLibraryPanel', () => {
     await user.click(screen.getByText('Inspect field-level changes'));
     expect(screen.getAllByText('Coverage').at(-1)).toBeVisible();
     expect(screen.getByText('E-1')).toBeVisible();
-    expect(screen.getByText('Type')).toBeVisible();
+    expect(screen.getByText('Type: post → corner')).toBeVisible();
     expect(screen.getByText('E-2')).toBeVisible();
   });
 });

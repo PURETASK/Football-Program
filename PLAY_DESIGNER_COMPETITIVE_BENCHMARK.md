@@ -218,4 +218,6 @@ with exact field names, and added/removed assignment IDs without requiring a
 coach to open each child editor. The expansion is native disclosure markup,
 keyboard reachable, and backed by a component regression test. Variant-specific
 assignment transformations and provider-grade release certification remain
-open.
+open. Changed assignment fields now also show their structured before/after
+values, preserving the exact semantic delta for review rather than requiring
+staff to infer it from the diagrams.
