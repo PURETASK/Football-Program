@@ -50,7 +50,7 @@ jobs:
       - name: Validate browser evidence package
         run: python scripts/validate_browser_evidence.py
       - name: Build local evidence bundle
-        run: python scripts/build_local_evidence_bundle.py --skip-evals --output .runtime/local-evidence-bundle.json
+        run: python scripts/build_local_evidence_bundle.py --output .runtime/local-evidence-bundle.json
       - name: Upload local evidence bundle
         if: always()
         uses: actions/upload-artifact@v4
