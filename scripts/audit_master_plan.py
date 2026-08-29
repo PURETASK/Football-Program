@@ -11,8 +11,10 @@ from nfl_fidos.master_plan_audit import audit_master_plan
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MARKDOWN = Path(r"C:\Users\onlyw\Downloads\NFL_Football_Intelligence_OS_Master_Codex_Plan_v1.0 (1).md")
-DEFAULT_DOCX = Path(r"C:\Users\onlyw\Downloads\NFL_Football_Intelligence_OS_Master_Codex_Plan_v1.0 (1).docx")
+REPOSITORY_MARKDOWN = ROOT / "governance" / "master-plan" / "NFL_Football_Intelligence_OS_Master_Codex_Plan_v1.0.md"
+REPOSITORY_DOCX = ROOT / "governance" / "master-plan" / "NFL_Football_Intelligence_OS_Master_Codex_Plan_v1.0.docx"
+DEFAULT_MARKDOWN = REPOSITORY_MARKDOWN if REPOSITORY_MARKDOWN.is_file() else Path(r"C:\Users\onlyw\Downloads\NFL_Football_Intelligence_OS_Master_Codex_Plan_v1.0 (1).md")
+DEFAULT_DOCX = REPOSITORY_DOCX if REPOSITORY_DOCX.is_file() else Path(r"C:\Users\onlyw\Downloads\NFL_Football_Intelligence_OS_Master_Codex_Plan_v1.0 (1).docx")
 
 
 def main() -> int:

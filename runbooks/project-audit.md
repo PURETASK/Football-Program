@@ -1,6 +1,6 @@
 # Project Audit Checkpoint
 
-Run `PYTHONPATH=src python scripts/project_audit.py` to compose the current project checkpoint from the checked-in Markdown/DOCX conformance audit, traceability evidence validation, deterministic evaluation suite, and Stage 0 control manifest. The source artifacts live under `governance/master-plan/`; a local Downloads copy is supported only as a fallback.
+Run `PYTHONPATH=src python scripts/project_audit.py` to compose the current project checkpoint from the checked-in Markdown/DOCX conformance audit, traceability evidence validation, deterministic evaluation suite, and Stage 0 control manifest. The source artifacts live under `governance/master-plan/`; the standalone `scripts/audit_master_plan.py` CLI follows the same checked-in-first resolution and uses the local Downloads copy only as a fallback.
 
 To retain the exact machine-readable checkpoint for an owner-review or CI evidence bundle, add `--output`:
 
