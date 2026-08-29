@@ -563,3 +563,10 @@ addition to generic target, exchange, prerequisite, and player edges. The
 relationship vocabulary is preserved in the typed frontend contract so
 downstream teaching, export, analytics, and collaboration surfaces can walk
 the authored protection graph directly.
+
+Player assignment coverage addendum (2026-08-29): the authoritative graph now
+emits a per-player assignment summary for every player icon, including
+position, assignment count and IDs, assignment kinds, target references, and
+assigned/unassigned status with aggregate counts. This creates a shared quality
+signal for position-aware authoring, teaching, practice linkage, and release
+readiness without inferring coverage from canvas pixels.

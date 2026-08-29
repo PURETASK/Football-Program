@@ -652,6 +652,13 @@ export interface PlayAssignmentGraph {
     rotation_count: number;
     status: 'complete' | 'incomplete' | 'conflicted' | string;
   };
+  player_assignments?: {
+    version: string;
+    entries: Array<{ player_id: string; position?: string; assignment_count: number; assignment_ids: string[]; kinds: string[]; targets: string[]; status: 'assigned' | 'unassigned' | string }>;
+    assigned_count: number;
+    unassigned_count: number;
+    status: 'complete' | 'incomplete' | string;
+  };
   summary: {
     node_count: number;
     edge_count: number;

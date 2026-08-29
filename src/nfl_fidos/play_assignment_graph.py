@@ -227,6 +227,7 @@ def build_assignment_graph(design: dict[str, Any]) -> dict[str, Any]:
     findings = validate_assignment_graph(design)
     gap_ownership = build_gap_ownership_map(design)
     coverage_shell = build_coverage_shell_map(design)
+    player_assignments = build_player_assignment_summary(design)
     return {
         "version": str(design.get("assignment_model_version") or "1.0"),
         "nodes": nodes,
@@ -234,6 +235,7 @@ def build_assignment_graph(design: dict[str, Any]) -> dict[str, Any]:
         "findings": findings,
         "gap_ownership": gap_ownership,
         "coverage_shell": coverage_shell,
+        "player_assignments": player_assignments,
         "summary": {
             "node_count": len(nodes),
             "edge_count": len(edges),
@@ -338,4 +340,37 @@ def build_coverage_shell_map(design: dict[str, Any]) -> dict[str, Any]:
         "conflicted_count": sum(1 for item in entries if item["status"] == "conflicted"),
         "rotation_count": sum(1 for item in elements if item.get("kind") == "rotation"),
         "status": "conflicted" if any(item["status"] == "conflicted" for item in entries) else "incomplete" if any(item["status"] == "unassigned" for item in entries) else "complete",
+    }
+
+
+def build_player_assignment_summary(design: dict[str, Any]) -> dict[str, Any]:
+    """Summarize authored assignment coverage for every player icon."""
+    players = design.get("players") if isinstance(design.get("players"), list) else []
+    elements = design.get("elements") if isinstance(design.get("elements"), list) else []
+    by_player: dict[str, list[dict[str, Any]]] = {}
+    for element in elements:
+        if not isinstance(element, dict) or not isinstance(element.get("player_id"), str):
+            continue
+        by_player.setdefault(element["player_id"], []).append(element)
+    entries = []
+    for player in players:
+        if not isinstance(player, dict) or not isinstance(player.get("id"), str):
+            continue
+        player_id = player["id"]
+        assignments = by_player.get(player_id, [])
+        entries.append({
+            "player_id": player_id,
+            "position": player.get("position") or player.get("role"),
+            "assignment_count": len(assignments),
+            "assignment_ids": [item.get("id") for item in assignments if item.get("id")],
+            "kinds": sorted({str(item.get("kind")) for item in assignments if item.get("kind")}),
+            "targets": sorted({str(item.get("target_player_id") or item.get("target_element_id") or item.get("block_target_element_id")) for item in assignments if item.get("target_player_id") or item.get("target_element_id") or item.get("block_target_element_id")}),
+            "status": "assigned" if assignments else "unassigned",
+        })
+    return {
+        "version": "1.0",
+        "entries": entries,
+        "assigned_count": sum(1 for item in entries if item["status"] == "assigned"),
+        "unassigned_count": sum(1 for item in entries if item["status"] == "unassigned"),
+        "status": "complete" if entries and all(item["status"] == "assigned" for item in entries) else "incomplete",
     }

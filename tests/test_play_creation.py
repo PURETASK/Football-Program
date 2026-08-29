@@ -1,7 +1,7 @@
 import unittest
 
 from src.nfl_fidos.play_creation import normalize_term, validate_legality, validate_play_design
-from src.nfl_fidos.play_assignment_graph import build_assignment_graph, build_coverage_shell_map, build_gap_ownership_map, validate_assignment_graph
+from src.nfl_fidos.play_assignment_graph import build_assignment_graph, build_coverage_shell_map, build_gap_ownership_map, build_player_assignment_summary, validate_assignment_graph
 from src.nfl_fidos.play_legality import profile_metadata, validate_advanced_legality, validate_rule_profile_catalog
 from src.nfl_fidos.play_timeline import default_phases, normalize_timeline_design, validate_timeline
 
@@ -213,6 +213,16 @@ class PlayCreationTests(unittest.TestCase):
         self.assertIn(("THREAT", "blocks_assignment"), relations)
         self.assertIn(("BLOCK-2", "combo_partner"), relations)
         self.assertIn(("THREAT", "protects_against"), relations)
+
+    def test_player_assignment_summary_reports_assignment_coverage_and_targets(self):
+        candidate = design()
+        candidate["players"] = [{"id": "QB", "position": "QB"}, {"id": "WR-X", "position": "WR"}]
+        candidate["elements"] = [{"id": "READ", "kind": "read", "player_id": "QB", "target_element_id": "ROUTE"}, {"id": "ROUTE", "kind": "route", "player_id": "WR-X", "type": "dig", "points": [{"x": 10, "y": 5}, {"x": 20, "y": 20}], "arrow_style": "route"}]
+        result = build_player_assignment_summary(candidate)
+        by_player = {item["player_id"]: item for item in result["entries"]}
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual(by_player["QB"]["targets"], ["ROUTE"])
+        self.assertEqual(by_player["WR-X"]["kinds"], ["route"])
 
     def test_gap_ownership_map_preserves_assigned_unassigned_and_conflicted_states(self):
         candidate = design("defense")
