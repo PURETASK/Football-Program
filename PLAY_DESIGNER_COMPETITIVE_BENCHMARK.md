@@ -444,3 +444,11 @@ path labels, preserve intentional-crossing documentation requirements, and keep
 the route-collision policy behavior consistent with the editor's collision
 engine. A regression test verifies a collision that exists only on an alternate
 path; browser, multi-user, and production-scale acceptance remain open.
+
+Branch-aware playback addendum — 2026-08-28: branch-specific timeline events
+now resolve one executable alternate polyline for the animated ball, player
+marker, and active event indicator. The selected branch uses its own event
+timing window for progress interpolation, while designs without a branch cue
+retain primary-path behavior. This prevents choice routes from animating every
+option simultaneously and keeps the teaching view synchronized with the
+coach-authored decision cue. Full browser/device animation QA remains open.

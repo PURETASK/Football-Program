@@ -25,7 +25,7 @@ import { coverageShellBoxes, coverageShellLinks } from './coverageShell';
 import { defensiveGapLinks } from './defensiveFront';
 import { defensiveExchangeLinks, defensiveExchangeProgress } from './defensiveExchanges';
 import { defensiveAlignmentLabel } from './defensiveAlignment';
-import { branchProgress } from './routeBranches';
+import { branchProgress, playbackPathForElement, playbackPathStateForElement } from './routeBranches';
 import { timelineEventEnd, timelineEventKind, timelineEventStart } from './timelineEvents';
 import { routeBranchGeometryPatch, routeBranchPointRemovalPatch, routeGeometryPatch, routePointRemovalPatch } from './routeAuthoring';
 
@@ -241,7 +241,7 @@ export function PlayDesignerCanvas({
     });
     if (!event?.element_id) return ballPoint;
     const element = elements.find((item) => item.id === event.element_id);
-    const points = element ? elementPoints(element) : [];
+    const points = element ? playbackPathForElement(element, playbackTime, design.timeline?.events ?? []) : [];
     if (!element || points.length < 2) return ballPoint;
     const timing = elementTiming(element, duration);
     const start = timelineEventStart(event) || timing.start;
@@ -260,12 +260,13 @@ export function PlayDesignerCanvas({
     for (const player of players) {
       const element = pathByPlayer.get(player.id);
       if (!element) continue;
-      const progress = elementProgress(element, playbackTime, duration);
-      const point = positionAlongPath(elementPoints(element), progress);
+      const playbackPath = playbackPathStateForElement(element, playbackTime, design.timeline?.events ?? []);
+      const pathProgress = Math.max(0, Math.min(1, (playbackTime - playbackPath.start) / Math.max(1, playbackPath.end - playbackPath.start)));
+      const point = positionAlongPath(playbackPath.points, pathProgress);
       if (point) output.set(player.id, point);
     }
     return output;
-  }, [duration, elements, playbackTime, players]);
+  }, [design.timeline?.events, duration, elements, playbackTime, players]);
 
   const activeTimelineEvents = useMemo(() => {
     if (playbackTime === null) return [];
@@ -275,7 +276,8 @@ export function PlayDesignerCanvas({
       return playbackTime >= start && playbackTime <= end && !['ball', 'handoff'].includes(timelineEventKind(event));
     }).map((event: PlayTimelineEvent) => {
       const element = event.element_id ? elements.find((item) => item.id === event.element_id) : undefined;
-      const point = element?.points?.at(-1) ?? element?.path?.at(-1) ?? (element?.player_id ? players.find((player) => player.id === element.player_id)?.start : undefined);
+      const eventPoints = element ? playbackPathForElement(element, playbackTime, [event]) : [];
+      const point = eventPoints.at(-1) ?? (element?.player_id ? players.find((player) => player.id === element.player_id)?.start : undefined);
       return point ? { event, point } : null;
     }).filter((item): item is { event: PlayTimelineEvent; point: Point } => Boolean(item));
   }, [design.timeline?.events, duration, elements, playbackTime, players]);
