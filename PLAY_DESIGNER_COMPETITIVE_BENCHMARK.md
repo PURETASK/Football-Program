@@ -476,3 +476,12 @@ action, preserving causal order so later staff actions cannot overtake an
 uncertain earlier mutation. The UI reports that synchronization is paused at
 the failed action; browser quota, crash recovery, and production transport
 fault-injection remain open.
+
+Rule-profile adoption addendum — 2026-08-29: high-school and youth legality
+profiles now require an explicit local rulebook or organization adoption
+reference even when no local constraint overrides are supplied. Previously,
+the adoption warning was only emitted after an overrides object was present,
+which could make an unresolved local profile appear more authoritative than
+the available evidence supported. The correction is covered for both profiles
+and remains an authoring warning pending program-owner rule adoption; it does
+not claim complete jurisdictional rule coverage.

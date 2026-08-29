@@ -522,6 +522,18 @@ class PlayCreationTests(unittest.TestCase):
         self.assertEqual(player_count["expected"], 8)
         self.assertEqual(player_count["rule_profile"], "youth")
 
+    def test_local_adoption_profiles_require_source_even_without_overrides(self):
+        for profile in ("high_school", "youth"):
+            candidate = design()
+            candidate["rule_profile"] = profile
+            findings = validate_advanced_legality(candidate)
+            source_finding = next(issue for issue in findings if issue["code"] == "LEGALITY-LOCAL-RULE-SOURCE")
+            self.assertEqual(source_finding["rule_profile"], profile)
+            self.assertEqual(source_finding["path"], "local_rule_source_ref")
+
+            candidate["local_rule_source_ref"] = f"ORG-{profile.upper()}-RULEBOOK"
+            self.assertNotIn("LEGALITY-LOCAL-RULE-SOURCE", {issue["code"] for issue in validate_advanced_legality(candidate)})
+
     def test_local_rule_constraints_reject_unknown_or_malformed_fields(self):
         candidate = design()
         candidate["rule_profile"] = "high_school"

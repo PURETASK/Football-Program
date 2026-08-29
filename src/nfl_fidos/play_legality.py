@@ -207,6 +207,8 @@ def _effective_profile_configuration(design: dict[str, Any], profile: str, sourc
     configuration = deepcopy(RULE_PROFILE_CATALOG[profile])
     overrides = design.get("local_rule_constraints")
     if overrides is None:
+        if configuration.get("requires_local_rules") and not design.get("local_rule_source_ref"):
+            issues.append(_finding("LEGALITY-LOCAL-RULE-SOURCE", "This profile has local adoption variants; provide the adopting league, state, or organization rulebook reference before final validation.", "local_rule_source_ref", profile=profile, source=source, severity="warning", expected="approved local rule source", observed=None))
         return configuration
     if not isinstance(overrides, dict):
         issues.append(_finding("LEGALITY-LOCAL-CONSTRAINTS", "Local rule constraints must be an object keyed by supported profile fields.", "local_rule_constraints", profile=profile, source=source, severity="error", observed=type(overrides).__name__, expected="object"))
