@@ -354,7 +354,7 @@ def _draw_field(pdf: Any, design: dict[str, Any], *, x: float, y: float, width: 
         stroke_width, dash, _ = _stroke_style(element)
         pdf.setLineWidth(max(0.8, float(stroke_width) * 2.2))
 
-        def draw_path(path_points: list[dict[str, Any]], *, alternate: bool = False) -> None:
+        def draw_path(path_points: list[dict[str, Any]], *, alternate: bool = False, style_source: dict[str, Any] | None = None) -> None:
             if len(path_points) < 2:
                 return
             if alternate or dash != "none":
@@ -364,23 +364,34 @@ def _draw_field(pdf: Any, design: dict[str, Any], *, x: float, y: float, width: 
                 x1, y1 = x + float(p1.get("x", 0)) / 100 * width, y + height - float(p1.get("y", 0)) / 53.33 * height
                 x2, y2 = x + float(p2.get("x", 0)) / 100 * width, y + height - float(p2.get("y", 0)) / 53.33 * height
                 pdf.line(x1, y1, x2, y2)
-            last = path_points[-1]
-            lx, ly = x + float(last.get("x", 0)) / 100 * width, y + height - float(last.get("y", 0)) / 53.33 * height
-            previous = path_points[-2]
-            px, py = x + float(previous.get("x", 0)) / 100 * width, y + height - float(previous.get("y", 0)) / 53.33 * height
-            angle = math.atan2(ly - py, lx - px)
-            arrow_size = 6
-            pdf.circle(lx, ly, 2.2, fill=1, stroke=0)
-            arrow = pdf.beginPath(); arrow.moveTo(lx, ly)
-            arrow.lineTo(lx - arrow_size * math.cos(angle - 0.48), ly - arrow_size * math.sin(angle - 0.48))
-            arrow.lineTo(lx - arrow_size * math.cos(angle + 0.48), ly - arrow_size * math.sin(angle + 0.48)); arrow.close()
-            pdf.drawPath(arrow, fill=1, stroke=0)
+            def field_point(point: dict[str, Any]) -> tuple[float, float]:
+                return (x + float(point.get("x", 0)) / 100 * width, y + height - float(point.get("y", 0)) / 53.33 * height)
+
+            def draw_arrow(endpoint: dict[str, Any], previous: dict[str, Any]) -> None:
+                ex, ey = field_point(endpoint)
+                px, py = field_point(previous)
+                angle = math.atan2(ey - py, ex - px)
+                arrow_size = 6
+                pdf.circle(ex, ey, 2.2, fill=1, stroke=0)
+                arrow = pdf.beginPath(); arrow.moveTo(ex, ey)
+                arrow.lineTo(ex - arrow_size * math.cos(angle - 0.48), ey - arrow_size * math.sin(angle - 0.48))
+                arrow.lineTo(ex - arrow_size * math.cos(angle + 0.48), ey - arrow_size * math.sin(angle + 0.48)); arrow.close()
+                pdf.drawPath(arrow, fill=1, stroke=0)
+
+            source = style_source or element
+            arrow_style = str(source.get("arrow_style") or "").lower()
+            arrow_ends = str(source.get("arrow_ends") or "end").lower()
+            if arrow_style != "none":
+                if arrow_ends in {"start", "both"}:
+                    draw_arrow(path_points[0], path_points[1])
+                if arrow_ends in {"end", "both"}:
+                    draw_arrow(path_points[-1], path_points[-2])
             pdf.setDash()
 
         draw_path(points)
         for branch in element.get("branches", []) if isinstance(element.get("branches"), list) else []:
             if isinstance(branch, dict):
-                draw_path(branch.get("points", []), alternate=True)
+                draw_path(branch.get("points", []), alternate=True, style_source={**element, **branch})
         label = str(element.get("type") or element.get("assignment") or element.get("kind", ""))[:18]
         pdf.setFont("Helvetica", 6.5)
         pdf.drawString(lx + 3, ly + 2, label)

@@ -493,3 +493,10 @@ alternate route branches, so a shared or printed vector cannot silently add a
 finish arrow or remove an intentional start arrow. This closes a local
 renderer parity defect; PDF/raster device certification and production print
 validation remain open acceptance work.
+
+PDF drawing-semantics addendum — 2026-08-29: the ReportLab field renderer now
+uses the same authored arrow-end and no-arrow contract as the SVG renderer.
+PDF paths can therefore render start-only, finish-only, both-end, or deliberate
+no-arrow semantics for primary and alternate paths. This removes a second
+local export mismatch; printer/device certification and deployment-scale PDF
+validation remain open acceptance work.
