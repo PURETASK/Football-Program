@@ -595,3 +595,11 @@ including inherited branch semantics. This prevents stale route contracts from
 reaching legality validation, teaching views, or exports after a coach edits a
 path. Focused route/canvas coverage passes; broader device and production
 workflow certification remains pending.
+
+Route-handle visual semantics addendum (2026-08-28): selected primary route
+handles now display their role and inferred geometric depth directly on the
+field, including START, STEM, BREAK, and FINISH captions. The overlay follows
+the same canonical points used by drag/keyboard editing and remains
+non-interactive so it does not interfere with pointer targeting; focused canvas
+coverage passes, while visual regression and device certification remain
+pending.

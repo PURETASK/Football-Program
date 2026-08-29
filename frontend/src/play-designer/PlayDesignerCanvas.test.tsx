@@ -188,4 +188,12 @@ describe('PlayDesignerCanvas', () => {
     fireEvent.doubleClick(screen.getByRole('button', { name: 'post assignment for X' }), { clientX: 220, clientY: 190 });
     expect(callbacks.onUpdateElement.mock.calls.at(-1)?.[1].points).toHaveLength(3);
   });
+
+  it('shows semantic role and depth captions for selected route handles', () => {
+    const callbacks = { ...props(), selected: [{ kind: 'element' as const, id: 'ROUTE-X' }] };
+    render(<PlayDesignerCanvas {...callbacks} design={{ ...DESIGN, elements: [{ id: 'ROUTE-X', kind: 'route', type: 'dig', player_id: 'X', route_family: 'dropback', stem_depth_yards: 8, break_type: 'dig', break_depth_yards: 14, points: [{ x: 10, y: 30 }, { x: 10, y: 22 }, { x: 18, y: 16 }, { x: 30, y: 16 }] }] }} />);
+    expect(screen.getByText('STEM · 8 yd')).toBeInTheDocument();
+    expect(screen.getByText('BREAK · 14 yd')).toBeInTheDocument();
+    expect(screen.getByText('FINISH')).toBeInTheDocument();
+  });
 });

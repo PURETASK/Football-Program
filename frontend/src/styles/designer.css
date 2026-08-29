@@ -776,6 +776,7 @@
 
 .designer-handles circle { fill: #fff; stroke: #19bce9; stroke-width: 0.5; vector-effect: non-scaling-stroke; cursor: move; }
 .designer-handles circle:focus { outline: none; fill: #66dffc; stroke: #fff; }
+.designer-route-handle-caption { fill: #dff9ff; font: 700 1.45px/1 Inter, sans-serif; letter-spacing: .06em; paint-order: stroke; stroke: #07121d; stroke-width: .38px; stroke-linejoin: round; user-select: none; }
 .designer-branch-handle { fill: #a7f2c7; stroke: #123d35; stroke-width: .42; vector-effect: non-scaling-stroke; cursor: move; }
 .designer-branch-handle:focus { outline: none; fill: #fff; stroke: #55ddff; }
 

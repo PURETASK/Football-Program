@@ -137,6 +137,16 @@ function linePattern(style?: string): string | undefined {
   return undefined;
 }
 
+function routeHandleCaption(element: PlayElement, index: number, point: Point): string | null {
+  if (element.kind !== 'route') return null;
+  const role = handleRole(element, index);
+  if (role === 'start') return 'START';
+  if (role === 'finish') return 'FINISH';
+  const start = elementPoints(element)[0];
+  const depth = Math.round(Math.abs(point.y - start.y) * 10) / 10;
+  return `${role.toUpperCase()} · ${depth} yd`;
+}
+
 function defaultEndMs(kind: string): number {
   if (kind === 'motion') return 900;
   if (kind === 'block' || kind === 'rush' || kind === 'stunt') return 1800;
@@ -826,32 +836,34 @@ export function PlayDesignerCanvas({
         {selectedElement && !selectedElement.locked ? (
           <g className="designer-handles" aria-label="Editable path handles">
             {selectedPoints.map((point, index) => (
-              <circle
-                key={`${selectedElement.id}-${index}`}
-                cx={point.x}
-                cy={point.y}
-                r="1.15"
-                tabIndex={0}
-                role="slider"
-                aria-label={`Path handle ${index + 1}`}
-                aria-description={`${handleRole(selectedElement, index)} handle`}
-                data-handle-role={handleRole(selectedElement, index)}
-                data-semantic-handle={['stem', 'break'].includes(handleRole(selectedElement, index)) ? handleRole(selectedElement, index) : undefined}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={point.x}
-                aria-valuetext={`x ${point.x}, y ${point.y}`}
-                onKeyDown={(event) => editHandleWithKeyboard(event, selectedElement, index)}
-                onPointerDown={(event) => beginHandleDrag(event, selectedElement, index)}
-              onDoubleClick={(event) => {
-                event.stopPropagation();
-                const points = elementPoints(selectedElement);
-                if (points.length > 2) {
-                  const patch = routePointRemovalPatch(selectedElement, design, index);
-                  if (Object.keys(patch).length) onUpdateElement(selectedElement.id, patch);
-                }
-                }}
-              />
+              <g key={`${selectedElement.id}-${index}`}>
+                <circle
+                  cx={point.x}
+                  cy={point.y}
+                  r="1.15"
+                  tabIndex={0}
+                  role="slider"
+                  aria-label={`Path handle ${index + 1}`}
+                  aria-description={`${handleRole(selectedElement, index)} handle`}
+                  data-handle-role={handleRole(selectedElement, index)}
+                  data-semantic-handle={['stem', 'break'].includes(handleRole(selectedElement, index)) ? handleRole(selectedElement, index) : undefined}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={point.x}
+                  aria-valuetext={`x ${point.x}, y ${point.y}`}
+                  onKeyDown={(event) => editHandleWithKeyboard(event, selectedElement, index)}
+                  onPointerDown={(event) => beginHandleDrag(event, selectedElement, index)}
+                  onDoubleClick={(event) => {
+                    event.stopPropagation();
+                    const points = elementPoints(selectedElement);
+                    if (points.length > 2) {
+                      const patch = routePointRemovalPatch(selectedElement, design, index);
+                      if (Object.keys(patch).length) onUpdateElement(selectedElement.id, patch);
+                    }
+                  }}
+                />
+                {routeHandleCaption(selectedElement, index, point) ? <text className="designer-route-handle-caption" x={point.x + 1.8} y={point.y - 1.8} pointerEvents="none">{routeHandleCaption(selectedElement, index, point)}</text> : null}
+              </g>
             ))}
             {(selectedElement.branches ?? []).map((branch) => branch.points.map((point, index) => <circle
               key={`${branch.id}-${index}`}
