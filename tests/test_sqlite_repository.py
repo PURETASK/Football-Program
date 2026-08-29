@@ -1,6 +1,8 @@
 import sys
 import tempfile
+import threading
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parents[1] / "src"))
@@ -34,6 +36,36 @@ class SqliteRepositoryTests(unittest.TestCase):
                 self.assertEqual(repository.get("lessons", lesson["id"])["workflow_id"], "WF-001")
             finally:
                 repository.close()
+
+    def test_compare_and_swap_is_atomic_across_independent_connections(self):
+        """Separate worker connections must converge on one stale-save winner."""
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "shared.db"
+            first = SqliteRepository(path)
+            second = SqliteRepository(path)
+            try:
+                created = first.put("objects", "OBJ-RACE", {"value": "base"}, actor="seed", reason="create")
+                barrier = threading.Barrier(2)
+
+                def attempt(repository, value):
+                    barrier.wait(timeout=3)
+                    try:
+                        return ("saved", repository.put_if_revision("objects", "OBJ-RACE", {"value": value}, expected_revision=created["_revision"], actor=value, reason="race"))
+                    except ValueError as exc:
+                        return ("conflict", exc.args[0])
+
+                with ThreadPoolExecutor(max_workers=2) as pool:
+                    results = list(pool.map(lambda args: attempt(*args), ((first, "worker-a"), (second, "worker-b"))))
+                self.assertEqual(sorted(result[0] for result in results), ["conflict", "saved"])
+                winner = next(result[1] for result in results if result[0] == "saved")
+                conflict = next(result[1] for result in results if result[0] == "conflict")
+                self.assertEqual(winner["_revision"], 2)
+                self.assertEqual(conflict["code"], "DESIGN-CONFLICT")
+                self.assertEqual(conflict["actual_revision"], winner["_revision"])
+                self.assertEqual(first.get("objects", "OBJ-RACE")["value"], winner["value"])
+            finally:
+                first.close()
+                second.close()
 
 
 if __name__ == "__main__":

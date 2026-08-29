@@ -414,3 +414,11 @@ exactly one 201 winner, one 409 conflict, and a final persisted design matching
 the winner. This strengthens the local convergence contract; multi-process
 deployment concurrency, network partitions, and production database behavior
 remain deployment acceptance work.
+
+Independent-connection addendum — 2026-08-29: SQLite compare-and-swap now
+opens an `IMMEDIATE` writer transaction before reading the revision. A new
+rehearsal uses two independent SQLite connections against the same database and
+proves that one worker commits revision 2 while the stale worker receives a
+structured conflict, with no lost update. This is database-level local
+evidence; production database topology, lock/timeout tuning, and distributed
+multi-region behavior remain deployment acceptance work.
