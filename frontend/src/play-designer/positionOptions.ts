@@ -74,7 +74,7 @@ export function positionAssetOptions(player: PlayPlayer, design: PlayDesign, ass
 export function positionTemplateOptions(player: PlayPlayer, design: PlayDesign, templates: PlayTemplate[]): PlayTemplate[] {
   const profile = positionProfile(player, design.unit);
   return templates
-    .filter((template) => template.unit === design.unit || template.unit === 'shared')
+    .filter((template) => (template.unit === design.unit || template.unit === 'shared') && !['deprecated', 'retired', 'archived'].includes(String(template.status ?? '').toLowerCase()))
     .map((template) => ({ template, score: profile.templateLayers.includes(template.layer ?? '') ? 100 : 10 }))
     .sort((left, right) => right.score - left.score || String(left.template.name ?? left.template.id).localeCompare(String(right.template.name ?? right.template.id)))
     .map(({ template }) => template);

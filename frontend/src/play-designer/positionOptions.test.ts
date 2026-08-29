@@ -48,6 +48,17 @@ describe('position-aware play authoring options', () => {
     expect(positionTemplateOptions(player, OFFENSE, templates).map((item) => item.id)).toEqual(['ROUTE', 'PROTECTION']);
   });
 
+  it('does not recommend terminal-lifecycle templates for layering', () => {
+    const player: PlayPlayer = { id: 'X', position: 'WR', start: { x: 12, y: 26 } };
+    const templates: PlayTemplate[] = [
+      { id: 'ACTIVE', name: 'Active concept', unit: 'offense', layer: 'route_concept', status: 'approved' },
+      { id: 'OLD', name: 'Old concept', unit: 'offense', layer: 'route_concept', status: 'deprecated' },
+      { id: 'ARCHIVED', name: 'Archived concept', unit: 'offense', layer: 'route_concept', status: 'archived' },
+    ];
+
+    expect(positionTemplateOptions(player, OFFENSE, templates).map((item) => item.id)).toEqual(['ACTIVE']);
+  });
+
   it('explains formation, personnel, rule, and lifecycle incompatibilities', () => {
     const candidate = { ...asset('POST', 'route'), compatible_formations: ['empty'], compatible_personnel: ['12'], compatible_rule_profiles: ['ncaa'], status: 'deprecated' };
     const fit = positionAssetFit(candidate, OFFENSE);
