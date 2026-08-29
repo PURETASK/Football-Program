@@ -38,6 +38,19 @@ function fieldLabel(value: string): string {
   return value.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+export function templateContextFit(template: PlayTemplate, design: PlayDesign): { compatible: boolean; reasons: string[] } {
+  const reasons: string[] = [];
+  if (template.unit !== design.unit && template.unit !== 'shared') reasons.push(`Designed for ${template.unit}.`);
+  for (const field of ['formation', 'personnel', 'front', 'coverage'] as const) {
+    const expected = template[field];
+    const actual = design[field];
+    if (expected && actual && expected !== actual) reasons.push(`Uses ${field.replaceAll('_', ' ')} ${String(expected).replaceAll('_', ' ')}.`);
+  }
+  const lifecycle = String(template.status ?? 'active').toLowerCase();
+  if (['deprecated', 'retired', 'archived'].includes(lifecycle)) reasons.push(`Template lifecycle state is ${lifecycle}.`);
+  return { compatible: reasons.length === 0, reasons };
+}
+
 function DesignPreview({ design, label }: { design: PlayDesign; label: string }) {
   return <svg className="variant-design-preview" viewBox="0 0 100 53" role="img" aria-label={`${label} structured play diagram`}>
     <rect x="0" y="0" width="100" height="53" rx="3" />
@@ -74,6 +87,7 @@ function TemplatePreview({ template }: { template: PlayTemplate }) {
 export function TemplateLibraryPanel({ templates, design, variantBatches = [], onRequestVariantReview, onApproveVariantReview, onCreateVariantReleaseBundle, onInspectVariantReleaseBundle, onApply, onSave, onCreateVariants, onOpenVariant, selectedElementIds = [] }: TemplateLibraryPanelProps) {
   const [search, setSearch] = useState('');
   const [kind, setKind] = useState('all');
+  const [compatibleOnly, setCompatibleOnly] = useState(false);
   const [replaceConfirmation, setReplaceConfirmation] = useState<string | null>(null);
   const [saveOpen, setSaveOpen] = useState(false);
   const [templateName, setTemplateName] = useState('');
@@ -98,9 +112,10 @@ export function TemplateLibraryPanel({ templates, design, variantBatches = [], o
     const query = deferredSearch.trim().toLowerCase();
     return templates.filter((template) => {
       const haystack = [template.name, template.description, template.concept, template.formation, template.front, ...(template.tags ?? []), ...(template.situations ?? [])].filter(Boolean).join(' ').toLowerCase();
-      return template.unit === design.unit && (kind === 'all' || template.template_kind === kind) && (!query || haystack.includes(query));
+      const fit = templateContextFit(template, design);
+      return (template.unit === design.unit || template.unit === 'shared') && (kind === 'all' || template.template_kind === kind) && (!compatibleOnly || fit.compatible) && (!query || haystack.includes(query));
     });
-  }, [deferredSearch, design.unit, kind, templates]);
+  }, [compatibleOnly, deferredSearch, design, kind, templates]);
 
   const replace = (template: PlayTemplate) => {
     if ((design.elements ?? []).length && replaceConfirmation !== template.id) {
@@ -149,13 +164,14 @@ export function TemplateLibraryPanel({ templates, design, variantBatches = [], o
       <div className="template-library__filters">
         <label className="designer-search"><Search size={15} aria-hidden="true" /><span className="sr-only">Search templates</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search concepts and situations..." /></label>
         <label><span className="sr-only">Template type</span><select value={kind} onChange={(event) => setKind(event.target.value)}><option value="all">All package types</option>{kinds.map((value) => <option value={value} key={value}>{titleCase(value)}</option>)}</select></label>
+        <label className="template-compatible-toggle"><input type="checkbox" checked={compatibleOnly} onChange={(event) => setCompatibleOnly(event.target.checked)} /> <span>Context fit only</span></label>
       </div>
 
       <div className="template-card-list" aria-live="polite">
         {!filtered.length ? <div className="asset-list__empty"><Search size={20} /><strong>No matching packages</strong><span>Try another term or package type.</span></div> : null}
         {filtered.map((template) => {
-          const sameFormation = !template.formation || template.formation === design.formation;
-          const layerCompatible = sameFormation && template.unit === design.unit;
+          const fit = templateContextFit(template, design);
+          const layerCompatible = fit.compatible;
           const confirming = replaceConfirmation === template.id;
           const parent = template.parent_template_id ? templates.find((candidate) => candidate.id === template.parent_template_id) : undefined;
           const inheritanceDiff = parent ? diffTemplateInheritance(parent, template) : undefined;
@@ -163,6 +179,7 @@ export function TemplateLibraryPanel({ templates, design, variantBatches = [], o
             <TemplatePreview template={template} />
             <header><span><strong>{template.name}</strong><small>{titleCase(template.template_kind ?? 'custom')} · {template.scope ?? 'system'} · v{template.version ?? '1.0.0'}</small></span><span className={`template-status template-status--${template.status ?? 'active'}`}>{template.status ?? 'active'}</span></header>
             <p>{template.description ?? 'Reusable organization football package.'}</p>
+            <p className={`template-context-fit${fit.compatible ? ' is-compatible' : ' is-review'}`} role="status">{fit.compatible ? 'Fits current play context.' : `Review fit: ${fit.reasons.join(' ')}`}</p>
             <div className="template-card__meta"><span>{template.formation ?? template.front ?? 'Any look'}</span><span>{template.personnel ?? 'Open personnel'}</span><span>{resolveTemplateAssignments(template).length} assignments</span>{template.inherited_assignments?.length ? <span>{template.inherited_assignments.length} inherited</span> : null}<span>{template.assignments?.length ?? 0} local</span></div>
             {template.parent_template_id ? <small className="template-companion"><Layers3 size={12} /> Inherits from {templates.find((parent) => parent.id === template.parent_template_id)?.name ?? template.parent_template_id}</small> : null}
             {inheritanceDiff ? <details className="template-inheritance-details"><summary>Inspect inheritance and overrides</summary><div className="template-inheritance-details__body"><span>{inheritanceDiff.inherited.length} inherited unchanged</span><span>{inheritanceDiff.overridden.length} overridden</span><span>{inheritanceDiff.added.length} child additions</span>{inheritanceDiff.overridden.length ? <ul>{inheritanceDiff.overridden.map((item) => <li key={item.key}><code>{item.key}</code><small>Overrides: {item.fields.map(fieldLabel).join(', ')}</small></li>)}</ul> : null}{inheritanceDiff.added.length ? <small>Added assignments: {inheritanceDiff.added.join(', ')}</small> : null}</div></details> : null}
@@ -171,7 +188,7 @@ export function TemplateLibraryPanel({ templates, design, variantBatches = [], o
             {confirming ? <div className="template-replace-warning" role="alert"><ShieldAlert size={14} /><span>This replaces the current {design.elements?.length ?? 0} assignments. Click again to confirm.</span></div> : null}
             <footer>
               <button type="button" className={confirming ? 'template-action template-action--danger' : 'template-action'} onClick={() => replace(template)}>{confirming ? 'Confirm replace' : 'Use package'}</button>
-              <button type="button" className="template-action template-action--secondary" disabled={!layerCompatible} title={layerCompatible ? 'Add without removing the current assignments' : 'Layers require the current formation'} onClick={() => onApply(template, 'layer')}><Layers3 size={13} /> Add layer</button>
+              <button type="button" className="template-action template-action--secondary" disabled={!layerCompatible} title={layerCompatible ? 'Add without removing the current assignments' : fit.reasons.join(' ')} onClick={() => onApply(template, 'layer')}><Layers3 size={13} /> Add layer</button>
             </footer>
           </article>;
         })}

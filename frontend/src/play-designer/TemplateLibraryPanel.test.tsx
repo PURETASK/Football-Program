@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
 import type { PlayDesign, PlayTemplate } from '../types';
-import { TemplateLibraryPanel } from './TemplateLibraryPanel';
+import { TemplateLibraryPanel, templateContextFit } from './TemplateLibraryPanel';
 
 const DESIGN: PlayDesign = {
   id: 'PD-TEMPLATE-TEST', unit: 'offense', formation: 'shotgun_2x2', personnel: '11', _revision: 2,
@@ -17,6 +17,10 @@ const TEMPLATE: PlayTemplate = {
 };
 
 describe('TemplateLibraryPanel', () => {
+  it('evaluates template compatibility across football context and lifecycle', () => {
+    expect(templateContextFit({ ...TEMPLATE, formation: 'shotgun_2x2', personnel: '11', status: 'approved' }, DESIGN)).toEqual({ compatible: true, reasons: [] });
+    expect(templateContextFit({ ...TEMPLATE, formation: 'shotgun_trips', personnel: '12', status: 'deprecated' }, DESIGN)).toMatchObject({ compatible: false, reasons: expect.arrayContaining(['Uses formation shotgun trips.', 'Uses personnel 12.', 'Template lifecycle state is deprecated.']) });
+  });
   it('filters packages and requires confirmation before replacing existing work', async () => {
     const user = userEvent.setup();
     const onApply = vi.fn();
