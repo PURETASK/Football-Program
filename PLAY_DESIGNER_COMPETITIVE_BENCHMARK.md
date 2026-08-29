@@ -452,3 +452,11 @@ timing window for progress interpolation, while designs without a branch cue
 retain primary-path behavior. This prevents choice routes from animating every
 option simultaneously and keeps the teaching view synchronized with the
 coach-authored decision cue. Full browser/device animation QA remains open.
+
+Branch-aware timeline contract addendum — 2026-08-28: server timeline
+validation now requires every `branch_id` event to reference its owning route
+element and an existing alternate branch. When branch timing is authored, the
+event must overlap that branch window; missing or misaligned references are
+reported with exact event paths and warning/error semantics before save or
+review. This closes the persistence and renderer contract gap; authoritative
+organization rule adoption and production transport testing remain open.

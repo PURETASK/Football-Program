@@ -172,6 +172,29 @@ class PlayCreationTests(unittest.TestCase):
         self.assertIn("TIMELINE-EXCHANGE-REF", codes)
         self.assertIn("TIMELINE-PHASE-END", codes)
 
+    def test_timeline_branch_events_require_existing_branch_and_matching_window(self):
+        candidate = normalize_timeline_design(design())
+        candidate["elements"][0].update({
+            "id": "ROUTE-CHOICE",
+            "branches": [{
+                "id": "BR-ALERT", "label": "Alert", "condition": "If rotation",
+                "points": [{"x": 30, "y": 10}, {"x": 50, "y": 12}], "start_ms": 500, "end_ms": 900,
+            }],
+        })
+        candidate["timeline"]["events"] = [{
+            "id": "READ-ALERT", "kind": "read", "element_id": "ROUTE-CHOICE", "branch_id": "BR-ALERT", "start_ms": 550, "end_ms": 800,
+        }]
+        self.assertEqual(validate_timeline(candidate), [])
+
+        candidate["timeline"]["events"][0]["branch_id"] = "BR-MISSING"
+        codes = {issue["code"] for issue in validate_timeline(candidate)}
+        self.assertIn("TIMELINE-EVENT-BRANCH", codes)
+
+        candidate["timeline"]["events"][0]["branch_id"] = "BR-ALERT"
+        candidate["timeline"]["events"][0].update({"start_ms": 1000, "end_ms": 1100})
+        codes = {issue["code"] for issue in validate_timeline(candidate)}
+        self.assertIn("TIMELINE-EVENT-BRANCH-WINDOW", codes)
+
     def test_assignment_graph_reports_cycles_references_and_exclusive_conflicts(self):
         candidate = normalize_timeline_design(design())
         candidate["assignment_model_version"] = "1.0"

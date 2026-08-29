@@ -249,6 +249,20 @@ def validate_timeline(design: dict[str, Any]) -> list[dict[str, str]]:
                     issues.append(_issue("TIMELINE-EVENT-ELEMENT", "Timeline event references an unknown element", f"{path}.element_id"))
                 element = elements_by_id.get(event.get("element_id"))
                 event_window = _window(event)
+                branch_id = event.get("branch_id")
+                if branch_id is not None:
+                    if not event.get("element_id"):
+                        issues.append(_issue("TIMELINE-EVENT-BRANCH-ELEMENT", "A branch-aware timeline event must reference its route element", f"{path}.element_id"))
+                    elif element is not None:
+                        branches = element.get("branches") if isinstance(element.get("branches"), list) else []
+                        branch = next((candidate for candidate in branches if isinstance(candidate, dict) and candidate.get("id") == branch_id), None)
+                        if branch is None:
+                            issues.append(_issue("TIMELINE-EVENT-BRANCH", "Timeline event references an unknown alternate route branch", f"{path}.branch_id"))
+                        else:
+                            branch_window = _window(branch)
+                            if branch_window and event_window:
+                                if not _windows_overlap(event_window, branch_window):
+                                    issues.append(_issue("TIMELINE-EVENT-BRANCH-WINDOW", "Branch-aware timeline event does not overlap the timing window of its referenced alternate route", f"{path}.branch_id", "warning"))
                 element_window = _window(element) if element else None
                 if element and event_window and element_window and not _windows_overlap(event_window, element_window):
                     issues.append(_issue("TIMELINE-EVENT-ELEMENT-WINDOW", "Timeline event does not overlap the timing window of its referenced element", f"{path}.element_id", "warning"))
