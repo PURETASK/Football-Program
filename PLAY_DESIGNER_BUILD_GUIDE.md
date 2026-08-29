@@ -1114,6 +1114,20 @@ marked as an exchange phase for timeline and teaching views. Verification:
 137 frontend tests across 33 files pass, TypeScript typecheck passes, and the
 production Vite build passes.
 
+### Implementation reconciliation addendum — current asset catalog and export safety (2026-08-29)
+
+The live canonical asset registry has since expanded to 128 governed assets
+across formation, route, motion, run, protection, block, front, coverage,
+pressure, stunt, rotation, check, and teaching families. The registry remains
+versioned, searchable, lifecycle-aware, alias-aware, thumbnail-backed, and
+compatibility-aware, and it is consumed directly by the React asset palette.
+The Play Designer export pipeline now also rejects malformed or out-of-bounds
+player, primary-path, and alternate-branch coordinates before rendering, with
+exact source paths in the validation findings. These updates close the local
+catalog and clipping-safety gaps; organization-specific catalog administration,
+printer/device certification, and production deployment remain separate
+acceptance requirements.
+
 ### Implementation addendum — route corridor intent and explanations (2026-08-28)
 
 Route collisions now produce an explainable pair report. The inspector identifies
