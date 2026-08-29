@@ -92,6 +92,7 @@ function TemplatePreview({ template }: { template: PlayTemplate }) {
 export function TemplateLibraryPanel({ templates, design, variantBatches = [], onRequestVariantReview, onApproveVariantReview, onCreateVariantReleaseBundle, onInspectVariantReleaseBundle, onApply, onSave, onCreateVariants, onOpenVariant, selectedElementIds = [] }: TemplateLibraryPanelProps) {
   const [search, setSearch] = useState('');
   const [kind, setKind] = useState('all');
+  const [lifecycle, setLifecycle] = useState('all');
   const [compatibleOnly, setCompatibleOnly] = useState(false);
   const [replaceConfirmation, setReplaceConfirmation] = useState<string | null>(null);
   const [saveOpen, setSaveOpen] = useState(false);
@@ -118,9 +119,10 @@ export function TemplateLibraryPanel({ templates, design, variantBatches = [], o
     return templates.filter((template) => {
       const haystack = [template.name, template.description, template.concept, template.formation, template.front, ...(template.tags ?? []), ...(template.situations ?? [])].filter(Boolean).join(' ').toLowerCase();
       const fit = templateContextFit(template, design);
-      return (template.unit === design.unit || template.unit === 'shared') && (kind === 'all' || template.template_kind === kind) && (!compatibleOnly || fit.compatible) && (!query || haystack.includes(query));
+      const state = String(template.status ?? 'active').toLowerCase();
+      return (template.unit === design.unit || template.unit === 'shared') && (kind === 'all' || template.template_kind === kind) && (lifecycle === 'all' || (lifecycle === 'current' ? ['active', 'approved'].includes(state) : lifecycle === 'historical' ? ['deprecated', 'retired', 'archived'].includes(state) : state === lifecycle)) && (!compatibleOnly || fit.compatible) && (!query || haystack.includes(query));
     });
-  }, [compatibleOnly, deferredSearch, design, kind, templates]);
+  }, [compatibleOnly, deferredSearch, design, kind, lifecycle, templates]);
 
   const replace = (template: PlayTemplate) => {
     if ((design.elements ?? []).length && replaceConfirmation !== template.id) {
@@ -169,6 +171,7 @@ export function TemplateLibraryPanel({ templates, design, variantBatches = [], o
       <div className="template-library__filters">
         <label className="designer-search"><Search size={15} aria-hidden="true" /><span className="sr-only">Search templates</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search concepts and situations..." /></label>
         <label><span className="sr-only">Template type</span><select value={kind} onChange={(event) => setKind(event.target.value)}><option value="all">All package types</option>{kinds.map((value) => <option value={value} key={value}>{titleCase(value)}</option>)}</select></label>
+        <label><span className="sr-only">Template lifecycle</span><select aria-label="Template lifecycle" value={lifecycle} onChange={(event) => setLifecycle(event.target.value)}><option value="all">All lifecycle states</option><option value="current">Current only</option><option value="historical">Historical only</option><option value="active">Active</option><option value="approved">Approved</option><option value="deprecated">Deprecated</option><option value="retired">Retired</option><option value="archived">Archived</option></select></label>
         <label className="template-compatible-toggle"><input type="checkbox" checked={compatibleOnly} onChange={(event) => setCompatibleOnly(event.target.checked)} /> <span>Context fit only</span></label>
       </div>
 

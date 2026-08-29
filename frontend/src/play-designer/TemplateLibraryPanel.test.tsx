@@ -38,6 +38,21 @@ describe('TemplateLibraryPanel', () => {
     expect(screen.getByRole('button', { name: 'Use package' })).toBeDisabled();
     expect(screen.getByRole('button', { name: /Add layer/ })).toBeDisabled();
   });
+
+  it('filters the catalog by current versus historical lifecycle state', async () => {
+    const user = userEvent.setup();
+    const onApply = vi.fn();
+    render(<TemplateLibraryPanel templates={[TEMPLATE, { ...TEMPLATE, id: 'OLD', name: 'Retired package', status: 'retired' }]} design={DESIGN} onApply={onApply} />);
+
+    expect(screen.getByText('Dagger package')).toBeInTheDocument();
+    expect(screen.getByText('Retired package')).toBeInTheDocument();
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Template lifecycle' }), 'current');
+    expect(screen.getByText('Dagger package')).toBeInTheDocument();
+    expect(screen.queryByText('Retired package')).not.toBeInTheDocument();
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Template lifecycle' }), 'historical');
+    expect(screen.queryByText('Dagger package')).not.toBeInTheDocument();
+    expect(screen.getByText('Retired package')).toBeInTheDocument();
+  });
   it('filters packages and requires confirmation before replacing existing work', async () => {
     const user = userEvent.setup();
     const onApply = vi.fn();
