@@ -45,6 +45,18 @@ def _issue(code: str, message: str, path: str, severity: str = "error") -> dict[
     return {"code": code, "message": message, "path": path, "severity": severity}
 
 
+def _window(value: dict[str, Any], *, prefix: str = "") -> tuple[int, int] | None:
+    start = value.get(f"{prefix}start_ms") if prefix else value.get("start_ms")
+    end = value.get(f"{prefix}end_ms") if prefix else value.get("end_ms")
+    if isinstance(start, bool) or not isinstance(start, int) or isinstance(end, bool) or not isinstance(end, int) or end <= start:
+        return None
+    return start, end
+
+
+def _windows_overlap(first: tuple[int, int], second: tuple[int, int]) -> bool:
+    return max(first[0], second[0]) < min(first[1], second[1])
+
+
 def default_phases(kind: str | None, start_ms: int, end_ms: int) -> list[dict[str, Any]]:
     """Return deterministic football teaching phases for an element."""
     template = PHASE_TEMPLATES.get(kind or "annotation", PHASE_TEMPLATES["annotation"])
@@ -202,6 +214,7 @@ def validate_timeline(design: dict[str, Any]) -> list[dict[str, str]]:
 
     elements = design.get("elements") if isinstance(design.get("elements"), list) else []
     element_ids = {element.get("id") for element in elements if isinstance(element, dict)}
+    elements_by_id = {element.get("id"): element for element in elements if isinstance(element, dict) and element.get("id")}
     player_ids = {player.get("id") for player in design.get("players", []) if isinstance(player, dict)}
     events = timeline.get("events")
     if events is not None:
@@ -234,11 +247,35 @@ def validate_timeline(design: dict[str, Any]) -> list[dict[str, str]]:
                     issues.append(_issue("TIMELINE-EVENT-BOUNDS", "Timeline event must finish within the timeline duration", f"{path}.end_ms"))
                 if event.get("element_id") is not None and event.get("element_id") not in element_ids:
                     issues.append(_issue("TIMELINE-EVENT-ELEMENT", "Timeline event references an unknown element", f"{path}.element_id"))
+                element = elements_by_id.get(event.get("element_id"))
+                event_window = _window(event)
+                element_window = _window(element) if element else None
+                if element and event_window and element_window and not _windows_overlap(event_window, element_window):
+                    issues.append(_issue("TIMELINE-EVENT-ELEMENT-WINDOW", "Timeline event does not overlap the timing window of its referenced element", f"{path}.element_id", "warning"))
                 for field in ("player_id", "target_player_id"):
                     if event.get(field) is not None and event.get(field) not in player_ids:
                         issues.append(_issue("TIMELINE-EVENT-PLAYER", "Timeline event references an unknown player", f"{path}.{field}"))
+                target_element_id = event.get("target_element_id")
+                if target_element_id is not None and target_element_id not in element_ids:
+                    issues.append(_issue("TIMELINE-EVENT-TARGET", "Timeline event target_element_id references an unknown element", f"{path}.target_element_id"))
+                if kind == "read" and target_element_id is not None and element and target_element_id in elements_by_id:
+                    target_window = _window(elements_by_id[target_element_id])
+                    if event_window and target_window and not _windows_overlap(event_window, target_window):
+                        issues.append(_issue("TIMELINE-READ-TARGET-WINDOW", "QB read cue does not overlap the timing window of its target assignment", f"{path}.target_element_id", "warning"))
                 if kind in {"ball", "handoff"} and not event.get("element_id"):
                     issues.append(_issue("TIMELINE-EVENT-PATH", "Ball and handoff events must reference a path element", f"{path}.element_id"))
+            synchronization_groups: dict[str, list[tuple[int, int, int]]] = {}
+            for index, event in enumerate(events):
+                if not isinstance(event, dict) or not event.get("sync_group"):
+                    continue
+                event_window = _window(event)
+                if event_window:
+                    synchronization_groups.setdefault(str(event["sync_group"]), []).append((*event_window, index))
+            for group, group_events in synchronization_groups.items():
+                for left_index, (left_start, left_end, left_event_index) in enumerate(group_events):
+                    for right_start, right_end, right_event_index in group_events[left_index + 1:]:
+                        if not _windows_overlap((left_start, left_end), (right_start, right_end)):
+                            issues.append(_issue("TIMELINE-SYNC-GROUP-GAP", f"Synchronization group {group} has a timing gap between linked events", f"timeline.events[{right_event_index}].sync_group", "warning"))
     for index, element in enumerate(elements):
         if not isinstance(element, dict):
             continue

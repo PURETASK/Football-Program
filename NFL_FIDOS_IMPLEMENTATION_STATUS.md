@@ -542,3 +542,10 @@ branch fields remain eligible to inherit the parent route contract during
 materialization. This prevents a malformed option path from bypassing the
 primary route validator; focused branch coverage and the full regression suite
 pass.
+
+Timeline synchronization addendum (2026-08-29): timeline validation now
+checks event-to-element timing overlap, optional QB-read target references and
+target-window overlap, and explicit synchronization groups for timing gaps.
+These checks preserve the existing event vocabulary and report coach-review
+warnings where team timing conventions vary, giving playback, teaching, and
+export consumers actionable synchronization evidence.

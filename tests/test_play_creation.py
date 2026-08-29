@@ -138,6 +138,19 @@ class PlayCreationTests(unittest.TestCase):
         self.assertEqual([event["kind"] for event in normalized["timeline"]["events"]], ["block_exchange", "rush_exchange"])
         self.assertEqual(validate_timeline(normalized), [])
 
+    def test_timeline_explains_unsynchronized_events_and_reads(self):
+        candidate = design()
+        candidate["elements"][0].update({"id": "ROUTE-1", "start_ms": 0, "end_ms": 600})
+        candidate["elements"].append({"id": "ROUTE-2", "kind": "route", "player_id": "P1", "type": "dig", "points": [{"x": 17, "y": 5}, {"x": 35, "y": 25}], "arrow_style": "route", "start_ms": 900, "end_ms": 1500})
+        candidate["timeline"] = {"snap_ms": 0, "duration_ms": 2000, "events": [
+            {"id": "READ-1", "kind": "read", "element_id": "ROUTE-1", "target_element_id": "ROUTE-2", "start_ms": 700, "end_ms": 800, "sync_group": "QB-DECISION"},
+            {"id": "THROW-1", "kind": "throw", "element_id": "ROUTE-2", "start_ms": 1200, "end_ms": 1300, "sync_group": "QB-DECISION"},
+        ]}
+        codes = {issue["code"] for issue in validate_timeline(candidate)}
+        self.assertIn("TIMELINE-EVENT-ELEMENT-WINDOW", codes)
+        self.assertIn("TIMELINE-READ-TARGET-WINDOW", codes)
+        self.assertIn("TIMELINE-SYNC-GROUP-GAP", codes)
+
     def test_timeline_validation_explains_phase_and_exchange_errors(self):
         candidate = normalize_timeline_design(design())
         candidate["elements"][0]["exchange_with"] = "E-MISSING"
