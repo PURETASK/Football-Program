@@ -101,4 +101,17 @@ describe('DesignerTimeline', () => {
     expect(screen.getByRole('region', { name: 'Synchronized event timing tracks' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Jump to Combo exchange event' })).toBeInTheDocument();
   });
+
+  it('retargets an existing synchronized event to an alternate route path', () => {
+    const onUpdateTimeline = vi.fn();
+    const design = {
+      ...DESIGN,
+      elements: [{ ...DESIGN.elements![0], branches: [{ id: 'BR-1', label: 'Convert out', condition: 'If corner squats', points: [{ x: 30, y: 10 }, { x: 45, y: 12 }] }] }],
+      timeline: { ...DESIGN.timeline, events: [{ id: 'READ-EVENT', kind: 'read', label: 'Read leverage', element_id: 'ROUTE-X', start_ms: 500, end_ms: 900 }] },
+    };
+    render(<DesignerTimeline design={design} selectedElement={design.elements?.[0]} playbackTime={500} onPlaybackTime={vi.fn()} onAddMarker={vi.fn()} onSelectElement={vi.fn()} onUpdateTimeline={onUpdateTimeline} />);
+    fireEvent.click(screen.getByRole('button', { name: /Tracks/i }));
+    fireEvent.change(screen.getByLabelText('Synchronized event 1 path'), { target: { value: 'BR-1' } });
+    expect(onUpdateTimeline).toHaveBeenCalledWith(expect.objectContaining({ events: [expect.objectContaining({ id: 'READ-EVENT', branch_id: 'BR-1' })] }));
+  });
 });

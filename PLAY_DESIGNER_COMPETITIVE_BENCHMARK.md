@@ -508,3 +508,12 @@ and semantic contract while diverging the finish geometry, then enter the
 normal reducer/save/version/validation/export pipeline. This closes the local
 UI gap between being able to edit an existing branch and being able to create
 one; multi-user convergence and production pilot evidence remain open.
+
+Timeline branch-retargeting addendum — 2026-08-29: existing synchronized
+events can now be reassigned from the primary route to any authored alternate
+path, or back to the primary path, through an explicit event-row selector.
+This covers already-created ball, handoff, read, exchange, rotation, and
+block/rush-exchange cues and keeps their element reference and timing intact
+while changing only the branch context. The control is covered by the React
+timeline suite; server transport ordering and production multi-user evidence
+remain open.
