@@ -371,3 +371,12 @@ and point path, preventing clipped or misleading PDF, SVG, PNG, and HTML
 artifacts from being rendered. This complements source-lock, legality, page
 profile, color-mode, checksum, and artifact-signature verification; physical
 printer/device certification remains external acceptance work.
+
+Rule-profile consistency addendum — 2026-08-29: draft validation now uses the
+selected profile's player-count contract, including 5-on-5 flag designs and
+configured youth formats, and prevents the legacy tackle-football line rule
+from firing on flag designs. Advanced legality remains explainable and
+fail-closed where a local adoption rule source is missing. This is a local
+correctness improvement, not evidence of complete NFL/NCAA/NFHS/youth/flag
+rulebook coverage; authoritative adoption, officiating review, and deployment
+testing remain open.

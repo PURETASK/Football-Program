@@ -442,3 +442,14 @@ as primary play paths. Draft checks report deterministic branch paths for short,
 malformed, or out-of-bounds geometry, and export preflight independently
 fail-closes the corresponding artifact risk. Focused play-creation/export tests
 pass; physical device and deployment validation remain pending.
+
+Rule-profile consistency addendum (2026-08-29): the structural Play Designer
+validator now follows the selected game format for player-count validation,
+including 5-on-5 flag designs and explicitly configured youth formats. The
+legacy offensive legality pass no longer applies the seven-player tackle
+formation rule to flag designs; profile-specific checks remain in the
+explainable advanced legality report. This closes a validation-pipeline
+inconsistency without claiming that local youth, NFHS, or flag variants are
+fully authoritative until their adopted rule sources are supplied. Focused
+Play Designer creation, service, API, and export coverage passes; real rulebook
+adoption and human officiating review remain external acceptance work.

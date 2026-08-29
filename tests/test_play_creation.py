@@ -25,6 +25,17 @@ class PlayCreationTests(unittest.TestCase):
     def test_valid_offensive_design(self):
         self.assertEqual(validate_play_design(design("offense")), [])
 
+    def test_flag_profile_uses_flag_player_count_in_structural_validation(self):
+        candidate = design("offense")
+        candidate["rule_profile"] = "flag"
+        candidate["players_on_field"] = 5
+        candidate["players"] = candidate["players"][:5]
+        candidate["players"][0]["position"] = "QB"
+        candidate["elements"] = [{"kind": "route", "player_id": "P1", "type": "slant", "points": [{"x": 17, "y": 5}, {"x": 25, "y": 20}], "arrow_style": "route"}]
+        issues = validate_play_design(candidate)
+        self.assertNotIn("DESIGN-PLAYER-COUNT", {issue["code"] for issue in issues})
+        self.assertNotIn("LEGALITY-LINE-COUNT", {issue["code"] for issue in validate_legality(candidate)})
+
     def test_defense_requires_front_and_coverage(self):
         candidate = design("defense")
         candidate.pop("coverage")

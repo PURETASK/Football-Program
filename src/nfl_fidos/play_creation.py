@@ -65,8 +65,15 @@ def validate_play_design(design: dict[str, Any]) -> list[dict[str, str]]:
             if not isinstance(player.get("position"), str) or not player.get("position"):
                 issues.append(_issue("DESIGN-PLAYER-POSITION", "Player position is required", f"{path}.position"))
             _validate_point(player.get("start"), f"{path}.start", issues)
-        if len(design["players"]) != 11:
-            issues.append(_issue("DESIGN-PLAYER-COUNT", "A full-field tackle design must contain 11 players", "players"))
+        # The structural envelope follows the selected game format.  Keep the
+        # traditional 11-player default, but do not reject a valid 5-on-5
+        # flag design before the profile-aware legality pass can evaluate it.
+        rule_profile = design.get("rule_profile", "nfl")
+        expected_players = 5 if rule_profile == "flag" else 11
+        if rule_profile == "youth" and isinstance(design.get("players_on_field"), int) and design["players_on_field"] > 0:
+            expected_players = design["players_on_field"]
+        if len(design["players"]) != expected_players:
+            issues.append(_issue("DESIGN-PLAYER-COUNT", f"The selected rule profile requires {expected_players} players in the design", "players"))
 
     elements = design.get("elements")
     if not isinstance(elements, list):
@@ -141,9 +148,11 @@ def validate_legality(design: dict[str, Any], *, rule_profile: str | None = None
     if design.get("unit") == "offense":
         alignments = [player.get("alignment", {}) for player in design.get("players", []) if isinstance(player, dict)]
         explicit_line = [item for item in alignments if isinstance(item, dict) and item.get("on_line") is True]
-        if explicit_line and len(explicit_line) < 7:
+        # Flag has no tackle-football seven-player line requirement.  Its
+        # profile-specific constraints are enforced by advanced legality.
+        if profile != "flag" and explicit_line and len(explicit_line) < 7:
             issues.append(_issue("LEGALITY-LINE-COUNT", "Offensive alignment declares fewer than seven players on the line", "players", "error"))
-        if explicit_line and len(explicit_line) >= 7:
+        if profile != "flag" and explicit_line and len(explicit_line) >= 7:
             eligible_ends = [item for item in alignments if isinstance(item, dict) and item.get("on_line") is True and item.get("eligible") is True]
             if len(eligible_ends) < 2:
                 issues.append(_issue("LEGALITY-ELIGIBLE-ENDS", "Explicit offensive alignment needs eligible receivers at both ends", "players", "error"))

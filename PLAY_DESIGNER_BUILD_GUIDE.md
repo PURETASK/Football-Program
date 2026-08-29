@@ -1189,6 +1189,18 @@ target relationship, timeline meaning, and downstream validation/export data.
 Verification: 163 frontend tests across 42 files pass, TypeScript typecheck
 passes, and the production Vite build passes.
 
+### Implementation addendum — rule-profile-consistent validation (2026-08-29)
+
+The full draft-validation pipeline now respects the selected game format for
+player-count validation. Five-player flag designs can pass the structural
+envelope, and configured youth player counts are honored; the legacy
+seven-player offensive line check is skipped for flag designs so it cannot
+produce a tackle-football false positive. Advanced legality remains the source
+of profile-specific findings and continues to label local-adoption profiles as
+requiring local rule sources. Verification: focused Play Designer creation,
+service, API, and export suites pass; adopted local rulebooks and field-level
+official review remain required for production use.
+
 ### Implementation addendum — defensive responsibility validation (2026-08-28)
 
 The Checks panel now supplements authoritative server legality with explainable
