@@ -453,3 +453,11 @@ inconsistency without claiming that local youth, NFHS, or flag variants are
 fully authoritative until their adopted rule sources are supplied. Focused
 Play Designer creation, service, API, and export coverage passes; real rulebook
 adoption and human officiating review remain external acceptance work.
+
+Rule-profile UI provenance addendum (2026-08-29): the React Play Designer now
+loads the controlled rule-profile catalog through the organization-scoped API
+and uses the server response for profile labels, local-adoption behavior, and
+source/rule-reference display in the inspector. A bounded fallback keeps the
+editor usable during loading or offline recovery, while server legality remains
+authoritative. Focused API and inspector coverage passes; deployment-network,
+browser, accessibility, and locally adopted rulebook validation remain open.

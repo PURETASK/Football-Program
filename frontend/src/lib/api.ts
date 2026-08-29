@@ -40,6 +40,7 @@ import type {
   PlayComment,
   PlayDesignDiff,
   PlayDesign,
+  PlayRuleProfile,
   PlayDraftValidationReport,
   PlayLegalityReport,
   PlayMasteryResponse,
@@ -127,6 +128,12 @@ export async function fetchPlayAssets(session: AppSession, context?: Pick<PlayDe
   });
   const payload = await request<{ assets: PlayAsset[] }>(`/v1/playbook/designs/assets?${params}`, session, { signal });
   return payload.assets ?? [];
+}
+
+export async function fetchPlayRuleProfiles(session: AppSession, signal?: AbortSignal): Promise<PlayRuleProfile[]> {
+  const params = organizationParams(session);
+  const payload = await request<{ profiles: PlayRuleProfile[] }>(`/v1/playbook/designs/rule-profiles?${params}`, session, { signal });
+  return payload.profiles ?? [];
 }
 
 export async function fetchPlayTemplates(session: AppSession, signal?: AbortSignal): Promise<PlayTemplate[]> {

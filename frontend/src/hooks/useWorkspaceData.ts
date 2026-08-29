@@ -9,6 +9,7 @@ import {
   fetchPlayComments,
   fetchPlayDesigns,
   fetchPlayLegality,
+  fetchPlayRuleProfiles,
   fetchPlayRoleView,
   fetchPlayPresence,
   fetchPlayCollaborationStream,
@@ -57,6 +58,16 @@ export function usePlayAssetsQuery(context?: Pick<PlayDesign, 'unit' | 'formatio
     queryFn: ({ signal }) => fetchPlayAssets(session!, context, signal),
     enabled: Boolean(session),
     staleTime: 5 * 60_000,
+  });
+}
+
+export function usePlayRuleProfilesQuery() {
+  const { session } = useSession();
+  return useQuery({
+    queryKey: ['play-rule-profiles', session?.organizationId],
+    queryFn: ({ signal }) => fetchPlayRuleProfiles(session!, signal),
+    enabled: Boolean(session),
+    staleTime: 30 * 60_000,
   });
 }
 

@@ -32,6 +32,7 @@ import type {
   PlayLegalityReport,
   PlayAsset,
   PlayPlayer,
+  PlayRuleProfile,
   PlayPreSnapStep,
   PlayTemplate,
   PlayMergeResult,
@@ -95,10 +96,11 @@ interface InspectorProps {
   onChooseAsset?: (asset: PlayAsset) => void;
   onApplyTemplate?: (template: PlayTemplate, mode: 'replace' | 'layer') => void;
   onMaterializeAsset?: (asset: PlayAsset) => void;
+  ruleProfiles?: PlayRuleProfile[];
 }
 
-const RULE_PROFILES = [
-  ['nfl', 'NFL'], ['ncaa', 'NCAA'], ['high_school', 'High school'], ['youth', 'Youth'], ['flag', 'Flag'],
+const FALLBACK_RULE_PROFILES: PlayRuleProfile[] = [
+  { id: 'nfl', label: 'NFL' }, { id: 'ncaa', label: 'NCAA' }, { id: 'high_school', label: 'High school', requires_local_rules: true }, { id: 'youth', label: 'Youth', requires_local_rules: true }, { id: 'flag', label: 'Flag', requires_local_rules: true },
 ];
 
 const HASH_X: Record<string, number> = { left: 38, middle: 50, right: 62 };
@@ -646,7 +648,9 @@ function ReviewPanel({
 export function DesignerInspector(props: InspectorProps) {
   const guidance = TAB_GUIDANCE[props.tab];
   const selectedRuleProfile = String(props.design.rule_profile ?? 'nfl');
-  const localRuleProfile = ['high_school', 'youth', 'flag'].includes(selectedRuleProfile);
+  const ruleProfiles = props.ruleProfiles?.length ? props.ruleProfiles : FALLBACK_RULE_PROFILES;
+  const selectedProfileMetadata = ruleProfiles.find((profile) => profile.id === selectedRuleProfile);
+  const localRuleProfile = selectedProfileMetadata?.requires_local_rules ?? ['high_school', 'youth', 'flag'].includes(selectedRuleProfile);
   const localRuleConstraints = props.design.local_rule_constraints && typeof props.design.local_rule_constraints === 'object'
     ? props.design.local_rule_constraints as Record<string, unknown>
     : {};
@@ -684,7 +688,8 @@ export function DesignerInspector(props: InspectorProps) {
                     </div>
                   </fieldset>
                 </> : null}
-                <label className="inspector-field"><span>Rule profile</span><select value={selectedRuleProfile} onChange={(event) => props.onMeta({ rule_profile: event.target.value })}>{RULE_PROFILES.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+                <label className="inspector-field"><span>Rule profile</span><select value={selectedRuleProfile} onChange={(event) => props.onMeta({ rule_profile: event.target.value })}>{ruleProfiles.map((profile) => <option value={profile.id} key={profile.id}>{profile.label ?? profile.id}</option>)}</select></label>
+                {selectedProfileMetadata?.source ? <p className="inspector-help rule-profile-source"><strong>Source basis:</strong> {selectedProfileMetadata.source.title ?? 'Controlled profile'}{selectedProfileMetadata.source.rule_refs?.length ? ` · ${selectedProfileMetadata.source.rule_refs.join(', ')}` : ''}</p> : null}
                 {localRuleProfile ? <fieldset className="rule-profile-editor">
                   <legend>Local adoption rules</legend>
                   <p className="inspector-help">High school, youth, and flag rules vary by jurisdiction. Record the local source and explicit constraints so the validator can check this call without silently assuming a universal rulebook.</p>

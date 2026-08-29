@@ -1,6 +1,7 @@
 import { beforeEach, expect, vi } from 'vitest';
 
 import type { AppSession, PracticePlan } from '../types';
+import { fetchPlayRuleProfiles } from './api';
 import { appendCollaborationComment, approvePlayLegalityOverride, createCollaborationThread, createDeliveryPacket, createPilotDeliveryPackage, createPlayTemplate, createPlayVariants, createPlayVariantReleaseBundle, evaluatePilotReadiness, exportPlayDesign, fetchAdminWorkspace, fetchCollaborationWorkspace, fetchCollaborationStream, fetchOrganizationPopulationReadiness, fetchPlayAssets, fetchPlayCollaborationStream, fetchPlayVariantBatches, fetchPlayVariantReleaseBundle, fetchStage25Acceptance, fetchPracticeAttendance, markCollaborationNotificationsRead, createFilmClip, createFilmObservation, createFilmVoiceNote, createGamePlanReleaseSnapshot, createPracticePlan, fetchFilmWorkspace, fetchMediaProcessingJob, fetchMediaProcessingJobs, fetchOperationsInbox, fetchPlayRoleView, fetchPlayVersionDiff, fetchPracticeDrills, fetchScoutingTendencies, markOperationsNotificationsRead, mergePlayBranch, preflightPlayDesignExport, recordAnalyticsOutcome, recordPlayMastery, recordPracticeAttendance, registerFilmAsset, requestPlayLegalityOverride, reviewGovernanceItem, selectPilotOrganization, submitPlayQuiz, submitStage25Acceptance, submitUsabilityFeedback, validatePlayDesignDraft } from './api';
 
 const SESSION: AppSession = {
@@ -29,6 +30,13 @@ describe('operational API wiring', () => {
     expect(path).toContain('context_formation=shotgun_trips');
     expect(path).toContain('personnel=11');
     expect(path).toContain('rule_profile=nfl');
+  });
+
+  it('loads rule profiles from the authoritative API for inspector selection', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => response({ profiles: [{ id: 'flag', label: 'NFL FLAG', requires_local_rules: true }] }));
+    const profiles = await fetchPlayRuleProfiles(SESSION);
+    expect(profiles).toEqual([{ id: 'flag', label: 'NFL FLAG', requires_local_rules: true }]);
+    expect(fetchMock.mock.calls[0][0]).toBe('/v1/playbook/designs/rule-profiles?organization_id=ORG-TEST-001');
   });
 
   it('posts the current unsaved play to the non-persisting validation route', async () => {

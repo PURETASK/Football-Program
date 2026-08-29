@@ -594,13 +594,24 @@ export interface PlayLegalityReport {
   design_id: string;
   rule_profile: string;
   status: string;
-  profile?: {
-    id?: string;
-    label?: string;
-    source?: { title?: string; uri?: string | null; rule_refs?: string[] };
-  };
+  profile?: PlayRuleProfile;
   issues: ValidationIssue[];
   overrides: Array<Record<string, unknown>>;
+}
+
+export interface PlayRuleProfile {
+  id?: string;
+  label?: string;
+  players_on_field?: number | null;
+  minimum_line_players?: number | null;
+  max_motion_at_snap?: number | null;
+  allow_blocking?: boolean | null;
+  min_rush_distance_yards?: number | null;
+  no_contact?: boolean;
+  qb_direct_run_allowed?: boolean | null;
+  number_based_eligibility?: boolean;
+  requires_local_rules?: boolean;
+  source?: { title?: string; uri?: string | null; rule_refs?: string[] };
 }
 
 export interface PlayAssignmentGraphNode {

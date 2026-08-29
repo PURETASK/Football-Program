@@ -12,6 +12,7 @@ import {
   usePlayDesignsQuery,
   usePlayDraftValidationQuery,
   usePlayLegalityQuery,
+  usePlayRuleProfilesQuery,
   usePlayPresenceQuery,
   usePlayTemplatesQuery,
   usePlayVariantBatchesQuery,
@@ -136,6 +137,7 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
   const versionsQuery = usePlayVersionsQuery(savedDesignId);
   const versionDiffQuery = usePlayVersionDiffQuery(savedDesignId, compareBaseId, compareSnapshotId);
   const legalityQuery = usePlayLegalityQuery(savedDesignId);
+  const ruleProfilesQuery = usePlayRuleProfilesQuery();
   const draftValidationQuery = usePlayDraftValidationQuery(state.present);
   const commentsQuery = usePlayCommentsQuery(savedDesignId);
   const presenceQuery = usePlayPresenceQuery(savedDesignId);
@@ -712,6 +714,7 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
             tab={inspectorTab}
             dirty={state.dirty}
             legality={activeValidation}
+            ruleProfiles={ruleProfilesQuery.data}
             validationPending={draftValidationQuery.isFetching}
             validationError={draftValidationQuery.error instanceof Error ? draftValidationQuery.error.message : undefined}
             versions={versionsQuery.data}
