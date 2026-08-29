@@ -317,11 +317,37 @@ class PlayDesignService:
             output.append(asset)
         return output
 
-    def templates(self, *, unit: str | None = None) -> list[dict[str, Any]]:
+    def templates(self, *, unit: str | None = None, formation: str | None = None, personnel: str | None = None, front: str | None = None, coverage: str | None = None, status: str | None = None, query: str | None = None) -> list[dict[str, Any]]:
         system_templates = load_concept_templates()
         organization_templates = self.repository.list("play_design_templates")
         templates = [*system_templates, *organization_templates]
-        return [deepcopy(template) for template in templates if not unit or template.get("unit") == unit]
+        query_key = (query or "").strip().lower()
+        output: list[dict[str, Any]] = []
+        for template in templates:
+            if unit and template.get("unit") != unit:
+                continue
+            if formation and template.get("formation") != formation:
+                continue
+            if personnel and template.get("personnel") != personnel:
+                continue
+            if front and template.get("front") != front:
+                continue
+            if coverage and template.get("coverage") != coverage:
+                continue
+            if status and template.get("status", "approved") != status:
+                continue
+            if query_key:
+                haystack = " ".join([
+                    str(template.get("id", "")),
+                    str(template.get("name", "")),
+                    str(template.get("concept", "")),
+                    str(template.get("description", "")),
+                    " ".join(str(tag) for tag in template.get("tags", []) if tag),
+                ]).lower()
+                if query_key not in haystack:
+                    continue
+            output.append(deepcopy(template))
+        return output
 
     def template_lineage_impact(self, template_id: str) -> dict[str, Any]:
         """Report descendants and inherited fields affected by a parent change.

@@ -55,6 +55,18 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertEqual(tex["assignments"][0]["partner_id"], "DE-L-ET")
         self.assertEqual(tex["assignments"][1]["exchange_role"], "looper")
 
+    def test_template_registry_filters_by_play_context_and_search(self):
+        service = self.service()
+        trips = service.templates(unit="offense", formation="shotgun_trips")
+        self.assertTrue(trips)
+        self.assertTrue(all(item.get("formation") == "shotgun_trips" for item in trips))
+        self.assertEqual(service.templates(unit="offense", formation="shotgun_trips", query="flood")[0]["concept"], "Flood")
+        defensive = service.templates(unit="defense", front="4-2-5_over", coverage="cover_3")
+        self.assertTrue(defensive)
+        self.assertTrue(all(item.get("front") == "4-2-5_over" and item.get("coverage") == "cover_3" for item in defensive))
+        self.assertIn("TPL-DEF-TEX-ET", {item["id"] for item in defensive})
+        self.assertTrue(all(item.get("unit") == "offense" for item in service.templates(unit="offense", status="approved")))
+
     def test_professional_asset_registry_contract_is_complete_and_unique(self):
         report = validate_asset_registry(load_asset_registry())
         self.assertEqual(report["status"], "valid", report["errors"])

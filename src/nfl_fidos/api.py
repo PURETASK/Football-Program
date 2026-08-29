@@ -212,7 +212,7 @@ def handle_request(*, method: str, path: str, body: dict[str, Any] | None = None
                 return 404, _response("error", None, str(exc))
         if parsed.path.endswith("/assets"):
             return 200, _response("ok", {"assets": registry.assets(unit=query.get("unit", [None])[0], kind=query.get("kind", [None])[0], category=query.get("category", [None])[0], query=query.get("q", [None])[0], status=query.get("status", [None])[0], formation=query.get("formation", [None])[0], context_formation=query.get("context_formation", [None])[0], personnel=query.get("personnel", [None])[0], rule_profile=query.get("rule_profile", [None])[0])})
-        return 200, _response("ok", {"templates": registry.templates(unit=query.get("unit", [None])[0])})
+        return 200, _response("ok", {"templates": registry.templates(unit=query.get("unit", [None])[0], formation=query.get("formation", [None])[0], personnel=query.get("personnel", [None])[0], front=query.get("front", [None])[0], coverage=query.get("coverage", [None])[0], status=query.get("status", [None])[0], query=query.get("q", [None])[0])})
     if parsed.path == "/v1/playbook/designs/templates/lineage-proposal" and method.upper() == "POST":
         required = ("organization_id", "template_id", "patches")
         missing = [field for field in required if not body.get(field)]
