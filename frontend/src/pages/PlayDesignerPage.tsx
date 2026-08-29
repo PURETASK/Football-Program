@@ -692,6 +692,7 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
             mergeConflict={mergeConflict}
             onTab={setInspectorTab}
             onSelect={(selection, additive) => dispatch({ type: 'select', selection, additive })}
+            onSelectGroup={(groupId) => dispatch({ type: 'select_group', groupId })}
             onMeta={(patch) => dispatch({ type: 'update_meta', patch })}
             onFieldContext={(patch, translate) => dispatch({ type: 'apply_field_context', patch, translate })}
             onPlayer={(id, patch) => dispatch({ type: 'update_player', id, patch })}

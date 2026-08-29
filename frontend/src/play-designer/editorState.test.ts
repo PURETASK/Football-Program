@@ -79,6 +79,20 @@ describe('play designer editor state', () => {
     expect(state.past).toHaveLength(1);
   });
 
+  it('selects every player and assignment in a named group from the layers model', () => {
+    const source = design();
+    source.players!.push({ id: 'Y', position: 'WR', group_id: 'GROUP-ROUTES', start: { x: 90, y: 30 } });
+    source.players![0].group_id = 'GROUP-ROUTES';
+    source.elements![0].group_id = 'GROUP-ROUTES';
+    source.elements!.push({ id: 'ROUTE-Y', kind: 'route', player_id: 'Y', group_id: 'GROUP-ROUTES', points: [{ x: 90, y: 30 }, { x: 90, y: 10 }] });
+    let state = createEditorState(source);
+    state = editorReducer(state, { type: 'select_group', groupId: 'GROUP-ROUTES' });
+    expect(state.selected).toEqual([
+      { kind: 'player', id: 'X' }, { kind: 'player', id: 'Y' },
+      { kind: 'element', id: 'ROUTE-X' }, { kind: 'element', id: 'ROUTE-Y' },
+    ]);
+  });
+
   it('gives duplicated grouped packages a new group identity', () => {
     const source = design();
     source.players![0].group_id = 'GROUP-ORIGINAL';

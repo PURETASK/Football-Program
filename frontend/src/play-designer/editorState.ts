@@ -27,6 +27,7 @@ export interface EditorState {
 export type EditorAction =
   | { type: 'select'; selection: EditorSelection | null; additive?: boolean }
   | { type: 'select_many'; selections: EditorSelection[]; additive?: boolean }
+  | { type: 'select_group'; groupId: string }
   | { type: 'set_tool'; tool: EditorTool; asset?: PlayAsset | null }
   | { type: 'set_asset'; asset: PlayAsset | null }
   | { type: 'toggle_snap' }
@@ -223,6 +224,13 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
         return true;
       });
       return { ...state, selected };
+    }
+    case 'select_group': {
+      const selections: EditorSelection[] = [
+        ...(state.present.players ?? []).filter((player) => player.group_id === action.groupId).map((player) => ({ kind: 'player' as const, id: player.id })),
+        ...(state.present.elements ?? []).filter((element) => element.group_id === action.groupId).map((element) => ({ kind: 'element' as const, id: element.id })),
+      ];
+      return { ...state, selected: selections };
     }
     case 'set_tool':
       return { ...state, tool: action.tool, activeAsset: action.asset === undefined ? state.activeAsset : action.asset };

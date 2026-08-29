@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Unlock,
+  Users,
   UserRound,
 } from 'lucide-react';
 
@@ -73,6 +74,7 @@ interface InspectorProps {
   validationError?: string;
   onTab: (tab: InspectorTab) => void;
   onSelect: (selection: EditorSelection | null, additive?: boolean) => void;
+  onSelectGroup?: (groupId: string) => void;
   onMeta: (patch: Partial<PlayDesign>) => void;
   onFieldContext: (patch: Partial<PlayFieldContext>, translate?: Point) => void;
   onPlayer: (id: string, patch: Partial<PlayPlayer>) => void;
@@ -430,7 +432,7 @@ function ExchangePairAuthoring({ elements, onElement }: { elements: [PlayElement
   </InspectorSection>;
 }
 
-function LayersPanel({ design, selected, onSelect, onPlayer, onElement, onReorderElement }: Pick<InspectorProps, 'design' | 'selected' | 'onSelect' | 'onPlayer' | 'onElement' | 'onReorderElement'>) {
+function LayersPanel({ design, selected, onSelect, onSelectGroup, onPlayer, onElement, onReorderElement }: Pick<InspectorProps, 'design' | 'selected' | 'onSelect' | 'onSelectGroup' | 'onPlayer' | 'onElement' | 'onReorderElement'>) {
   return (
     <div className="layer-stack">
       <InspectorSection title={`Players · ${(design.players ?? []).length}`}>
@@ -438,6 +440,7 @@ function LayersPanel({ design, selected, onSelect, onPlayer, onElement, onReorde
           {(design.players ?? []).map((player) => (
             <div className={selected.some((item) => item.kind === 'player' && item.id === player.id) ? 'layer-row is-selected' : 'layer-row'} key={player.id}>
               <button type="button" className="layer-row__name" onClick={() => onSelect({ kind: 'player', id: player.id })}><span className={`layer-swatch layer-swatch--${design.unit}`} />{player.position ?? player.id}</button>
+              {player.group_id ? <button type="button" aria-label={`Select group ${player.group_id}`} title={`Select group ${player.group_id}`} onClick={() => onSelectGroup?.(player.group_id!)}><Users size={14} /></button> : null}
               <button type="button" aria-label={`${player.hidden ? 'Show' : 'Hide'} ${player.position ?? player.id}`} onClick={() => onPlayer(player.id, { hidden: !player.hidden })}>{player.hidden ? <EyeOff size={14} /> : <Eye size={14} />}</button>
               <button type="button" aria-label={`${player.locked ? 'Unlock' : 'Lock'} ${player.position ?? player.id}`} onClick={() => onPlayer(player.id, { locked: !player.locked })}>{player.locked ? <Lock size={14} /> : <Unlock size={14} />}</button>
             </div>
@@ -449,6 +452,7 @@ function LayersPanel({ design, selected, onSelect, onPlayer, onElement, onReorde
           {(design.elements ?? []).map((element) => (
             <div className={selected.some((item) => item.kind === 'element' && item.id === element.id) ? 'layer-row is-selected' : 'layer-row'} key={element.id}>
               <button type="button" className="layer-row__name" onClick={() => onSelect({ kind: 'element', id: element.id })}><span className={`layer-line layer-line--${element.kind}`} />{element.type ?? element.kind}</button>
+              {typeof element.group_id === 'string' ? <button type="button" aria-label={`Select group ${element.group_id}`} title={`Select group ${element.group_id}`} onClick={() => onSelectGroup?.(element.group_id as string)}><Users size={14} /></button> : null}
               <button type="button" aria-label={`${element.hidden ? 'Show' : 'Hide'} ${element.type ?? element.kind}`} onClick={() => onElement(element.id, { hidden: !element.hidden })}>{element.hidden ? <EyeOff size={14} /> : <Eye size={14} />}</button>
               <button type="button" aria-label={`${element.locked ? 'Unlock' : 'Lock'} ${element.type ?? element.kind}`} onClick={() => onElement(element.id, { locked: !element.locked })}>{element.locked ? <Lock size={14} /> : <Unlock size={14} />}</button>
               <button type="button" aria-label={`Bring ${element.type ?? element.kind} forward`} title="Bring forward" disabled={!onReorderElement} onClick={() => onReorderElement?.(element.id, 'up')}><ArrowUp size={14} /></button>
