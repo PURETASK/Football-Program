@@ -683,3 +683,9 @@ not also contain a generic objective, target, or dependency field. Graph nodes
 preserve primitive, protection mode, partner, threat, slide, and scan-order
 metadata alongside their relationship edges, keeping protection-only authoring
 available to teaching, analytics, collaboration, and export consumers.
+
+Protection relationship integrity addendum (2026-08-29): the assignment graph
+now validates every block-target, combo-partner, and protection-threat edge it
+emits, including self-reference rejection and stale-reference guidance. This
+prevents protection diagrams from presenting relationships that cannot be
+resolved within the authored play.

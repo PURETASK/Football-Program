@@ -184,6 +184,18 @@ def validate_assignment_graph(design: dict[str, Any]) -> list[dict[str, Any]]:
             issues.append(_issue("ASSIGNMENT-TARGET-ELEMENT", "Assignment target_element_id does not reference another assignment", f"{path}.target_element_id", suggestion="Relink the read or progression to an existing assignment."))
         if target_element == element_id:
             issues.append(_issue("ASSIGNMENT-SELF-TARGET", "An assignment cannot target itself", f"{path}.target_element_id"))
+        for relation_field, relation_code, relation_label in (
+            ("block_target_element_id", "ASSIGNMENT-BLOCK-TARGET-REF", "block target"),
+            ("block_partner_element_id", "ASSIGNMENT-BLOCK-PARTNER-REF", "combo partner"),
+            ("protection_target_element_id", "ASSIGNMENT-PROTECTION-THREAT-REF", "protection threat"),
+        ):
+            relation_target = element.get(relation_field)
+            if relation_target is None:
+                continue
+            if relation_target not in element_by_id:
+                issues.append(_issue(relation_code, f"Assignment {relation_field} does not reference an assignment in this design", f"{path}.{relation_field}", suggestion=f"Choose an existing assignment for the {relation_label}, or clear the stale reference."))
+            elif relation_target == element_id:
+                issues.append(_issue("ASSIGNMENT-SELF-RELATION", f"An assignment cannot reference itself as a {relation_label}", f"{path}.{relation_field}"))
 
         dependencies = element.get("depends_on", [])
         if dependencies is not None and not isinstance(dependencies, list):

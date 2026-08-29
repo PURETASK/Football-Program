@@ -285,6 +285,22 @@ class PlayCreationTests(unittest.TestCase):
         self.assertEqual(graph["nodes"][0]["blocking_primitive"], "pull")
         self.assertEqual(graph["nodes"][0]["protection_slide_direction"], "left")
 
+    def test_assignment_graph_validates_protection_relationship_references(self):
+        candidate = design()
+        candidate["elements"] = [{
+            "id": "BLOCK-1", "kind": "block", "blocking_primitive": "combo",
+            "block_target_element_id": "MISSING-TARGET",
+            "block_partner_element_id": "MISSING-PARTNER",
+            "protection_target_element_id": "BLOCK-1",
+        }, {
+            "id": "BLOCK-2", "kind": "block", "protection_target_element_id": "MISSING-THREAT",
+        }]
+        codes = {issue["code"] for issue in validate_assignment_graph(candidate)}
+        self.assertIn("ASSIGNMENT-BLOCK-TARGET-REF", codes)
+        self.assertIn("ASSIGNMENT-BLOCK-PARTNER-REF", codes)
+        self.assertIn("ASSIGNMENT-PROTECTION-THREAT-REF", codes)
+        self.assertIn("ASSIGNMENT-SELF-RELATION", codes)
+
     def test_assignment_graph_connects_protection_target_partner_and_threat_edges(self):
         candidate = normalize_timeline_design(design())
         candidate["assignment_model_version"] = "1.0"
