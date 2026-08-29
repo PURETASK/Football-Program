@@ -170,6 +170,19 @@ describe('DesignerInspector assignment graph controls', () => {
     expect(props.onElement).toHaveBeenCalledWith('ROUTE-X', expect.objectContaining({ branches: [expect.objectContaining({ id: 'BRANCH-X', points: [{ x: 30, y: 12 }, { x: 44, y: 12 }] })] }));
   });
 
+  it('creates and edits a named alternate route path from the route inspector', () => {
+    const props = inspectorProps();
+    const routeDesign = {
+      ...DESIGN,
+      unit: 'offense' as const,
+      players: [{ id: 'X', position: 'X', start: { x: 30, y: 26 } }],
+      elements: [{ id: 'ROUTE-X', kind: 'route', type: 'choice', player_id: 'X', points: [{ x: 30, y: 26 }, { x: 30, y: 12 }] }],
+    };
+    render(<DesignerInspector {...props} design={routeDesign} selected={[{ kind: 'element', id: 'ROUTE-X' }]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add alternate path' }));
+    expect(props.onElement).toHaveBeenCalledWith('ROUTE-X', expect.objectContaining({ phase: 'route', branches: [expect.objectContaining({ label: 'Alternate path 1', condition: 'If coverage or leverage changes', points: [{ x: 30, y: 26 }, { x: 38, y: 12 }] })] }));
+  });
+
   it('inserts a midpoint handle while keeping branch geometry editable', async () => {
     const props = inspectorProps();
     const routeDesign = {

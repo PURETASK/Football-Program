@@ -35,6 +35,7 @@ import type {
   PlayPlayer,
   PlayRuleProfile,
   PlayPreSnapStep,
+  RouteBranch,
   PlayTemplate,
   PlayMergeResult,
   PlayVersionHistory,
@@ -269,6 +270,49 @@ function OffensivePersonnelLegality({ design, onSelect }: Pick<InspectorProps, '
   </InspectorSection>;
 }
 
+function RouteBranchAuthoring({ element, onElement }: { element: PlayElement; onElement: (id: string, patch: Partial<PlayElement>) => void }) {
+  const branches = element.branches ?? [];
+  const primary = element.points ?? element.path ?? [];
+  const addBranch = () => {
+    if (primary.length < 2) return;
+    const start = primary[0];
+    const direction = start.x <= 50 ? 1 : -1;
+    const points = primary.map((point, index) => index === primary.length - 1
+      ? { ...point, x: Math.max(0, Math.min(100, point.x + direction * 8)) }
+      : { ...point });
+    const branch: RouteBranch = {
+      id: `${element.id}-PATH-${branches.length + 1}-${Date.now().toString(36).toUpperCase()}`,
+      label: `Alternate path ${branches.length + 1}`,
+      condition: 'If coverage or leverage changes',
+      points,
+      start_ms: element.start_ms,
+      end_ms: element.end_ms,
+      route_family: element.route_family,
+      stem_depth_yards: element.stem_depth_yards,
+      break_type: element.break_type,
+      break_depth_yards: element.break_depth_yards,
+      finish_direction: element.finish_direction,
+      option_rule: element.option_rule,
+    };
+    onElement(element.id, { phase: 'route', branches: [...branches, branch] });
+  };
+  const updateBranch = (id: string, patch: Partial<RouteBranch>) => onElement(element.id, { phase: 'route', branches: branches.map((branch) => branch.id === id ? { ...branch, ...patch } : branch) });
+  const removeBranch = (id: string) => onElement(element.id, { phase: 'route', branches: branches.filter((branch) => branch.id !== id) });
+  return <fieldset className="route-branch-authoring">
+    <legend>Alternate route paths</legend>
+    <p className="inspector-help">Add executable choice paths to the same player assignment. Each path keeps its own coaching label and decision condition while remaining editable on the canvas.</p>
+    <div className="route-branch-list" role="list" aria-label="Alternate route paths">
+      {branches.map((branch, index) => <div className="route-branch-row" role="listitem" key={branch.id}>
+        <div className="route-branch-row__heading"><strong>Path {index + 1}</strong><button className="icon-button" type="button" aria-label={`Remove alternate path ${index + 1}`} onClick={() => removeBranch(branch.id)}>×</button></div>
+        <label className="inspector-field"><span>Path label</span><input aria-label={`Path ${index + 1} label`} value={branch.label} onChange={(event) => updateBranch(branch.id, { label: event.target.value })} /></label>
+        <label className="inspector-field"><span>Decision condition</span><input aria-label={`Path ${index + 1} condition`} value={branch.condition} onChange={(event) => updateBranch(branch.id, { condition: event.target.value })} /></label>
+      </div>)}
+      {!branches.length ? <div className="comment-empty">No alternate paths yet. Add a choice, alert, or coverage-conversion path.</div> : null}
+    </div>
+    <button className="button button--secondary" type="button" disabled={primary.length < 2} onClick={addBranch}>Add alternate path</button>
+  </fieldset>;
+}
+
 function RotationSequencePanel({ design, onSelect }: Pick<InspectorProps, 'design' | 'onSelect'>) {
   const sequence = (design.elements ?? []).filter((element) => element.kind === 'rotation' || element.rotation_sequence !== undefined).sort((a, b) => (a.rotation_sequence ?? 999) - (b.rotation_sequence ?? 999));
   if (!sequence.length) return null;
@@ -407,6 +451,7 @@ function SelectionInspector({
           <CommitInput label="Crossing explanation" value={element.collision_note} onCommit={(value) => onElement(element.id, { collision_note: value })} />
           {collisionPairs.map((pair) => <small key={`${pair.firstId}-${pair.secondId}`} className={pair.intentional ? 'route-collision-note is-intentional' : 'route-collision-note'}>{pair.explanation} · Review window {`${(pair.overlapStartMs / 1000).toFixed(2)}–${(pair.overlapEndMs / 1000).toFixed(2)}s`}</small>)}
         </fieldset> : null}
+        {element.kind === 'route' ? <RouteBranchAuthoring element={element} onElement={onElement} /> : null}
         <Suspense fallback={<div className="assignment-fields-loading">Loading structured assignment controls…</div>}>
           <AssignmentGraphFields design={design} element={element} onElement={onElement} />
         </Suspense>

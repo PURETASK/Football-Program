@@ -1501,6 +1501,13 @@
 .route-collision-editor p, .route-collision-note { color: var(--muted); font-size: 11px; line-height: 1.45; }
 .route-collision-note { display: block; padding-top: 4px; }
 .route-collision-note.is-intentional { color: #9ee6bf; }
+.route-branch-authoring { display: grid; gap: 8px; margin: 4px 0 0; padding: 10px; border: 1px solid rgba(141, 232, 189, .2); border-radius: 12px; background: rgba(141, 232, 189, .045); }
+.route-branch-authoring legend { padding: 0 4px; color: #a5efc9; font-weight: 700; }
+.route-branch-authoring .inspector-help { margin: 0; }
+.route-branch-list { display: grid; gap: 6px; }
+.route-branch-row { display: grid; gap: 6px; padding: 7px; border: 1px solid rgba(141, 232, 189, .14); border-radius: 8px; background: rgba(0, 0, 0, .08); }
+.route-branch-row__heading { display: flex; align-items: center; justify-content: space-between; gap: 6px; color: #d7f8e7; font-size: 10px; }
+.route-branch-row__heading .icon-button { min-height: 24px; }
 
 .designer-coverage-shell { pointer-events: none; }
 .designer-coverage-shell rect { fill: rgb(255 181 71 / 0.08); stroke: rgb(255 181 71 / 0.34); stroke-width: .22; stroke-dasharray: 1.2 .8; }

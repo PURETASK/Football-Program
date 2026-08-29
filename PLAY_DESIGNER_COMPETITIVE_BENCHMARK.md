@@ -500,3 +500,11 @@ PDF paths can therefore render start-only, finish-only, both-end, or deliberate
 no-arrow semantics for primary and alternate paths. This removes a second
 local export mismatch; printer/device certification and deployment-scale PDF
 validation remain open acceptance work.
+
+Interactive branch authoring addendum — 2026-08-29: the route inspector now
+allows a coach to add, label, condition, and remove an executable alternate
+path directly on a selected route. New paths clone the authored route timing
+and semantic contract while diverging the finish geometry, then enter the
+normal reducer/save/version/validation/export pipeline. This closes the local
+UI gap between being able to edit an existing branch and being able to create
+one; multi-user convergence and production pilot evidence remain open.
