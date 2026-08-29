@@ -154,6 +154,91 @@
         {"key": "MLB-HOOK", "slot": "MLB", "kind": "coverage", "type": "hook", "coverage": "cover_3", "zone": "hook_middle", "arrow_style": "coverage", "objective": "Replace the interior pressure window", "exchange_with": "DT-L-TEX", "points": [{"dx": 0, "dy": 0}, {"dx": -4, "dy": -5}], "timing": {"start_ms": 0, "end_ms": 1550}},
         {"key": "FS-MIDDLE", "slot": "FS", "kind": "coverage", "type": "middle_third", "coverage": "cover_3", "zone": "deep_middle", "arrow_style": "coverage", "objective": "Own the middle third during the exchange", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -12}], "timing": {"start_ms": 0, "end_ms": 1700}}
       ]
+    },
+    {
+      "id": "TPL-OFF-SMASH-2X2", "name": "Smash 2x2", "unit": "offense", "template_kind": "concept_layer", "layer": "route_concept", "formation": "shotgun_2x2", "personnel": "11", "concept": "Smash", "version": "1.0.0", "status": "approved", "scope": "system",
+      "description": "Corner and hitch pairing that puts the corner defender in a high-low bind with a built-in backside access answer.", "tags": ["quick-game", "high-low", "red-zone"], "situations": ["2nd-and-short", "3rd-and-short", "red-zone"], "expected_companion_layers": ["protection"],
+      "coaching_points": ["Keep the hitch underneath the corner break.", "Quarterback confirms the corner defender before throwing the high or low window."],
+      "timeline": {"duration_ms": 2100, "markers": [{"id": "SMASH-CORNER", "label": "Read corner leverage", "kind": "read", "ms": 450}, {"id": "SMASH-WINDOW", "label": "High-low window", "kind": "cue", "ms": 1050}]},
+      "assignments": [
+        {"key": "X-HITCH", "slot": "X", "kind": "route", "type": "curl", "arrow_style": "route", "objective": "Sit underneath the corner", "depth_yards": 6, "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -7}, {"dx": -2, "dy": -6}], "timing": {"start_ms": 0, "end_ms": 1050}},
+        {"key": "Z-CORNER", "slot": "Z", "kind": "route", "type": "corner", "arrow_style": "route", "objective": "Break outside over the hitch", "depth_yards": 12, "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -11}, {"dx": 12, "dy": -16}], "timing": {"start_ms": 0, "end_ms": 1500}},
+        {"key": "H-SEAM", "slot": "H", "kind": "route", "type": "seam", "arrow_style": "route", "objective": "Hold the safety inside", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -18}], "timing": {"start_ms": 0, "end_ms": 1900}},
+        {"key": "Y-FLAT", "slot": "Y", "kind": "route", "type": "flat", "arrow_style": "route", "objective": "Stretch the flat defender", "points": [{"dx": 0, "dy": 0}, {"dx": 12, "dy": -5}], "timing": {"start_ms": 0, "end_ms": 950}},
+        {"key": "RB-CHECK", "slot": "RB", "kind": "block", "type": "scan", "arrow_style": "block", "objective": "Check protection before releasing", "points": [{"dx": 0, "dy": 0}, {"dx": -6, "dy": -4}], "timing": {"start_ms": 0, "end_ms": 1050}},
+        {"key": "QB-SMASH-READ", "slot": "QB", "kind": "read", "type": "corner_flat", "objective": "Read corner to hitch", "read_key": "corner defender", "target_element_key": "Z-CORNER", "timing": {"start_ms": 0, "end_ms": 1200}}
+      ]
+    },
+    {
+      "id": "TPL-OFF-STICK-TRIPS", "name": "Stick Spacing Trips", "unit": "offense", "template_kind": "concept_layer", "layer": "route_concept", "formation": "shotgun_trips", "personnel": "11", "concept": "Stick", "version": "1.0.0", "status": "approved", "scope": "system",
+      "description": "Fast stick, flat, and vertical spacing that gives the quarterback a defined apex read and a perimeter alert.", "tags": ["quick-game", "spacing", "third-down"], "situations": ["3rd-and-short", "2-minute"], "expected_companion_layers": ["protection"],
+      "coaching_points": ["Stick receiver throttles at the defender's leverage point.", "Flat route widens the apex before the quarterback confirms the stick window."],
+      "timeline": {"duration_ms": 1900, "markers": [{"id": "STICK-APEX", "label": "Apex defender declares", "kind": "read", "ms": 400}, {"id": "STICK-THROW", "label": "Access throw", "kind": "cue", "ms": 850}]},
+      "assignments": [
+        {"key": "Y-STICK", "slot": "Y", "kind": "route", "type": "choice", "arrow_style": "route", "objective": "Settle outside the apex", "depth_yards": 6, "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -6}, {"dx": 5, "dy": -6}], "timing": {"start_ms": 0, "end_ms": 1000}},
+        {"key": "H-FLAT", "slot": "H", "kind": "route", "type": "flat", "arrow_style": "route", "objective": "Stretch the apex defender", "points": [{"dx": 0, "dy": 0}, {"dx": 11, "dy": -4}], "timing": {"start_ms": 50, "end_ms": 1000}},
+        {"key": "Z-GO", "slot": "Z", "kind": "route", "type": "go", "arrow_style": "route", "objective": "Clear the coverage shell", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -24}], "timing": {"start_ms": 0, "end_ms": 2100}},
+        {"key": "X-SLANT", "slot": "X", "kind": "route", "type": "slant", "arrow_style": "route", "objective": "Provide the backside access answer", "points": [{"dx": 0, "dy": 0}, {"dx": -2, "dy": -7}, {"dx": -10, "dy": -10}], "timing": {"start_ms": 0, "end_ms": 1150}},
+        {"key": "RB-SCAN", "slot": "RB", "kind": "block", "type": "scan", "arrow_style": "block", "objective": "Scan inside-out, then release late", "points": [{"dx": 0, "dy": 0}, {"dx": -7, "dy": -4}], "timing": {"start_ms": 0, "end_ms": 1000}},
+        {"key": "QB-APEX-READ", "slot": "QB", "kind": "read", "type": "apex", "objective": "Read apex to stick or flat", "read_key": "apex defender", "target_element_key": "Y-STICK", "timing": {"start_ms": 0, "end_ms": 1000}}
+      ]
+    },
+    {
+      "id": "TPL-OFF-FOUR-VERTICALS", "name": "Four Verticals", "unit": "offense", "template_kind": "concept_layer", "layer": "route_concept", "formation": "shotgun_2x2", "personnel": "10", "concept": "Four Verticals", "version": "1.0.0", "status": "approved", "scope": "system",
+      "description": "Four vertical threats with seam-read rules and a backfield check release for a complete-field stress call.", "tags": ["dropback", "vertical", "middle-field"], "situations": ["1st-and-10", "2nd-and-long", "2-minute"], "expected_companion_layers": ["protection"],
+      "coaching_points": ["Seams stay on the numbers until the safety declares.", "Quarterback identifies the middle-field safety and works the matchup with leverage."],
+      "timeline": {"duration_ms": 3000, "markers": [{"id": "VERT-MOF", "label": "Middle safety declares", "kind": "read", "ms": 650}, {"id": "VERT-SEAM", "label": "Seam window", "kind": "cue", "ms": 1550}]},
+      "assignments": [
+        {"key": "X-VERTICAL", "slot": "X", "kind": "route", "type": "go", "arrow_style": "route", "objective": "Win the boundary vertical", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -27}], "timing": {"start_ms": 0, "end_ms": 2700}},
+        {"key": "H-SEAM", "slot": "H", "kind": "route", "type": "seam", "arrow_style": "route", "objective": "Read the near safety", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -25}], "timing": {"start_ms": 0, "end_ms": 2600}},
+        {"key": "Y-SEAM", "slot": "Y", "kind": "route", "type": "seam", "arrow_style": "route", "objective": "Read the far safety", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -25}], "timing": {"start_ms": 0, "end_ms": 2600}},
+        {"key": "Z-VERTICAL", "slot": "Z", "kind": "route", "type": "go", "arrow_style": "route", "objective": "Win the field vertical", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -27}], "timing": {"start_ms": 0, "end_ms": 2700}},
+        {"key": "RB-CHECK", "slot": "RB", "kind": "block", "type": "scan", "arrow_style": "block", "objective": "Check edge pressure and release", "points": [{"dx": 0, "dy": 0}, {"dx": -7, "dy": -4}], "timing": {"start_ms": 0, "end_ms": 1300}},
+        {"key": "QB-MOF-READ", "slot": "QB", "kind": "read", "type": "middle_field", "objective": "Read middle-field safety to seam", "read_key": "middle-field safety", "target_element_key": "H-SEAM", "timing": {"start_ms": 0, "end_ms": 1900}}
+      ]
+    },
+    {
+      "id": "TPL-OFF-POWER-O", "name": "Power O", "unit": "offense", "template_kind": "complete_call", "layer": "run_concept", "formation": "i_formation", "personnel": "21", "concept": "Power O", "version": "1.0.0", "status": "approved", "scope": "system",
+      "description": "Downhill gap scheme with a backside guard pull and a fullback kick-out responsibility.", "tags": ["run", "gap", "short-yardage"], "situations": ["early-down", "short-yardage", "goal-line"], "expected_companion_layers": [],
+      "coaching_points": ["Back presses the inside hip of the puller.", "Puller identifies force first; fullback fits the first color outside-in."],
+      "timeline": {"duration_ms": 1700, "markers": [{"id": "POWER-MESH", "label": "Mesh and press", "kind": "handoff", "ms": 400}, {"id": "POWER-POINT", "label": "Puller reaches point", "kind": "cue", "ms": 950}]},
+      "assignments": [
+        {"key": "RB-POWER", "slot": "RB", "kind": "run", "type": "power", "arrow_style": "run", "objective": "Press the play-side A gap and bend", "points": [{"dx": 0, "dy": 0}, {"dx": -4, "dy": 3}, {"dx": -10, "dy": -14}], "timing": {"start_ms": 0, "end_ms": 1450}},
+        {"key": "LG-PULL", "slot": "LG", "kind": "block", "type": "pull", "arrow_style": "block", "objective": "Pull and kick the first force threat", "points": [{"dx": 0, "dy": 0}, {"dx": 8, "dy": 3}, {"dx": 13, "dy": -8}], "timing": {"start_ms": 0, "end_ms": 1100}},
+        {"key": "H-KICK", "slot": "H", "kind": "block", "type": "kick", "arrow_style": "block", "objective": "Kick the edge defender", "points": [{"dx": 0, "dy": 0}, {"dx": 10, "dy": -4}], "timing": {"start_ms": 150, "end_ms": 1050}},
+        {"key": "LT-DOWN", "slot": "LT", "kind": "block", "type": "down", "arrow_style": "block", "objective": "Down block the interior threat", "gap": "B", "points": [{"dx": 0, "dy": 0}, {"dx": -5, "dy": -5}], "timing": {"start_ms": 0, "end_ms": 850}},
+        {"key": "Y-SPLIT", "slot": "Y", "kind": "block", "type": "split", "arrow_style": "block", "objective": "Split the backside edge", "points": [{"dx": 0, "dy": 0}, {"dx": 8, "dy": 4}], "timing": {"start_ms": 0, "end_ms": 800}},
+        {"key": "QB-POWER-READ", "slot": "QB", "kind": "read", "type": "edge_constraint", "objective": "Confirm the backside edge", "read_key": "backside end", "target_element_key": "Y-SPLIT", "timing": {"start_ms": 0, "end_ms": 650}}
+      ]
+    },
+    {
+      "id": "TPL-DEF-C1-ROBBER", "name": "Cover 1 Robber", "unit": "defense", "template_kind": "complete_call", "layer": "coverage", "formation": "4-2-5_over", "front": "4-2-5_over", "coverage": "cover_1", "personnel": "nickel", "concept": "Cover 1 Robber", "version": "1.0.0", "status": "approved", "scope": "system",
+      "description": "Single-high man coverage with a low-hole robber and declared edge contain responsibilities.", "tags": ["man", "robber", "third-down"], "situations": ["3rd-and-medium", "red-zone"], "expected_companion_layers": ["rush"],
+      "coaching_points": ["Robber keys the quarterback through the release of the first crosser.", "Corners maintain leverage and the post safety stays deeper than the deepest threat."],
+      "timeline": {"duration_ms": 2400, "markers": [{"id": "ROB-QB", "label": "Robber keys QB", "kind": "read", "ms": 500}, {"id": "ROB-CROSS", "label": "Drive first crosser", "kind": "cue", "ms": 900}]},
+      "assignments": [
+        {"key": "FS-POST", "slot": "FS", "kind": "coverage", "type": "post", "coverage": "cover_1", "zone": "deep_middle", "arrow_style": "coverage", "objective": "Stay over the top", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -14}], "timing": {"start_ms": 0, "end_ms": 2300}},
+        {"key": "MLB-ROBBER", "slot": "MLB", "kind": "coverage", "type": "robber", "coverage": "cover_1", "zone": "low_middle", "arrow_style": "coverage", "objective": "Cut the first crosser", "read_key": "QB through crosser", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -5}, {"dx": -7, "dy": -8}], "timing": {"start_ms": 0, "end_ms": 1800}},
+        {"key": "CBL-MAN", "slot": "CB-L", "kind": "coverage", "type": "man", "coverage": "cover_1", "arrow_style": "coverage", "objective": "Man the X receiver", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -10}], "timing": {"start_ms": 0, "end_ms": 2200}},
+        {"key": "CBR-MAN", "slot": "CB-R", "kind": "coverage", "type": "man", "coverage": "cover_1", "arrow_style": "coverage", "objective": "Man the Z receiver", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": -10}], "timing": {"start_ms": 0, "end_ms": 2200}},
+        {"key": "NB-MAN", "slot": "NB", "kind": "coverage", "type": "man", "coverage": "cover_1", "arrow_style": "coverage", "objective": "Match the slot release", "points": [{"dx": 0, "dy": 0}, {"dx": -3, "dy": -9}], "timing": {"start_ms": 0, "end_ms": 2100}},
+        {"key": "DE-L-CONTAIN", "slot": "DE-L", "kind": "rush", "type": "contain", "arrow_style": "rush", "objective": "Keep the quarterback inside", "points": [{"dx": 0, "dy": 0}, {"dx": -1, "dy": 13}], "timing": {"start_ms": 0, "end_ms": 1700}},
+        {"key": "DE-R-CONTAIN", "slot": "DE-R", "kind": "rush", "type": "contain", "arrow_style": "rush", "objective": "Keep the quarterback inside", "points": [{"dx": 0, "dy": 0}, {"dx": 1, "dy": 13}], "timing": {"start_ms": 0, "end_ms": 1700}}
+      ]
+    },
+    {
+      "id": "TPL-DEF-C2-TRAP", "name": "Cover 2 Trap", "unit": "defense", "template_kind": "complete_call", "layer": "coverage", "formation": "nickel", "front": "nickel", "coverage": "cover_2", "personnel": "nickel", "concept": "Cover 2 Trap", "version": "1.0.0", "status": "approved", "scope": "system",
+      "description": "Two-high corner trap with flat defender aggression and a defined safety midpoint responsibility.", "tags": ["zone", "trap", "quick-game"], "situations": ["1st-and-10", "2nd-and-short", "red-zone"], "expected_companion_layers": ["rush"],
+      "coaching_points": ["Corner traps the first out-breaking route only when the safety can overlap the vertical.", "Flat defender communicates the out-and-up before triggering downhill."],
+      "timeline": {"duration_ms": 2300, "markers": [{"id": "TRAP-OUT", "label": "Out route declares", "kind": "read", "ms": 550}, {"id": "TRAP-DRIVE", "label": "Corner drives", "kind": "cue", "ms": 850}]},
+      "assignments": [
+        {"key": "FS-HALF", "slot": "FS", "kind": "coverage", "type": "half", "coverage": "cover_2", "zone": "deep_left", "arrow_style": "coverage", "objective": "Overlap the corner trap", "points": [{"dx": 0, "dy": 0}, {"dx": -12, "dy": -11}], "timing": {"start_ms": 0, "end_ms": 2200}},
+        {"key": "SS-HALF", "slot": "SS", "kind": "coverage", "type": "half", "coverage": "cover_2", "zone": "deep_right", "arrow_style": "coverage", "objective": "Overlap the corner trap", "points": [{"dx": 0, "dy": 0}, {"dx": 12, "dy": -11}], "timing": {"start_ms": 0, "end_ms": 2200}},
+        {"key": "CBL-TRAP", "slot": "CB-L", "kind": "coverage", "type": "trap", "coverage": "cover_2", "zone": "flat_left", "arrow_style": "coverage", "objective": "Trap the first out-breaking route", "read_key": "number one out", "points": [{"dx": 0, "dy": 0}, {"dx": -9, "dy": 4}], "timing": {"start_ms": 0, "end_ms": 1700}},
+        {"key": "CBR-FLAT", "slot": "CB-R", "kind": "coverage", "type": "flat", "coverage": "cover_2", "zone": "flat_right", "arrow_style": "coverage", "objective": "Own the field flat", "points": [{"dx": 0, "dy": 0}, {"dx": 9, "dy": 4}], "timing": {"start_ms": 0, "end_ms": 1700}},
+        {"key": "MLB-HOOK", "slot": "MLB", "kind": "coverage", "type": "hook", "coverage": "cover_2", "zone": "hook_middle", "arrow_style": "coverage", "objective": "Wall inside routes", "points": [{"dx": 0, "dy": 0}, {"dx": -3, "dy": -5}], "timing": {"start_ms": 0, "end_ms": 1800}},
+        {"key": "NB-RUSH", "slot": "NB", "kind": "rush", "type": "edge", "arrow_style": "rush", "objective": "Rush the passing strength", "gap": "C", "points": [{"dx": 0, "dy": 0}, {"dx": -4, "dy": 13}], "timing": {"start_ms": 0, "end_ms": 1600}}
+      ]
     }
   ]
 }

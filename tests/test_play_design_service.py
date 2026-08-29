@@ -46,6 +46,8 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertTrue(any("jet" in alias for item in service.assets(query="jet") for alias in item.get("aliases", [])))
         templates = {item["id"]: item for item in service.templates()}
         self.assertTrue({"TPL-OFF-EMPTY-QUICK", "TPL-OFF-COUNTER-GT", "TPL-DEF-TEX-ET"}.issubset(templates))
+        self.assertTrue({"TPL-OFF-SMASH-2X2", "TPL-OFF-STICK-TRIPS", "TPL-OFF-FOUR-VERTICALS", "TPL-OFF-POWER-O", "TPL-DEF-C1-ROBBER", "TPL-DEF-C2-TRAP"}.issubset(templates))
+        self.assertGreaterEqual(len(templates), 17)
         self.assertEqual(templates["TPL-OFF-EMPTY-QUICK"]["formation"], "shotgun_empty")
         self.assertEqual(templates["TPL-OFF-COUNTER-GT"]["assignments"][1]["type"], "pull")
         tex = templates["TPL-DEF-TEX-ET"]

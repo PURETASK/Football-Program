@@ -205,9 +205,10 @@ accessibility metadata, lifecycle metadata, and replacement safety. The
 existing palette, compatibility scoring, alias search, lifecycle filtering,
 thumbnails, templates, and position toolkit consume the same registry.
 
-Concept template addendum (2026-08-28): the reusable system template catalog now
-contains 11 approved concept/protection/coverage/pressure templates. The new
-templates add Empty Quick Choice, Counter GT, and TEX / ET Exchange with
+Concept template addendum (2026-08-29): the reusable system template catalog now
+contains 17 approved concept/protection/coverage/pressure templates. The new
+templates add Empty Quick Choice, Counter GT, TEX / ET Exchange, Smash, Stick,
+Four Verticals, Power O, Cover 1 Robber, and Cover 2 Trap with
 assignments, partner-aware exchange fields, timing markers, coaching points,
 situation tags, and companion-layer metadata. Template loading and materializer
 tests confirm these entries are available to the organization-scoped editor;
