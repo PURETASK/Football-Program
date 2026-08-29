@@ -79,6 +79,18 @@ describe('play designer editor state', () => {
     expect(state.past).toHaveLength(1);
   });
 
+  it('gives duplicated grouped packages a new group identity', () => {
+    const source = design();
+    source.players![0].group_id = 'GROUP-ORIGINAL';
+    source.elements![0].group_id = 'GROUP-ORIGINAL';
+    let state = createEditorState(source);
+    state = editorReducer(state, { type: 'select', selection: { kind: 'player', id: 'X' } });
+    state = editorReducer(state, { type: 'duplicate_selected' });
+    expect(state.present.players?.[1].group_id).toMatch(/^GROUP-ORIGINAL-COPY/);
+    expect(state.present.elements?.[1].group_id).toBe(state.present.players?.[1].group_id);
+    expect(state.present.elements?.[0].group_id).toBe('GROUP-ORIGINAL');
+  });
+
   it('mirrors selected geometry across the field centerline', () => {
     let state = createEditorState(design());
     state = editorReducer(state, { type: 'select', selection: { kind: 'player', id: 'X' } });

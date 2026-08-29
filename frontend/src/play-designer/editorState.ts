@@ -111,6 +111,22 @@ function uniqueCopyId(base: string, existing: Set<string>): string {
   return candidate;
 }
 
+function copyGroupMap(groups: Iterable<string | undefined>): Map<string, string> {
+  const existing = new Set<string>();
+  const map = new Map<string, string>();
+  for (const group of groups) {
+    if (!group || map.has(group)) continue;
+    const copied = uniqueCopyId(group, existing);
+    existing.add(copied);
+    map.set(group, copied);
+  }
+  return map;
+}
+
+function elementGroupId(element: PlayElement): string | undefined {
+  return typeof element.group_id === 'string' ? element.group_id : undefined;
+}
+
 const ALIGNMENT_KEYS = ['CB-L', 'CB-R', 'DE-L', 'DE-R', 'DT-L', 'DT-R', 'MLB', 'WLB', 'NB', 'FS', 'SS', 'QB', 'RB', 'LT', 'LG', 'RT', 'RG', 'X', 'Y', 'Z', 'H', 'C'];
 
 function playerAlignmentKey(player: PlayPlayer): string | undefined {
@@ -315,6 +331,7 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
       });
       const selectedElementIds = new Set(state.selected.filter((item) => item.kind === 'element').map((item) => item.id));
       const copiedSourceElements = (state.present.elements ?? []).filter((element) => selectedElementIds.has(element.id) || playerIdMap.has(element.player_id ?? ''));
+      const groupMap = copyGroupMap([...playerCopies.map((player) => player.group_id), ...copiedSourceElements.map(elementGroupId)]);
       const elementIdMap = new Map<string, string>();
       copiedSourceElements.forEach((element) => {
         const id = uniqueCopyId(element.id, existingElementIds);
@@ -324,15 +341,17 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
       const elementCopies = copiedSourceElements.map((element) => {
         const id = elementIdMap.get(element.id)!;
         const copy = remapElementReferences(translateElementGeometry(clone(element), { x: 3, y: 3 }, state.snap), elementIdMap);
-        return { ...copy, id, player_id: playerIdMap.get(element.player_id ?? '') ?? element.player_id };
+        const groupId = elementGroupId(element);
+        return { ...copy, id, group_id: groupMap.get(groupId ?? '') ?? groupId, player_id: playerIdMap.get(element.player_id ?? '') ?? element.player_id };
       });
+      const copiedPlayers = playerCopies.map((player) => ({ ...player, group_id: groupMap.get(player.group_id ?? '') ?? player.group_id }));
       const next = {
         ...state.present,
-        players: [...(state.present.players ?? []), ...playerCopies],
+        players: [...(state.present.players ?? []), ...copiedPlayers],
         elements: [...(state.present.elements ?? []), ...elementCopies],
       };
       const selected: EditorSelection[] = [
-        ...playerCopies.map((player) => ({ kind: 'player' as const, id: player.id })),
+        ...copiedPlayers.map((player) => ({ kind: 'player' as const, id: player.id })),
         ...elementCopies.map((element) => ({ kind: 'element' as const, id: element.id })),
       ];
       return commit(state, next, selected);
@@ -361,12 +380,15 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
         existingElementIds.add(id);
         elementIdMap.set(element.id, id);
       });
+      const groupMap = copyGroupMap([...state.clipboard.players.map((player) => player.group_id), ...state.clipboard.elements.map(elementGroupId)]);
       const elements = state.clipboard.elements.map((element) => {
         const copy = remapElementReferences(translateElementGeometry(clone(element), { x: 3, y: 3 }, state.snap), elementIdMap);
-        return { ...copy, id: elementIdMap.get(element.id)!, player_id: playerIdMap.get(element.player_id ?? '') ?? element.player_id };
+        const groupId = elementGroupId(element);
+        return { ...copy, id: elementIdMap.get(element.id)!, group_id: groupMap.get(groupId ?? '') ?? groupId, player_id: playerIdMap.get(element.player_id ?? '') ?? element.player_id };
       });
-      const next = { ...state.present, players: [...(state.present.players ?? []), ...players], elements: [...(state.present.elements ?? []), ...elements] };
-      return commit(state, next, [...players.map((player) => ({ kind: 'player' as const, id: player.id })), ...elements.map((element) => ({ kind: 'element' as const, id: element.id }))]);
+      const copiedPlayers = players.map((player) => ({ ...player, group_id: groupMap.get(player.group_id ?? '') ?? player.group_id }));
+      const next = { ...state.present, players: [...(state.present.players ?? []), ...copiedPlayers], elements: [...(state.present.elements ?? []), ...elements] };
+      return commit(state, next, [...copiedPlayers.map((player) => ({ kind: 'player' as const, id: player.id })), ...elements.map((element) => ({ kind: 'element' as const, id: element.id }))]);
     }
     case 'mirror_selected': {
       const selectedPlayers = new Set(state.selected.filter((item) => item.kind === 'player').map((item) => item.id));
