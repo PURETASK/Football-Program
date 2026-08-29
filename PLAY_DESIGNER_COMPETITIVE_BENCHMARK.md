@@ -380,3 +380,9 @@ fail-closed where a local adoption rule source is missing. This is a local
 correctness improvement, not evidence of complete NFL/NCAA/NFHS/youth/flag
 rulebook coverage; authoritative adoption, officiating review, and deployment
 testing remain open.
+
+Asset catalog integrity addendum — 2026-08-29: the palette registry gate now
+requires all 13 authoring families and rejects missing replacement targets or
+malformed compatibility metadata. The 128-asset canonical catalog passes this
+contract; organization-scale catalog governance and deployment validation
+remain open.

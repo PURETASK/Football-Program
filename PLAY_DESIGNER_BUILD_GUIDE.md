@@ -1201,6 +1201,16 @@ requiring local rule sources. Verification: focused Play Designer creation,
 service, API, and export suites pass; adopted local rulebooks and field-level
 official review remain required for production use.
 
+### Implementation addendum — hardened asset catalog contract (2026-08-29)
+
+The registry gate now requires every professional authoring family, including
+motion and blocking, and validates replacement references plus compatibility
+metadata shapes. Deprecated or retired assets cannot point to a missing
+replacement, and malformed formation, personnel, or rule-profile lists are
+rejected before palette consumption. Verification: the canonical 128-asset
+registry passes the hardened contract and the full Python suite passes; managed
+organization catalog operations remain an external production concern.
+
 ### Implementation addendum — defensive responsibility validation (2026-08-28)
 
 The Checks panel now supplements authoritative server legality with explainable

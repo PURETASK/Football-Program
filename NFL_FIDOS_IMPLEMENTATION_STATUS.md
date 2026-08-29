@@ -461,3 +461,11 @@ source/rule-reference display in the inspector. A bounded fallback keeps the
 editor usable during loading or offline recovery, while server legality remains
 authoritative. Focused API and inspector coverage passes; deployment-network,
 browser, accessibility, and locally adopted rulebook validation remain open.
+
+Asset registry contract addendum (2026-08-29): the professional catalog
+validator now requires all 13 authoring families, including motion and block,
+and rejects orphaned deprecated/retired replacement references or malformed
+formation, personnel, and rule-profile compatibility lists before they reach
+the editor palette. The canonical 128-asset registry passes the hardened
+contract; organization-specific catalog administration and deployment-scale
+validation remain open.
