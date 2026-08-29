@@ -114,4 +114,16 @@ describe('DesignerTimeline', () => {
     fireEvent.change(screen.getByLabelText('Synchronized event 1 path'), { target: { value: 'BR-1' } });
     expect(onUpdateTimeline).toHaveBeenCalledWith(expect.objectContaining({ events: [expect.objectContaining({ id: 'READ-EVENT', branch_id: 'BR-1' })] }));
   });
+
+  it('retargets an existing narration cue to an alternate route path', () => {
+    const onUpdateTimeline = vi.fn();
+    const design = {
+      ...DESIGN,
+      elements: [{ ...DESIGN.elements![0], branches: [{ id: 'BR-1', label: 'Convert out', condition: 'If corner squats', points: [{ x: 30, y: 10 }, { x: 45, y: 12 }] }] }],
+    };
+    render(<DesignerTimeline design={design} selectedElement={design.elements?.[0]} playbackTime={500} onPlaybackTime={vi.fn()} onAddMarker={vi.fn()} onSelectElement={vi.fn()} onUpdateTimeline={onUpdateTimeline} />);
+    fireEvent.click(screen.getByRole('button', { name: /Tracks/i }));
+    fireEvent.change(screen.getByLabelText('Narration N-1 path'), { target: { value: 'BR-1' } });
+    expect(onUpdateTimeline).toHaveBeenCalledWith(expect.objectContaining({ narration: [expect.objectContaining({ id: 'N-1', branch_id: 'BR-1' })] }));
+  });
 });

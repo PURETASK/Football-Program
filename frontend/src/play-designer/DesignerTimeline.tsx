@@ -276,6 +276,7 @@ export function DesignerTimeline({ design, selectedElement, playbackTime, onPlay
             <div className="timeline-editor-list">{narration.map((cue) => <div className="timeline-editor-row timeline-editor-row--narration" key={cue.id}>
               <input aria-label="Narration role" value={cue.role ?? 'coach'} onChange={(event) => updateNarration(cue.id, { role: event.target.value })} />
               <input aria-label="Narration text" value={cue.text} onChange={(event) => updateNarration(cue.id, { text: event.target.value })} />
+              {selectedElement?.branches?.length ? <select aria-label={`Narration ${cue.id} path`} value={cue.branch_id ?? ''} onChange={(event) => updateNarration(cue.id, { branch_id: event.target.value || undefined })}><option value="">Primary path</option>{selectedElement.branches.map((branch) => <option value={branch.id} key={branch.id}>{branch.label}</option>)}</select> : null}
               <input aria-label="Narration start" type="number" min={timelineStart} max={duration} value={cue.start_ms} onChange={(event) => updateNarration(cue.id, { start_ms: Number(event.target.value) })} />
               <input aria-label="Narration end" type="number" min={timelineStart + 1} max={duration} value={cue.end_ms} onChange={(event) => updateNarration(cue.id, { end_ms: Number(event.target.value) })} />
               <button type="button" aria-label="Delete narration cue" onClick={() => updateTimeline({ narration: narration.filter((item) => item.id !== cue.id) })}><Trash2 size={14} /></button>

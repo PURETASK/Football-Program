@@ -517,3 +517,10 @@ block/rush-exchange cues and keeps their element reference and timing intact
 while changing only the branch context. The control is covered by the React
 timeline suite; server transport ordering and production multi-user evidence
 remain open.
+
+Narration branch-retargeting addendum — 2026-08-29: existing narration cues
+now expose the same primary/alternate path selector when a route with branches
+is selected. A coach can retarget the spoken teaching explanation without
+recreating the cue or changing its timing, preserving synchronized playback
+and accessible export context. This is local editor evidence; production
+voice delivery and multi-user convergence remain open.
