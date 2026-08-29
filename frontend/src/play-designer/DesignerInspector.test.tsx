@@ -180,7 +180,7 @@ describe('DesignerInspector assignment graph controls', () => {
     render(<DesignerInspector {...props} design={routeDesign} selected={[{ kind: 'element', id: 'ROUTE-X' }]} />);
     fireEvent.click(await screen.findByText('Precise path geometry · 2 handles'));
     fireEvent.click(screen.getAllByRole('button', { name: 'Insert after' })[0]);
-    expect(props.onElement).toHaveBeenCalledWith('ROUTE-X', expect.objectContaining({ branches: [expect.objectContaining({ points: [{ x: 30, y: 12 }, { x: 39, y: 12 }, { x: 48, y: 12 }] })] }));
+    expect(props.onElement).toHaveBeenCalledWith('ROUTE-X', expect.objectContaining({ phase: 'route', branches: [expect.objectContaining({ points: [{ x: 30, y: 12 }, { x: 39, y: 12 }, { x: 48, y: 12 }] })] }));
   });
 
   it('surfaces incomplete blocking relationships in the Checks panel', () => {

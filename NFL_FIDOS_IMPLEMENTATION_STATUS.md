@@ -637,3 +637,12 @@ landmark metadata to the looping side; the assignment graph warns when either
 required responsibility is missing. This makes the exchange actionable for
 timeline, teaching, and export consumers; organization-specific lane language
 and live coordinator review remain pending.
+
+Alternate route geometry integrity addendum (2026-08-29): exact coordinate
+edits, midpoint insertion, and handle removal in the inspector now use the
+same branch geometry synchronizer as canvas edits. Alternate paths preserve
+inherited route family, break, finish, and timing semantics while recomputing
+stem/break depth metadata after a geometry change, preventing branch contracts
+from drifting before validation, teaching, or export. Focused inspector and
+route-authoring regression coverage passes; device-level and organization
+workflow certification remain pending.
