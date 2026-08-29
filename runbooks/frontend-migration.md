@@ -214,6 +214,12 @@ situation tags, and companion-layer metadata. Template loading and materializer
 tests confirm these entries are available to the organization-scoped editor;
 organization-specific templates remain separately persisted and governed.
 
+Template integrity addendum (2026-08-29): system template loading now fails
+closed when assignment timing bounds, timeline duration/markers, or
+partner/dependency/target references are malformed. Duplicate timeline marker
+IDs, missing marker metadata, out-of-window markers, and unknown defensive
+exchange partners are covered by the Play Designer service regression suite.
+
 Local runtime readiness addendum (2026-08-28): a browser smoke pass against the
 running local application verified Film Room rendering, Playbook routing, and
 the protected Play Designer organization-session boundary with no console

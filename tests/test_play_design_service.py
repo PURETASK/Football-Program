@@ -3,6 +3,7 @@ from copy import deepcopy
 import json
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from src.nfl_fidos.play_design_service import PlayDesignService, load_asset_registry, validate_asset_registry
 from src.nfl_fidos.play_design_versioning import build_snapshot, verify_design_integrity, verify_release_integrity
@@ -61,6 +62,32 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertTrue({"formation", "route", "protection", "run", "front", "coverage", "pressure", "stunt", "rotation", "check", "teaching"}.issubset(set(report["categories"])))
         terms = {asset["term"] for asset in load_asset_registry()}
         self.assertTrue({"under", "odd", "nickel", "dime", "tampa_2", "match_3", "quarters", "overload", "green_dog", "spin_rotation", "reach", "trap", "full_slide", "screen"}.issubset(terms))
+
+    def test_concept_template_loader_rejects_invalid_timeline_and_exchange_references(self):
+        temporary = tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w", encoding="utf-8")
+        try:
+            invalid = {
+                "id": "TPL-INVALID", "name": "Invalid", "unit": "defense", "front": "4-2-5_over",
+                "assignments": [{"key": "A", "kind": "stunt", "partner_id": "MISSING", "timing": {"start_ms": 500, "end_ms": 100}}],
+                "timeline": {"duration_ms": 1000, "markers": [{"id": "DUP", "label": "One", "kind": "cue", "ms": 100}, {"id": "DUP", "label": "Two", "kind": "cue", "ms": 200}]},
+            }
+            json.dump({"templates": [invalid]}, temporary)
+            temporary.close()
+            from src.nfl_fidos import play_design_service as module
+            with patch.object(module, "CONCEPT_TEMPLATES_PATH", Path(temporary.name)):
+                with self.assertRaisesRegex(ValueError, "invalid timing bounds"):
+                    module.load_concept_templates()
+                invalid["assignments"][0]["timing"] = {"start_ms": 0, "end_ms": 100}
+                Path(temporary.name).write_text(json.dumps({"templates": [invalid]}), encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "unknown assignment key"):
+                    module.load_concept_templates()
+                invalid["assignments"][0]["partner_id"] = "A"
+                Path(temporary.name).write_text(json.dumps({"templates": [invalid]}), encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "duplicate timeline marker"):
+                    module.load_concept_templates()
+            json.loads(Path(temporary.name).read_text(encoding="utf-8"))
+        finally:
+            Path(temporary.name).unlink(missing_ok=True)
 
     def test_saved_design_can_be_captured_as_org_scoped_relative_template(self):
         service = self.service()

@@ -179,9 +179,37 @@ def load_concept_templates() -> list[dict[str, Any]]:
             raise ValueError(f"Concept template {template_id} requires unique assignment keys")
         known_keys = set(assignment_keys)
         for assignment in assignments:
-            for reference in [*(assignment.get("depends_on") or []), assignment.get("exchange_with"), assignment.get("target_element_key")]:
+            timing = assignment.get("timing")
+            if timing is not None:
+                if not isinstance(timing, dict):
+                    raise ValueError(f"Concept template {template_id} assignment {assignment.get('key')} timing must be an object")
+                start_ms, end_ms = timing.get("start_ms"), timing.get("end_ms")
+                if not isinstance(start_ms, (int, float)) or isinstance(start_ms, bool) or not isinstance(end_ms, (int, float)) or isinstance(end_ms, bool) or start_ms > end_ms:
+                    raise ValueError(f"Concept template {template_id} assignment {assignment.get('key')} has invalid timing bounds")
+            for reference in [*(assignment.get("depends_on") or []), assignment.get("exchange_with"), assignment.get("partner_id"), assignment.get("target_element_key")]:
                 if reference and reference not in known_keys:
                     raise ValueError(f"Concept template {template_id} references unknown assignment key: {reference}")
+        timeline = template.get("timeline")
+        if timeline is not None:
+            if not isinstance(timeline, dict):
+                raise ValueError(f"Concept template {template_id} timeline must be an object")
+            duration_ms = timeline.get("duration_ms")
+            if not isinstance(duration_ms, (int, float)) or isinstance(duration_ms, bool) or duration_ms <= 0:
+                raise ValueError(f"Concept template {template_id} requires a positive timeline duration")
+            markers = timeline.get("markers", [])
+            if not isinstance(markers, list):
+                raise ValueError(f"Concept template {template_id} timeline markers must be an array")
+            marker_ids: set[str] = set()
+            for marker in markers:
+                if not isinstance(marker, dict) or not str(marker.get("id", "")).strip() or not str(marker.get("label", "")).strip() or not str(marker.get("kind", "")).strip():
+                    raise ValueError(f"Concept template {template_id} timeline markers require id, label, and kind")
+                marker_id = str(marker["id"])
+                if marker_id in marker_ids:
+                    raise ValueError(f"Concept template {template_id} has duplicate timeline marker id: {marker_id}")
+                marker_ids.add(marker_id)
+                marker_ms = marker.get("ms")
+                if not isinstance(marker_ms, (int, float)) or isinstance(marker_ms, bool) or marker_ms < -10000 or marker_ms > duration_ms:
+                    raise ValueError(f"Concept template {template_id} timeline marker {marker_id} is outside the supported timing window")
         alignment_term = template.get("front") if unit == "defense" else template.get("formation")
         alignment_category = "front" if unit == "defense" else "formation"
         alignment = alignments.get((unit, alignment_category, str(alignment_term)))

@@ -151,6 +151,16 @@ implemented locally, but they still require production-scale administration
 and real-team pilot evidence before they can be considered operationally
 complete.
 
+## Template integrity addendum — 2026-08-29
+
+The canonical template loader now performs pre-editor integrity checks for
+assignment timing bounds, timeline duration, marker metadata, duplicate marker
+identities, and all partner/dependency/target references. Defensive exchange
+partners therefore cannot silently point at a missing assignment, and timeline
+markers cannot collide or fall outside the supported pre-snap/play window.
+Invalid catalog records fail closed during load and are covered by regression
+tests alongside the 17 approved system templates.
+
 The local quality suite now includes a deterministic two-editor convergence
 rehearsal. It proves that disjoint formation/assignment edits converge to the
 same checksum regardless of merge order and that overlapping edits preserve a
