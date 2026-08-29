@@ -524,3 +524,11 @@ is selected. A coach can retarget the spoken teaching explanation without
 recreating the cue or changing its timing, preserving synchronized playback
 and accessible export context. This is local editor evidence; production
 voice delivery and multi-user convergence remain open.
+
+Narration branch-validation addendum — 2026-08-29: the server timeline
+validator now treats narration `branch_id` as a release-critical reference.
+It rejects unknown branches, rejects ambiguous duplicate branch identifiers,
+and emits an explainable timing warning when a narration cue falls outside the
+referenced alternate path window. This keeps teaching narration aligned with
+the executable route model across save, validation, and export flows; live
+organization policy and production renderer verification remain open.

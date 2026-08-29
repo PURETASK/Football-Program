@@ -195,6 +195,35 @@ class PlayCreationTests(unittest.TestCase):
         codes = {issue["code"] for issue in validate_timeline(candidate)}
         self.assertIn("TIMELINE-EVENT-BRANCH-WINDOW", codes)
 
+    def test_timeline_narration_requires_existing_unique_branch_and_matching_window(self):
+        candidate = normalize_timeline_design(design())
+        candidate["elements"][0].update({
+            "id": "ROUTE-CHOICE",
+            "branches": [{
+                "id": "BR-ALERT", "label": "Alert", "condition": "If rotation",
+                "points": [{"x": 30, "y": 10}, {"x": 50, "y": 12}], "start_ms": 500, "end_ms": 900,
+            }],
+        })
+        candidate["timeline"]["narration"] = [{
+            "id": "N-ALERT", "role": "coach", "text": "Read the alert path after rotation.",
+            "branch_id": "BR-ALERT", "start_ms": 550, "end_ms": 800,
+        }]
+        self.assertEqual(validate_timeline(candidate), [])
+
+        candidate["timeline"]["narration"][0]["branch_id"] = "BR-MISSING"
+        codes = {issue["code"] for issue in validate_timeline(candidate)}
+        self.assertIn("TIMELINE-NARRATION-BRANCH", codes)
+
+        candidate["timeline"]["narration"][0].update({"branch_id": "BR-ALERT", "start_ms": 1000, "end_ms": 1100})
+        codes = {issue["code"] for issue in validate_timeline(candidate)}
+        self.assertIn("TIMELINE-NARRATION-BRANCH-WINDOW", codes)
+
+        candidate["elements"].append({
+            "id": "ROUTE-OTHER", "branches": [{"id": "BR-ALERT", "start_ms": 500, "end_ms": 900}],
+        })
+        codes = {issue["code"] for issue in validate_timeline(candidate)}
+        self.assertIn("TIMELINE-NARRATION-BRANCH-AMBIGUOUS", codes)
+
     def test_assignment_graph_reports_cycles_references_and_exclusive_conflicts(self):
         candidate = normalize_timeline_design(design())
         candidate["assignment_model_version"] = "1.0"

@@ -191,6 +191,18 @@ def validate_timeline(design: dict[str, Any]) -> list[dict[str, str]]:
                 if marker.get("kind", "cue") not in MARKER_KINDS:
                     issues.append(_issue("TIMELINE-MARKER-KIND", "Timeline marker kind is not supported", f"{path}.kind"))
 
+    elements = design.get("elements") if isinstance(design.get("elements"), list) else []
+    element_ids = {element.get("id") for element in elements if isinstance(element, dict)}
+    elements_by_id = {element.get("id"): element for element in elements if isinstance(element, dict) and element.get("id")}
+    branch_catalog: dict[str, list[tuple[str, dict[str, Any]]]] = {}
+    for element in elements:
+        if not isinstance(element, dict) or not element.get("id"):
+            continue
+        branches = element.get("branches") if isinstance(element.get("branches"), list) else []
+        for branch in branches:
+            if isinstance(branch, dict) and branch.get("id"):
+                branch_catalog.setdefault(str(branch["id"]), []).append((str(element["id"]), branch))
+
     narration = timeline.get("narration")
     if narration is not None:
         if not isinstance(narration, list):
@@ -211,10 +223,18 @@ def validate_timeline(design: dict[str, Any]) -> list[dict[str, str]]:
                     issues.append(_issue("TIMELINE-NARRATION-END", "Narration end_ms must be after start_ms", f"{path}.end_ms"))
                 if duration_limit is not None and isinstance(end, int) and end > duration_limit:
                     issues.append(_issue("TIMELINE-NARRATION-BOUNDS", "Narration must finish within the timeline duration", f"{path}.end_ms"))
+                branch_id = cue.get("branch_id")
+                if branch_id is not None:
+                    branch_matches = branch_catalog.get(str(branch_id), []) if isinstance(branch_id, str) else []
+                    if not branch_matches:
+                        issues.append(_issue("TIMELINE-NARRATION-BRANCH", "Narration cue references an unknown alternate route branch", f"{path}.branch_id"))
+                    elif len(branch_matches) > 1:
+                        issues.append(_issue("TIMELINE-NARRATION-BRANCH-AMBIGUOUS", "Narration cue branch_id must uniquely identify one authored alternate route", f"{path}.branch_id"))
+                    elif isinstance(start, int) and isinstance(end, int):
+                        branch_window = _window(branch_matches[0][1])
+                        if branch_window and not _windows_overlap((start, end), branch_window):
+                            issues.append(_issue("TIMELINE-NARRATION-BRANCH-WINDOW", "Narration cue does not overlap the timing window of its referenced alternate route", f"{path}.branch_id", "warning"))
 
-    elements = design.get("elements") if isinstance(design.get("elements"), list) else []
-    element_ids = {element.get("id") for element in elements if isinstance(element, dict)}
-    elements_by_id = {element.get("id"): element for element in elements if isinstance(element, dict) and element.get("id")}
     player_ids = {player.get("id") for player in design.get("players", []) if isinstance(player, dict)}
     events = timeline.get("events")
     if events is not None:
