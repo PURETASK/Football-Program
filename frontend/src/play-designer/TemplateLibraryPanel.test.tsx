@@ -21,6 +21,14 @@ describe('TemplateLibraryPanel', () => {
     expect(templateContextFit({ ...TEMPLATE, formation: 'shotgun_2x2', personnel: '11', status: 'approved' }, DESIGN)).toEqual({ compatible: true, reasons: [] });
     expect(templateContextFit({ ...TEMPLATE, formation: 'shotgun_trips', personnel: '12', status: 'deprecated' }, DESIGN)).toMatchObject({ compatible: false, reasons: expect.arrayContaining(['Uses formation shotgun trips.', 'Uses personnel 12.', 'Template lifecycle state is deprecated.']) });
   });
+
+  it('keeps terminal templates visible for history but disables applying them', () => {
+    render(<TemplateLibraryPanel templates={[{ ...TEMPLATE, status: 'retired' }]} design={DESIGN} onApply={vi.fn()} />);
+
+    expect(screen.getByText('Review fit: Template lifecycle state is retired.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Use package' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Add layer/ })).toBeDisabled();
+  });
   it('filters packages and requires confirmation before replacing existing work', async () => {
     const user = userEvent.setup();
     const onApply = vi.fn();

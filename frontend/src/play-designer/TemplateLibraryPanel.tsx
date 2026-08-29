@@ -187,7 +187,7 @@ export function TemplateLibraryPanel({ templates, design, variantBatches = [], o
             {template.expected_companion_layers?.length ? <small className="template-companion"><Layers3 size={12} /> Pair with: {template.expected_companion_layers.map(titleCase).join(', ')}</small> : <small className="template-companion"><Check size={12} /> Complete package</small>}
             {confirming ? <div className="template-replace-warning" role="alert"><ShieldAlert size={14} /><span>This replaces the current {design.elements?.length ?? 0} assignments. Click again to confirm.</span></div> : null}
             <footer>
-              <button type="button" className={confirming ? 'template-action template-action--danger' : 'template-action'} onClick={() => replace(template)}>{confirming ? 'Confirm replace' : 'Use package'}</button>
+              <button type="button" className={confirming ? 'template-action template-action--danger' : 'template-action'} disabled={!fit.compatible} title={fit.compatible ? 'Replace the current assignments with this package' : fit.reasons.join(' ')} onClick={() => replace(template)}>{confirming ? 'Confirm replace' : 'Use package'}</button>
               <button type="button" className="template-action template-action--secondary" disabled={!layerCompatible} title={layerCompatible ? 'Add without removing the current assignments' : fit.reasons.join(' ')} onClick={() => onApply(template, 'layer')}><Layers3 size={13} /> Add layer</button>
             </footer>
           </article>;
