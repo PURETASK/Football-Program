@@ -51,6 +51,11 @@ export function templateContextFit(template: PlayTemplate, design: PlayDesign): 
   return { compatible: reasons.length === 0, reasons };
 }
 
+export function templateCanReplace(template: PlayTemplate, design: PlayDesign): boolean {
+  const lifecycle = String(template.status ?? 'active').toLowerCase();
+  return (template.unit === design.unit || template.unit === 'shared') && !['deprecated', 'retired', 'archived'].includes(lifecycle);
+}
+
 function DesignPreview({ design, label }: { design: PlayDesign; label: string }) {
   return <svg className="variant-design-preview" viewBox="0 0 100 53" role="img" aria-label={`${label} structured play diagram`}>
     <rect x="0" y="0" width="100" height="53" rx="3" />
@@ -172,6 +177,7 @@ export function TemplateLibraryPanel({ templates, design, variantBatches = [], o
         {filtered.map((template) => {
           const fit = templateContextFit(template, design);
           const layerCompatible = fit.compatible;
+          const replaceAllowed = templateCanReplace(template, design);
           const confirming = replaceConfirmation === template.id;
           const parent = template.parent_template_id ? templates.find((candidate) => candidate.id === template.parent_template_id) : undefined;
           const inheritanceDiff = parent ? diffTemplateInheritance(parent, template) : undefined;
@@ -187,7 +193,7 @@ export function TemplateLibraryPanel({ templates, design, variantBatches = [], o
             {template.expected_companion_layers?.length ? <small className="template-companion"><Layers3 size={12} /> Pair with: {template.expected_companion_layers.map(titleCase).join(', ')}</small> : <small className="template-companion"><Check size={12} /> Complete package</small>}
             {confirming ? <div className="template-replace-warning" role="alert"><ShieldAlert size={14} /><span>This replaces the current {design.elements?.length ?? 0} assignments. Click again to confirm.</span></div> : null}
             <footer>
-              <button type="button" className={confirming ? 'template-action template-action--danger' : 'template-action'} disabled={!fit.compatible} title={fit.compatible ? 'Replace the current assignments with this package' : fit.reasons.join(' ')} onClick={() => replace(template)}>{confirming ? 'Confirm replace' : 'Use package'}</button>
+              <button type="button" className={confirming ? 'template-action template-action--danger' : 'template-action'} disabled={!replaceAllowed} title={replaceAllowed ? 'Replace the current assignments with this package' : fit.reasons.join(' ')} onClick={() => replace(template)}>{confirming ? 'Confirm replace' : 'Use package'}</button>
               <button type="button" className="template-action template-action--secondary" disabled={!layerCompatible} title={layerCompatible ? 'Add without removing the current assignments' : fit.reasons.join(' ')} onClick={() => onApply(template, 'layer')}><Layers3 size={13} /> Add layer</button>
             </footer>
           </article>;

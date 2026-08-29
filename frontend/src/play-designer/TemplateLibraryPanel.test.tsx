@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
 import type { PlayDesign, PlayTemplate } from '../types';
-import { TemplateLibraryPanel, templateContextFit } from './TemplateLibraryPanel';
+import { TemplateLibraryPanel, templateCanReplace, templateContextFit } from './TemplateLibraryPanel';
 
 const DESIGN: PlayDesign = {
   id: 'PD-TEMPLATE-TEST', unit: 'offense', formation: 'shotgun_2x2', personnel: '11', _revision: 2,
@@ -20,6 +20,15 @@ describe('TemplateLibraryPanel', () => {
   it('evaluates template compatibility across football context and lifecycle', () => {
     expect(templateContextFit({ ...TEMPLATE, formation: 'shotgun_2x2', personnel: '11', status: 'approved' }, DESIGN)).toEqual({ compatible: true, reasons: [] });
     expect(templateContextFit({ ...TEMPLATE, formation: 'shotgun_trips', personnel: '12', status: 'deprecated' }, DESIGN)).toMatchObject({ compatible: false, reasons: expect.arrayContaining(['Uses formation shotgun trips.', 'Uses personnel 12.', 'Template lifecycle state is deprecated.']) });
+  });
+
+  it('allows a valid different-context package to replace while blocking layering', () => {
+    const template = { ...TEMPLATE, formation: 'shotgun_trips', status: 'approved' };
+    expect(templateCanReplace(template, DESIGN)).toBe(true);
+    render(<TemplateLibraryPanel templates={[template]} design={DESIGN} onApply={vi.fn()} />);
+
+    expect(screen.getByRole('button', { name: 'Use package' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /Add layer/ })).toBeDisabled();
   });
 
   it('keeps terminal templates visible for history but disables applying them', () => {
