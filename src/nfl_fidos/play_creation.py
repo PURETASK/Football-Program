@@ -23,6 +23,9 @@ MOTION_TYPES = {"jet", "orbit", "fly", "zip", "yo_yo", "return", "short", "shift
 DEFENSE_COVERAGES = {"cover_0", "cover_1", "cover_2", "cover_3", "cover_4", "cover_6", "quarters", "man", "match", "bracket", "prevent"}
 ELEMENT_KINDS = {"route", "motion", "run", "block", "read", "coverage", "rush", "fit", "stunt", "rotation", "annotation"}
 ARROW_STYLES = {"route", "motion", "run", "block", "read", "coverage", "rush", "fit", "stunt", "rotation", "check"}
+BLOCKING_PRIMITIVES = {"base", "reach", "down", "pull", "trap", "wrap", "fold", "combo", "climb", "scoop", "insert", "arc", "screen_release"}
+PROTECTION_MODES = {"man", "full_slide", "half_slide_left", "half_slide_right", "scan", "screen"}
+TARGETED_BLOCKING_PRIMITIVES = {"pull", "trap", "wrap", "fold", "insert", "arc"}
 
 
 def _issue(code: str, message: str, path: str, severity: str = "error") -> dict[str, str]:
@@ -121,6 +124,35 @@ def validate_play_design(design: dict[str, Any]) -> list[dict[str, str]]:
                                     _validate_point(point, f"{branch_path}.points[{point_index}]", issues)
                 if element.get("arrow_style") not in ARROW_STYLES:
                     issues.append(_issue("DESIGN-ARROW", "Movement elements require a canonical arrow style", f"{path}.arrow_style"))
+            if design.get("unit") == "offense" and kind in {"block", "run"}:
+                primitive = element.get("blocking_primitive")
+                if primitive is not None and primitive not in BLOCKING_PRIMITIVES:
+                    issues.append(_issue("DESIGN-BLOCK-PRIMITIVE", f"Unsupported blocking primitive: {primitive}", f"{path}.blocking_primitive"))
+                target_id = element.get("block_target_element_id") or element.get("target_element_id")
+                partner_id = element.get("block_partner_element_id")
+                element_ids = {candidate.get("id") for candidate in elements if isinstance(candidate, dict) and candidate.get("id")}
+                if target_id and target_id not in element_ids:
+                    issues.append(_issue("DESIGN-BLOCK-TARGET-REF", "Blocking target does not reference an assignment in this play", f"{path}.block_target_element_id"))
+                if target_id == element.get("id"):
+                    issues.append(_issue("DESIGN-BLOCK-SELF", "A block cannot target itself", f"{path}.block_target_element_id"))
+                if partner_id and partner_id not in element_ids:
+                    issues.append(_issue("DESIGN-BLOCK-PARTNER-REF", "Blocking partner does not reference an assignment in this play", f"{path}.block_partner_element_id"))
+                if partner_id == element.get("id"):
+                    issues.append(_issue("DESIGN-BLOCK-PARTNER-SELF", "A block cannot partner with itself", f"{path}.block_partner_element_id"))
+                if primitive in TARGETED_BLOCKING_PRIMITIVES and not target_id:
+                    issues.append(_issue("DESIGN-BLOCK-TARGET", f"{primitive} blocking requires an explicit target assignment", f"{path}.block_target_element_id"))
+                if primitive == "combo" and not partner_id:
+                    issues.append(_issue("DESIGN-COMBO-PARTNER", "Combo blocking requires a second blocker partner", f"{path}.block_partner_element_id"))
+                if primitive == "combo" and not target_id:
+                    issues.append(_issue("DESIGN-COMBO-TARGET", "Combo blocking requires an explicit second-level target", f"{path}.block_target_element_id"))
+                protection_mode = element.get("protection_mode")
+                if protection_mode is not None and protection_mode not in PROTECTION_MODES:
+                    issues.append(_issue("DESIGN-PROTECTION-MODE", f"Unsupported protection mode: {protection_mode}", f"{path}.protection_mode"))
+                if protection_mode and protection_mode != "screen" and not element.get("protection_target_element_id"):
+                    issues.append(_issue("DESIGN-PROTECTION-TARGET", "Protection mode requires an explicit threat or protected target", f"{path}.protection_target_element_id", "warning"))
+                protection_target = element.get("protection_target_element_id")
+                if protection_target and protection_target not in element_ids:
+                    issues.append(_issue("DESIGN-PROTECTION-TARGET-REF", "Protection target does not reference an assignment in this play", f"{path}.protection_target_element_id"))
     timeline = design.get("timeline")
     if not isinstance(timeline, dict) or not isinstance(timeline.get("snap_ms"), int) or timeline.get("snap_ms") < 0:
         issues.append(_issue("DESIGN-TIMELINE", "Timeline requires a non-negative integer snap_ms", "timeline.snap_ms"))

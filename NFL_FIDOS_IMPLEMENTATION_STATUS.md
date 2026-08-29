@@ -518,3 +518,12 @@ replacement-defender context. This keeps API, teaching, and export consumers
 aligned with the interactive shell editor; focused Play Designer coverage and
 full regression validation remain green, while deployment-device certification
 remains pending.
+
+Offensive protection integrity addendum (2026-08-29): structural Play
+Designer validation now recognizes the professional block/pull/trap/wrap/fold/
+combo/insert/arc/screen primitive catalog and protection modes. Targeted
+primitives, combo partners and targets, and non-screen protection threats must
+be explicit; block, partner, and protection references must resolve to an
+assignment in the same play. Invalid primitive, self-reference, missing-target,
+and stale-reference cases are covered by focused tests; organization-specific
+coaching terminology and production officiating review remain external.

@@ -25,6 +25,24 @@ class PlayCreationTests(unittest.TestCase):
     def test_valid_offensive_design(self):
         self.assertEqual(validate_play_design(design("offense")), [])
 
+    def test_offensive_blocking_primitives_require_valid_targets_and_protection_context(self):
+        candidate = design()
+        candidate["elements"] = [
+            {"id": "PULL", "kind": "block", "player_id": "P1", "blocking_primitive": "pull", "block_target_element_id": "MISSING", "arrow_style": "block", "points": [{"x": 20, "y": 20}, {"x": 30, "y": 20}]},
+            {"id": "TRAP", "kind": "block", "player_id": "P3", "blocking_primitive": "trap", "arrow_style": "block", "points": [{"x": 15, "y": 20}, {"x": 25, "y": 20}]},
+            {"id": "BAD", "kind": "block", "player_id": "P2", "blocking_primitive": "not_a_block", "protection_mode": "unknown", "arrow_style": "block", "points": [{"x": 30, "y": 20}, {"x": 35, "y": 20}]},
+        ]
+        codes = {issue["code"] for issue in validate_play_design(candidate)}
+        self.assertIn("DESIGN-BLOCK-TARGET", codes)
+        self.assertIn("DESIGN-BLOCK-PRIMITIVE", codes)
+        self.assertIn("DESIGN-PROTECTION-MODE", codes)
+        self.assertIn("DESIGN-BLOCK-TARGET-REF", codes)
+
+        candidate["elements"][0].update({"block_target_element_id": "BAD", "protection_mode": "half_slide_left", "protection_target_element_id": "BAD"})
+        candidate["elements"][1].update({"blocking_primitive": "combo", "block_partner_element_id": "PULL", "block_target_element_id": "PULL", "protection_mode": "screen"})
+        self.assertNotIn("DESIGN-BLOCK-TARGET", {issue["code"] for issue in validate_play_design(candidate)})
+        self.assertNotIn("DESIGN-BLOCK-TARGET-REF", {issue["code"] for issue in validate_play_design(candidate)})
+
     def test_flag_profile_uses_flag_player_count_in_structural_validation(self):
         candidate = design("offense")
         candidate["rule_profile"] = "flag"
