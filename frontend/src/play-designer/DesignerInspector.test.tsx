@@ -183,6 +183,24 @@ describe('DesignerInspector assignment graph controls', () => {
     expect(props.onElement).toHaveBeenCalledWith('ROUTE-X', expect.objectContaining({ phase: 'route', branches: [expect.objectContaining({ points: [{ x: 30, y: 12 }, { x: 39, y: 12 }, { x: 48, y: 12 }] })] }));
   });
 
+  it('authors an alternate path route contract independently from the primary path', async () => {
+    const props = inspectorProps();
+    const routeDesign = {
+      ...DESIGN,
+      unit: 'offense' as const,
+      players: [{ id: 'X', position: 'X', start: { x: 30, y: 26 } }],
+      elements: [{ id: 'ROUTE-X', kind: 'route', type: 'choice', player_id: 'X', route_family: 'dropback', break_type: 'dig', points: [{ x: 30, y: 26 }, { x: 30, y: 12 }], branches: [{ id: 'BRANCH-X', label: 'Alert', condition: 'If leverage changes', points: [{ x: 30, y: 12 }, { x: 48, y: 12 }] }] }],
+    };
+    render(<DesignerInspector {...props} design={routeDesign} selected={[{ kind: 'element', id: 'ROUTE-X' }]} />);
+    fireEvent.change(await screen.findByLabelText('Path 1 route family'), { target: { value: 'vertical' } });
+    expect(props.onElement).toHaveBeenCalledWith('ROUTE-X', expect.objectContaining({
+      phase: 'route',
+      branches: [expect.objectContaining({ id: 'BRANCH-X', route_family: 'vertical' })],
+    }));
+    fireEvent.change(screen.getByLabelText('Path 1 break'), { target: { value: 'corner' } });
+    expect(props.onElement).toHaveBeenCalledWith('ROUTE-X', expect.objectContaining({ branches: [expect.objectContaining({ id: 'BRANCH-X', break_type: 'corner' })] }));
+  });
+
   it('surfaces incomplete blocking relationships in the Checks panel', () => {
     const props = inspectorProps();
     render(<DesignerInspector {...props} tab="validate" design={{ ...DESIGN, unit: 'offense', elements: [{ id: 'COMBO', kind: 'block', type: 'combo', blocking_primitive: 'combo' }] }} />);

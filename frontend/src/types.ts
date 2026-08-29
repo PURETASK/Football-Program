@@ -123,6 +123,8 @@ export interface RouteBranch {
   break_type?: string;
   break_depth_yards?: number;
   finish_direction?: string;
+  option_rule?: string;
+  option_condition?: string;
 }
 
 export interface PlayElement {

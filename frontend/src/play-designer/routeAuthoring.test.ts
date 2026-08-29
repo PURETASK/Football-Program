@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { routeAuthoringPatch, routeBranchGeometryPatch, routeBranchPointRemovalPatch, routeConstructionPatch, routeGeometryPatch, routePointRemovalPatch } from './routeAuthoring';
+import { routeAuthoringPatch, routeBranchConstructionPatch, routeBranchGeometryPatch, routeBranchPointRemovalPatch, routeConstructionPatch, routeGeometryPatch, routePointRemovalPatch } from './routeAuthoring';
 
 describe('route construction authoring', () => {
   it('stores stem, break, finish, and option semantics in the route phase', () => {
@@ -45,6 +45,17 @@ describe('route construction authoring', () => {
     const patch = routeBranchGeometryPatch(element, { id: 'D1', unit: 'offense' }, 'R1-OPT', [{ x: 20, y: 20 }, { x: 30, y: 18 }, { x: 42, y: 14 }], 1);
     expect(patch).toMatchObject({ phase: 'route', branches: [expect.objectContaining({ id: 'R1-OPT', break_depth_yards: 2, route_family: 'dropback', break_type: 'dig' })] });
     expect(patch.branches?.[0].points).toEqual([{ x: 20, y: 20 }, { x: 30, y: 18 }, { x: 42, y: 14 }]);
+  });
+
+  it('authors alternate-path semantics without mutating the primary route', () => {
+    const element = {
+      id: 'R1', kind: 'route', route_family: 'dropback', break_type: 'dig',
+      points: [{ x: 20, y: 32 }, { x: 20, y: 20 }],
+      branches: [{ id: 'R1-OPT', label: 'Alert', condition: 'If leverage changes', points: [{ x: 20, y: 20 }, { x: 30, y: 14 }] }],
+    };
+    const patch = routeBranchConstructionPatch(element, { id: 'D1', unit: 'offense' }, 'R1-OPT', { break_type: 'speed_out', break_depth_yards: 8, finish_direction: 'outside', option_rule: 'leverage' });
+    expect(patch).toMatchObject({ phase: 'route', branches: [expect.objectContaining({ id: 'R1-OPT', break_type: 'speed_out', break_depth_yards: 8, finish_direction: 'outside', option_rule: 'leverage' })] });
+    expect(patch).not.toHaveProperty('points');
   });
 
   it('removes a primary handle while recomputing remaining stem and break depths', () => {

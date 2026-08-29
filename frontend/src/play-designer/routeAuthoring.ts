@@ -192,6 +192,26 @@ export function routeBranchGeometryPatch(
   return { phase: 'route', branches: element.branches?.map((candidate) => candidate.id === branchId ? nextBranch : candidate) };
 }
 
+/**
+ * Update the executable route contract for one alternate path while keeping
+ * its own polyline and inherited branch identity intact.  Branch semantics
+ * must not accidentally mutate the primary route or silently disappear at
+ * the persistence boundary.
+ */
+export function routeBranchConstructionPatch(
+  element: PlayElement,
+  design: PlayDesign,
+  branchId: string,
+  patch: Partial<PlayElement>,
+): Partial<PlayElement> {
+  const branch = element.branches?.find((candidate) => candidate.id === branchId);
+  if (!branch) return {};
+  const constructed = routeConstructionPatch({ ...element, ...branch, points: branch.points }, design, patch);
+  const { points, path, branches: _branches, ...semantic } = constructed;
+  const nextBranch = { ...branch, ...semantic, points: (points ?? path ?? branch.points) as Point[] };
+  return { phase: 'route', branches: element.branches?.map((candidate) => candidate.id === branchId ? nextBranch : candidate) };
+}
+
 /** Remove an alternate-path handle while preserving the branch's route contract. */
 export function routeBranchPointRemovalPatch(element: PlayElement, design: PlayDesign, branchId: string, pointIndex: number): Partial<PlayElement> {
   const branch = element.branches?.find((candidate) => candidate.id === branchId);

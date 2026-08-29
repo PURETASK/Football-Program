@@ -422,3 +422,11 @@ proves that one worker commits revision 2 while the stale worker receives a
 structured conflict, with no lost update. This is database-level local
 evidence; production database topology, lock/timeout tuning, and distributed
 multi-region behavior remain deployment acceptance work.
+
+Alternate-path contract addendum — 2026-08-29: the route inspector now exposes
+branch-specific family, break, stem depth, break depth, finish direction, and
+option-rule controls. Changes use a dedicated branch construction helper that
+keeps the selected alternate polyline and semantic contract synchronized while
+preserving the primary path. Focused geometry and inspector tests verify the
+branch remains independently executable; multi-coach review and production
+browser certification remain open acceptance work.
