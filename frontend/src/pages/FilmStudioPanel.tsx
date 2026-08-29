@@ -20,6 +20,12 @@ export function filmFrameStep(currentTime: number, direction: -1 | 1): number {
   return Math.max(0, currentTime + direction / FILM_FRAME_RATE);
 }
 
+export function filmInitialTime(assetDuration: number | undefined, clipStart: number | undefined): number {
+  const duration = Number.isFinite(assetDuration) && Number(assetDuration) > 0 ? Number(assetDuration) : Number.POSITIVE_INFINITY;
+  const start = Number.isFinite(clipStart) && Number(clipStart) >= 0 ? Number(clipStart) : 0;
+  return Math.min(start, duration);
+}
+
 export function FilmStudioPanel({
   asset,
   clip,
@@ -187,7 +193,7 @@ export function FilmStudioPanel({
       <div className="film-studio__body">
         <div className="film-studio__stage-wrap">
           <div className="film-studio__stage" ref={stageRef} onKeyDown={handleStageKeyDown} onPointerDown={(event) => { if (tool === 'tracking') addPoint(event); else if (isDrawing) { stageRef.current?.setPointerCapture(event.pointerId); addPoint(event); } }} onPointerMove={tool === 'telestration' ? addPoint : undefined} onPointerUp={() => setIsDrawing(false)} role="img" tabIndex={0} aria-keyshortcuts="J K L ArrowLeft ArrowRight" aria-label="Film playback stage with telestration overlay and player tracking. Press J or left arrow for previous frame, K or space to play or pause, and L or right arrow for next frame.">
-            {source ? <video aria-label={`Playback for ${asset?.id || 'film asset'}`} controls={false} onLoadedMetadata={(event) => setDuration(event.currentTarget.duration || asset?.duration_seconds || 0)} onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)} ref={videoRef} src={source} /> : <div className="film-studio__unavailable"><Film aria-hidden="true" size={28} /><strong>{mediaError ? 'Authorized media unavailable' : 'Select an authorized media asset'}</strong><span>{mediaError || 'The player will load the organization-scoped content stream here.'}</span></div>}
+            {source ? <video aria-label={`Playback for ${asset?.id || 'film asset'}`} controls={false} onLoadedMetadata={(event) => { const nextDuration = event.currentTarget.duration || asset?.duration_seconds || 0; const nextTime = filmInitialTime(nextDuration, clip?.start_seconds); setDuration(nextDuration); event.currentTarget.currentTime = nextTime; setCurrentTime(nextTime); }} onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)} ref={videoRef} src={source} /> : <div className="film-studio__unavailable"><Film aria-hidden="true" size={28} /><strong>{mediaError ? 'Authorized media unavailable' : 'Select an authorized media asset'}</strong><span>{mediaError || 'The player will load the organization-scoped content stream here.'}</span></div>}
             <svg aria-hidden="true" className="film-studio__overlay" viewBox="0 0 100 100" preserveAspectRatio="none"><path d={drawingPath} fill="none" stroke="#53d8f9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.65" />{trackingPoint ? <circle cx={trackingPoint.x} cy={trackingPoint.y} fill="#ffbf69" r="1.5" stroke="#fff" strokeWidth="0.45" /> : null}</svg>
           </div>
           <div className="film-studio__transport">
