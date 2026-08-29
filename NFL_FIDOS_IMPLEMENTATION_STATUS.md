@@ -611,3 +611,13 @@ relationship-level concept label and exchange phase to both assignments, while
 the existing generic role and replacement-zone controls remain available.
 Inspector regression coverage verifies a TEX authoring action end to end;
 organization terminology and live coordinator review remain pending.
+
+Named exchange validation addendum (2026-08-28): the assignment graph now
+validates named TEX/ET and cross-dog concepts for reciprocal concept metadata,
+penetrate/loop role pairing, required trigger and communication cues, and
+position-compatible partner families. Mismatches remain explainable coach
+review warnings rather than silently selecting a winner, preserving local
+terminology flexibility while blocking semantic drift from downstream
+teaching, export, and release consumers. Full Python regression coverage
+passes; live coordinator review and organization-specific position taxonomy
+remain pending.
