@@ -701,3 +701,9 @@ Schema parity guard addendum (2026-08-29): the variant contract test now
 compares the JSON Schema assignment-patch properties directly with the
 runtime professional-field allowlist. Any future field drift fails the
 regression suite before a template or batch-variant API change can ship.
+
+Canonical schema parity addendum (2026-08-29): the formal play-design element
+schema now explicitly declares the professional exchange, route, blocking,
+protection, collision, and target fields used by the runtime assignment
+allowlist. A regression guard ensures every runtime assignment field remains
+represented in the canonical direct-save/version/publish contract.

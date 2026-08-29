@@ -51,6 +51,12 @@ class PlayDesignServiceTests(unittest.TestCase):
         declared = set(contract["$defs"]["assignmentPatch"]["properties"]["patch"]["properties"])
         self.assertEqual(set(PROFESSIONAL_ASSIGNMENT_PATCH_FIELDS), declared)
 
+    def test_canonical_play_schema_declares_every_runtime_assignment_field(self):
+        root = Path(__file__).resolve().parents[1]
+        contract = json.loads((root / "contracts" / "play-design.schema.json").read_text(encoding="utf-8"))
+        declared = set(contract["$defs"]["element"]["properties"])
+        self.assertTrue(set(PROFESSIONAL_ASSIGNMENT_PATCH_FIELDS).issubset(declared))
+
     def test_registry_exposes_assets_and_templates(self):
         service = self.service()
         self.assertGreaterEqual(len(service.assets()), 60)
