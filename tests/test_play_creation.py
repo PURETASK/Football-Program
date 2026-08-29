@@ -234,6 +234,19 @@ class PlayCreationTests(unittest.TestCase):
         self.assertIn("ASSIGNMENT-FRONT-TECHNIQUE-INVALID", codes)
         self.assertIn("ASSIGNMENT-FRONT-TECHNIQUE-MISSING", codes)
 
+    def test_advanced_legality_reports_coverage_ownership_and_rotation_gaps(self):
+        candidate = design("defense")
+        candidate["coverage_zones"] = ["deep_middle", "flat_left"]
+        candidate["elements"] = [
+            {"id": "FS-1", "kind": "coverage", "player_id": "P1", "zone": "deep_middle"},
+            {"id": "SS-1", "kind": "coverage", "player_id": "P2", "zone": "deep_middle"},
+            {"id": "ROT-1", "kind": "rotation", "player_id": "P3"},
+        ]
+        codes = {issue["code"] for issue in validate_advanced_legality(candidate)}
+        self.assertIn("LEGALITY-COVERAGE-GAP", codes)
+        self.assertIn("LEGALITY-COVERAGE-OWNERSHIP-CONFLICT", codes)
+        self.assertIn("LEGALITY-ROTATION-DESTINATION-UNDECLARED", codes)
+
     def test_assignment_graph_nodes_preserve_professional_authoring_semantics(self):
         candidate = normalize_timeline_design(design())
         candidate["assignment_model_version"] = "1.0"

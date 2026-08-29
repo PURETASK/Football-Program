@@ -661,3 +661,11 @@ technique/alignment vocabularies. These findings align the server contract with
 the interactive front editor so duplicate or incomplete front data cannot be
 silently carried into teaching, release, or export; local scheme terminology
 and human coordinator review remain external.
+
+Server-side coverage-shell integrity addendum (2026-08-29): advanced legality
+now includes rotation destinations in declared shell ownership, reports
+unassigned declared zones, flags duplicate coverage/rotation owners without an
+explicit exchange or shared-ownership explanation, and identifies rotations
+with no destination responsibility. This keeps the interactive shell map and
+release gate aligned; scheme-specific shared-zone doctrine and human
+coordinator review remain external.

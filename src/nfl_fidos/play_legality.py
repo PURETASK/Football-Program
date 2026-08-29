@@ -333,11 +333,23 @@ def validate_advanced_legality(design: dict[str, Any], *, rule_profile: str | No
             issues.append(_finding("LEGALITY-PROTECTION-CONFLICT", "Multiple blockers claim the same protection landmark without a declared combination.", "elements[].gap", profile=profile, source=source, severity="error", observed={key: ids}, expected="one owner or explicit combo assignment"))
 
     coverage = [item for item in elements if item.get("kind") == "coverage"]
+    coverage_or_rotation = [item for item in elements if item.get("kind") in {"coverage", "rotation"}]
     declared_zones = design.get("coverage_zones") if isinstance(design.get("coverage_zones"), list) else []
-    assigned_zones = {str(item.get("zone") or item.get("responsibility") or item.get("coverage_zone")) for item in coverage if item.get("zone") or item.get("responsibility") or item.get("coverage_zone")}
+    assigned_zones = {str(item.get("zone") or item.get("rotation_to_zone") or item.get("responsibility") or item.get("coverage_zone")) for item in coverage_or_rotation if item.get("zone") or item.get("rotation_to_zone") or item.get("responsibility") or item.get("coverage_zone")}
     missing_zones = [str(zone) for zone in declared_zones if str(zone) not in assigned_zones]
     if missing_zones:
         issues.append(_finding("LEGALITY-COVERAGE-GAP", "Declared coverage zones have no assignment owner.", "coverage_zones", profile=profile, source=source, severity="error", observed=missing_zones, expected="every declared zone assigned"))
+    zone_owners: dict[str, list[dict[str, Any]]] = {}
+    for item in coverage_or_rotation:
+        zone = item.get("zone") or item.get("rotation_to_zone") or item.get("coverage_zone")
+        if isinstance(zone, str) and zone.strip():
+            zone_owners.setdefault(zone.strip(), []).append(item)
+        if item.get("kind") == "rotation" and not (item.get("rotation_to_zone") or item.get("zone") or item.get("responsibility")):
+            index = elements.index(item)
+            issues.append(_finding("LEGALITY-ROTATION-DESTINATION-UNDECLARED", "A post-snap rotation has no destination zone or responsibility.", f"elements[{index}].rotation_to_zone", profile=profile, source=source, severity="warning", expected="rotation destination zone or responsibility", observed=None))
+    for zone, owners in zone_owners.items():
+        if len(owners) > 1 and not any(item.get("exchange_with") or item.get("coverage_shared") is True for item in owners):
+            issues.append(_finding("LEGALITY-COVERAGE-OWNERSHIP-CONFLICT", "Multiple coverage or rotation assignments claim one shell destination without an explicit exchange or shared-ownership explanation.", "elements[].zone", profile=profile, source=source, severity="warning", observed={"zone": zone, "owners": [item.get("id") or item.get("player_id") for item in owners]}, expected="one owner or explicit exchange/shared ownership"))
     fits = [item for item in elements if item.get("kind") in {"fit", "coverage"} and (item.get("gap") or item.get("fit_gap"))]
     fit_keys: dict[str, list[str]] = {}
     for item in fits:
