@@ -363,3 +363,11 @@ service and reports affected packages moved to review. System templates remain
 immutable, and child-local overrides remain preserved. Remaining acceptance work
 is provider-scale administration, network/multi-browser convergence, and real
 organization pilot evidence.
+
+Export geometry safety addendum — 2026-08-29: export preflight now rejects
+player alignments, primary paths, and branch paths that contain malformed or
+out-of-bounds coordinates. Findings identify the exact player, element, branch,
+and point path, preventing clipped or misleading PDF, SVG, PNG, and HTML
+artifacts from being rendered. This complements source-lock, legality, page
+profile, color-mode, checksum, and artifact-signature verification; physical
+printer/device certification remains external acceptance work.

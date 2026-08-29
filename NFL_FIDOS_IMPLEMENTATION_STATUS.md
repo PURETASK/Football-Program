@@ -428,3 +428,10 @@ verification passes the focused lineage interaction suite, TypeScript
 typecheck, and the production frontend build; provider-scale administration,
 multi-browser/network validation, pilot evidence, and owner authorization remain
 open.
+
+Export geometry safety addendum (2026-08-29): Play Designer export preflight
+now fail-closes malformed or out-of-bounds player, primary-path, and branch
+coordinates against the canonical 100 x 53.33 field. Errors preserve exact
+source paths and prevent clipped geometry from reaching rendered artifacts.
+Focused export coverage and the full Python regression suite pass; printer,
+device, and deployment-environment certification remain pending.

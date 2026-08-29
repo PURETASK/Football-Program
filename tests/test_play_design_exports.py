@@ -74,6 +74,19 @@ class PlayDesignExportTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             build_export(designs=[candidate], kind="play_card", format="pdf")
 
+    def test_export_validation_rejects_geometry_that_would_be_clipped(self):
+        candidate = design()
+        candidate["players"][0]["start"] = {"x": 101, "y": 20}
+        candidate["elements"][0]["points"] = [{"x": 10, "y": 10}, {"x": 30, "y": 54}]
+        candidate["elements"][0]["branches"] = [{"id": "BRANCH-OOB", "points": [{"x": -1, "y": 22}, {"x": 40, "y": 12}]}]
+        issues = validate_export_design(candidate, kind="play_card", format="pdf")
+        bounds = [issue for issue in issues if issue["code"] == "EXPORT-GEOMETRY-BOUNDS"]
+        self.assertEqual(len(bounds), 3)
+        self.assertIn("players[0].start", {issue["path"] for issue in bounds})
+        self.assertIn("elements[0].points[1]", {issue["path"] for issue in bounds})
+        self.assertIn("elements[0].branches[0].points[0]", {issue["path"] for issue in bounds})
+        self.assertFalse(build_export_preflight(designs=[candidate], kind="play_card", format="pdf")["can_render"])
+
     def test_preflight_matches_render_layout_and_returns_source_lock_without_content(self):
         service = self.service()
         saved = service.save(design=design(), actor="coach")

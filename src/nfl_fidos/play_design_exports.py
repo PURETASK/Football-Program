@@ -148,6 +148,33 @@ def validate_export_design(design: dict[str, Any], *, kind: str, format: str, ro
                 continue
             if not element.get("id"):
                 issues.append({"code": "EXPORT-ELEMENT-ID", "message": "Every production export element should have a stable id", "path": f"elements[{index}].id", "severity": "warning"})
+            for path_name in ("points", "path"):
+                points = element.get(path_name)
+                if not isinstance(points, list):
+                    continue
+                for point_index, point in enumerate(points):
+                    if not isinstance(point, dict):
+                        issues.append({"code": "EXPORT-GEOMETRY-POINT", "message": "Every export path point must be an object", "path": f"elements[{index}].{path_name}[{point_index}]", "severity": "error"})
+                        continue
+                    x, y = point.get("x"), point.get("y")
+                    if not isinstance(x, (int, float)) or not isinstance(y, (int, float)) or not (0 <= float(x) <= 100 and 0 <= float(y) <= 53.33):
+                        issues.append({"code": "EXPORT-GEOMETRY-BOUNDS", "message": "Path geometry must remain inside the canonical 100 x 53.33 field bounds", "path": f"elements[{index}].{path_name}[{point_index}]", "severity": "error"})
+            branches = element.get("branches")
+            if isinstance(branches, list):
+                for branch_index, branch in enumerate(branches):
+                    if not isinstance(branch, dict) or not isinstance(branch.get("points"), list):
+                        continue
+                    for point_index, point in enumerate(branch["points"]):
+                        if not isinstance(point, dict) or not isinstance(point.get("x"), (int, float)) or not isinstance(point.get("y"), (int, float)) or not (0 <= float(point["x"]) <= 100 and 0 <= float(point["y"]) <= 53.33):
+                            issues.append({"code": "EXPORT-GEOMETRY-BOUNDS", "message": "Branch geometry must remain inside the canonical 100 x 53.33 field bounds", "path": f"elements[{index}].branches[{branch_index}].points[{point_index}]", "severity": "error"})
+    if isinstance(design.get("players"), list):
+        for index, player in enumerate(design["players"]):
+            point = player.get("start") if isinstance(player, dict) else None
+            if not isinstance(point, dict):
+                continue
+            x, y = point.get("x"), point.get("y")
+            if not isinstance(x, (int, float)) or not isinstance(y, (int, float)) or not (0 <= float(x) <= 100 and 0 <= float(y) <= 53.33):
+                issues.append({"code": "EXPORT-GEOMETRY-BOUNDS", "message": "Player alignment must remain inside the canonical 100 x 53.33 field bounds", "path": f"players[{index}].start", "severity": "error"})
     if kind == "wristband" and not (design.get("call") or design.get("concept") or design.get("name")):
         issues.append({"code": "EXPORT-WRISTBAND-CALL", "message": "Wristband entries need a call or concept label", "path": "concept", "severity": "error"})
     if role:
