@@ -45,6 +45,32 @@ function compatibilityFor(asset: PlayAsset, design: PlayDesign): PlayAssetCompat
   return { compatible: !reasons.length, selectable, score: Math.max(0, 100 - reasons.length * 30), reasons, warnings: [], basis: [] };
 }
 
+function previewPoints(asset: PlayAsset): string {
+  const key = `${asset.term} ${asset.thumbnail ?? ''}`.toLowerCase();
+  if (key.includes('post') || key.includes('glance') || key.includes('dig')) return '12,44 12,24 26,18 58,18';
+  if (key.includes('corner') || key.includes('wheel')) return '12,44 12,22 32,16 60,8';
+  if (key.includes('out') || key.includes('whip')) return '12,44 12,24 42,24 58,12';
+  if (key.includes('slant') || key.includes('angle') || key.includes('cross')) return '12,44 12,22 40,34 64,18';
+  if (key.includes('curl') || key.includes('comeback')) return '12,44 12,18 42,18 52,28 38,30';
+  if (key.includes('flat') || key.includes('swing') || key.includes('screen')) return '12,44 24,34 52,34 68,27';
+  if (key.includes('motion') || asset.kind === 'motion') return '12,38 30,38 48,26 72,26';
+  if (asset.kind === 'coverage' || asset.kind === 'rotation') return '12,42 30,26 50,17 70,26';
+  if (asset.kind === 'block' || asset.kind === 'run' || asset.kind === 'rush' || asset.kind === 'stunt') return '12,42 38,28 64,28';
+  return '12,44 12,18 64,18';
+}
+
+function PathPreview({ asset }: { asset: PlayAsset }) {
+  const color = asset.unit === 'defense' ? '#ffb547' : '#59d8f7';
+  return (
+    <svg className="asset-glyph asset-glyph--path-preview" viewBox="0 0 80 53" role="img" aria-label={`${assetName(asset)} diagram preview`}>
+      <line className="asset-preview__los" x1="4" x2="76" y1="44" y2="44" />
+      <polyline className="asset-preview__path" points={previewPoints(asset)} style={{ stroke: color }} />
+      <polygon className="asset-preview__arrow" points="64,28 58,25 59,31" style={{ fill: color }} />
+      <circle className="asset-preview__start" cx="12" cy="44" r="3" style={{ fill: color }} />
+    </svg>
+  );
+}
+
 function AssetGlyph({ asset }: { asset: PlayAsset }) {
   const kind = asset.kind;
   const slots = asset.alignment?.slots ?? [];
@@ -65,6 +91,9 @@ function AssetGlyph({ asset }: { asset: PlayAsset }) {
   }
   if (['annotation', 'read', 'landmark', 'check'].includes(kind)) {
     return <span className="asset-glyph asset-glyph--teaching" aria-hidden="true">A</span>;
+  }
+  if (['route', 'motion', 'run', 'block', 'coverage', 'pressure', 'rush', 'stunt', 'rotation'].includes(kind)) {
+    return <PathPreview asset={asset} />;
   }
   return <span className={`asset-glyph asset-glyph--${kind}`} aria-hidden="true"><i /></span>;
 }

@@ -418,6 +418,7 @@ export interface PlayAsset {
   unit: string;
   aliases?: string[];
   description?: string;
+  thumbnail?: string;
   default_timing_ms?: number;
   arrow_style?: string;
   status?: string;

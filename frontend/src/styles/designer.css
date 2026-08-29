@@ -599,6 +599,11 @@
 .asset-glyph--alignment line { stroke: rgb(255 255 255 / 0.22); stroke-width: 1; }
 .asset-glyph--alignment circle { fill: #edf6ff; stroke: #07111f; stroke-width: 1; }
 .asset-glyph--alignment rect { fill: #ffb547; stroke: #07111f; stroke-width: 1; }
+.asset-glyph--path-preview { display: block; padding: 4px; }
+.asset-preview__los { stroke: rgb(255 255 255 / 0.2); stroke-width: 1; stroke-dasharray: 4 3; }
+.asset-preview__path { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.asset-preview__arrow { opacity: 0.95; }
+.asset-preview__start { stroke: #07111f; stroke-width: 1; }
 .asset-glyph--formation i { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
 .asset-glyph--formation i:nth-child(1) { left: 8px; top: 13px; }
 .asset-glyph--formation i:nth-child(2) { left: 15px; top: 19px; }

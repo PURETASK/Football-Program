@@ -25,6 +25,7 @@ describe('AssetPalette', () => {
     const onChoose = vi.fn();
     render(<AssetPalette assets={ASSETS} design={DESIGN} activeAsset={null} onChoose={onChoose} />);
     expect(screen.getByTitle('2 matching of 3 assets')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Post diagram preview' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Fits call/i }));
     expect(screen.getByRole('button', { name: /Post/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Angle/i })).not.toBeInTheDocument();
