@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { acceptSequencedEvent } from './sequencedStream';
+import { acceptSequencedEvent, sequenceRecoveryAction } from './sequencedStream';
 
 describe('sequenced collaboration stream', () => {
   it('accepts the next event and advances the replay cursor', () => {
@@ -12,10 +12,18 @@ describe('sequenced collaboration stream', () => {
   });
 
   it('holds an out-of-order event so reconnect replay can request the missing sequence', () => {
-    expect(acceptSequencedEvent(5, 7)).toEqual({ accepted: false, nextCursor: 5, reason: 'gap' });
+    const result = acceptSequencedEvent(5, 7);
+    expect(result).toEqual({ accepted: false, nextCursor: 5, reason: 'gap' });
+    expect(sequenceRecoveryAction(result)).toBe('reconnect');
   });
 
   it('allows legitimate gaps for role-filtered organization streams', () => {
-    expect(acceptSequencedEvent(5, 7, false)).toEqual({ accepted: true, nextCursor: 7, reason: 'accepted' });
+    const result = acceptSequencedEvent(5, 7, false);
+    expect(result).toEqual({ accepted: true, nextCursor: 7, reason: 'accepted' });
+    expect(sequenceRecoveryAction(result)).toBe('accept');
+  });
+
+  it('ignores duplicates without forcing an unnecessary reconnect', () => {
+    expect(sequenceRecoveryAction(acceptSequencedEvent(5, 5))).toBe('ignore');
   });
 });

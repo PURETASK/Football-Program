@@ -460,3 +460,11 @@ event must overlap that branch window; missing or misaligned references are
 reported with exact event paths and warning/error semantics before save or
 review. This closes the persistence and renderer contract gap; authoritative
 organization rule adoption and production transport testing remain open.
+
+Strict stream recovery addendum — 2026-08-28: the Play Designer event stream
+now treats an out-of-order sequence as a replay boundary. The client cancels
+the current reader and reconnects from the last contiguous cursor, preventing
+silent loss of a design mutation; duplicate events remain ignored, and
+role-filtered organization streams retain their legitimate non-contiguous
+visibility behavior. Focused and full frontend suites cover the decision
+contract; network fault-injection and multi-browser convergence remain open.

@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
 import { useSession } from '../auth/SessionContext';
-import { acceptSequencedEvent } from './sequencedStream';
+import { acceptSequencedEvent, sequenceRecoveryAction } from './sequencedStream';
 import {
   fetchOperatorSummary,
   fetchPlayAssets,
@@ -238,6 +238,7 @@ export function usePlayDesignEventStream(designId?: string): { status: PlayStrea
           const decoder = new TextDecoder();
           let buffer = '';
           let ended = false;
+          let sequenceGap = false;
           while (!cancelled && !ended) {
             const chunk = await reader.read();
             if (chunk.done) break;
@@ -249,7 +250,18 @@ export function usePlayDesignEventStream(designId?: string): { status: PlayStrea
               if (!parsed) continue;
               if (parsed.event === 'stream_end') { ended = true; break; }
               const sequencing = acceptSequencedEvent(sequence, parsed.id);
-              if (!sequencing.accepted) continue;
+              const recovery = sequenceRecoveryAction(sequencing);
+              if (recovery !== 'accept') {
+                if (recovery === 'reconnect') {
+                  // Stop consuming this stream so the next request replays
+                  // from the last contiguous cursor instead of silently
+                  // dropping an event that may carry a design mutation.
+                  sequenceGap = true;
+                  ended = true;
+                  break;
+                }
+                continue;
+              }
               sequence = sequencing.nextCursor;
               try {
                 const event = JSON.parse(parsed.data) as PlayCollaborationEvent;
@@ -259,6 +271,10 @@ export function usePlayDesignEventStream(designId?: string): { status: PlayStrea
                 // Ignore malformed event payloads; the stream will reconnect from its last valid sequence.
               }
             }
+          }
+          if (sequenceGap) {
+            await reader.cancel().catch(() => undefined);
+            if (!cancelled) setStatus('reconnecting');
           }
         } catch {
           if (!cancelled) setStatus('offline');
