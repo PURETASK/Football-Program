@@ -116,7 +116,7 @@ def validate_asset_registry(assets: list[dict[str, Any]] | None = None) -> dict[
     """Validate the professional catalog contract before it reaches the editor palette."""
     catalog = deepcopy(assets if assets is not None else load_asset_registry())
     errors: list[dict[str, Any]] = []
-    required_categories = {"formation", "route", "protection", "run", "front", "coverage", "pressure", "stunt", "rotation", "check", "teaching"}
+    required_categories = {"formation", "route", "motion", "protection", "block", "run", "front", "coverage", "pressure", "stunt", "rotation", "check", "teaching"}
     seen_ids: set[str] = set()
     seen_terms: set[tuple[str, str, str]] = set()
     categories = {str(item.get("category")) for item in catalog if isinstance(item, dict)}
@@ -145,6 +145,17 @@ def validate_asset_registry(assets: list[dict[str, Any]] | None = None) -> dict[
             errors.append({"code": "ASSET-ALIASES-INVALID", "id": asset_id})
         if asset.get("status") in {"deprecated", "retired"} and asset.get("replacement_id") == asset_id:
             errors.append({"code": "ASSET-REPLACEMENT-SELF", "id": asset_id})
+    known_ids = {str(item.get("id")) for item in catalog if isinstance(item, dict) and item.get("id")}
+    for asset in catalog:
+        if not isinstance(asset, dict):
+            continue
+        replacement_id = asset.get("replacement_id")
+        if replacement_id and str(replacement_id) not in known_ids:
+            errors.append({"code": "ASSET-REPLACEMENT-MISSING", "id": str(asset.get("id", "")), "replacement_id": replacement_id})
+        for field in ("compatible_formations", "compatible_personnel", "compatible_rule_profiles"):
+            values = asset.get(field)
+            if values is not None and (not isinstance(values, list) or any(not isinstance(value, str) or not value.strip() for value in values)):
+                errors.append({"code": "ASSET-COMPATIBILITY-INVALID", "id": str(asset.get("id", "")), "field": field})
     return {"status": "valid" if not errors else "invalid", "asset_count": len(catalog), "category_count": len(categories), "categories": sorted(categories), "errors": errors}
 
 

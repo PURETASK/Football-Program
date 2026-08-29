@@ -71,9 +71,19 @@ class PlayDesignServiceTests(unittest.TestCase):
         report = validate_asset_registry(load_asset_registry())
         self.assertEqual(report["status"], "valid", report["errors"])
         self.assertGreaterEqual(report["asset_count"], 60)
-        self.assertTrue({"formation", "route", "protection", "run", "front", "coverage", "pressure", "stunt", "rotation", "check", "teaching"}.issubset(set(report["categories"])))
+        self.assertTrue({"formation", "route", "motion", "protection", "block", "run", "front", "coverage", "pressure", "stunt", "rotation", "check", "teaching"}.issubset(set(report["categories"])))
         terms = {asset["term"] for asset in load_asset_registry()}
         self.assertTrue({"under", "odd", "nickel", "dime", "tampa_2", "match_3", "quarters", "overload", "green_dog", "spin_rotation", "reach", "trap", "full_slide", "screen"}.issubset(terms))
+
+    def test_asset_registry_rejects_orphaned_replacements_and_malformed_compatibility(self):
+        invalid = [
+            {"id": "ASSET-OLD", "category": "route", "kind": "route", "term": "old", "unit": "offense", "description": "Old", "accessibility": "Old", "version": "1.0.0", "status": "deprecated", "aliases": [], "replacement_id": "ASSET-MISSING", "compatible_formations": "shotgun"},
+        ]
+        report = validate_asset_registry(invalid)
+        codes = {error["code"] for error in report["errors"]}
+        self.assertIn("ASSET-CATEGORIES-MISSING", codes)
+        self.assertIn("ASSET-REPLACEMENT-MISSING", codes)
+        self.assertIn("ASSET-COMPATIBILITY-INVALID", codes)
 
     def test_concept_template_loader_rejects_invalid_timeline_and_exchange_references(self):
         temporary = tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w", encoding="utf-8")
