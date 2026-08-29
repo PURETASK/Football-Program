@@ -28,13 +28,13 @@ export async function enqueueCollaborationAction(session: AppSession, action: Om
   const current = await readCollaborationOutbox(session);
   if (current.some((candidate) => candidate.id === action.id)) return current;
   const next: CollaborationOutboxAction[] = [...current, { ...action, createdAt: new Date().toISOString(), attempts: 0 } as CollaborationOutboxAction];
-  await writeCollaborationOutbox(session, next);
+  if (!await writeCollaborationOutbox(session, next)) throw new Error('Secure offline outbox storage is unavailable. Keep this window open and retry when storage is available.');
   return next;
 }
 
 export async function removeCollaborationAction(session: AppSession, actionId: string): Promise<CollaborationOutboxAction[]> {
   const next = (await readCollaborationOutbox(session)).filter((action) => action.id !== actionId);
-  await writeCollaborationOutbox(session, next);
+  if (!await writeCollaborationOutbox(session, next)) throw new Error('Secure offline outbox could not acknowledge the delivered action. Retry reconciliation before sending more actions.');
   return next;
 }
 
@@ -43,7 +43,6 @@ export async function markCollaborationActionFailed(session: AppSession, action:
   const next = current.map((candidate) => candidate.id === action.id
     ? { ...candidate, attempts: candidate.attempts + 1, lastError: error instanceof Error ? error.message : 'Temporary synchronization failure.' }
     : candidate);
-  await writeCollaborationOutbox(session, next);
+  if (!await writeCollaborationOutbox(session, next)) throw new Error('Secure offline outbox could not persist retry evidence. Keep this window open and retry.');
   return next;
 }
-

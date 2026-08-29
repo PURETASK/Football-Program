@@ -184,17 +184,22 @@ export function CollaborationPage() {
     if (!session || typeof navigator !== 'undefined' && navigator.onLine === false) return;
     let pending = await readCollaborationOutbox(session);
     let delivered = 0;
+    let blockedByFailure: unknown;
     for (const action of pending) {
       try {
         await deliverCollaborationAction(session, action);
         pending = await removeCollaborationAction(session, action.id);
         delivered += 1;
       } catch (failure) {
+        blockedByFailure = failure;
         pending = await markCollaborationActionFailed(session, action, failure);
-        if (shouldRetryCollaborationFailure(failure)) break;
+        // Preserve causal order: later collaboration actions must not overtake
+        // an earlier action whose delivery or acknowledgement is uncertain.
+        break;
       }
     }
     setOutbox(pending);
+    if (blockedByFailure) setOutboxNotice('Offline collaboration sync paused at the first failed action. Retry it before later actions are delivered.');
     if (delivered) {
       setOutboxNotice(`${delivered} offline collaboration ${delivered === 1 ? 'action' : 'actions'} synchronized.`);
       await refresh();

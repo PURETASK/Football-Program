@@ -468,3 +468,11 @@ silent loss of a design mutation; duplicate events remain ignored, and
 role-filtered organization streams retain their legitimate non-contiguous
 visibility behavior. Focused and full frontend suites cover the decision
 contract; network fault-injection and multi-browser convergence remain open.
+
+Offline outbox integrity addendum — 2026-08-28: collaboration queue writes,
+acknowledgements, and retry-attempt evidence now fail visibly when encrypted
+storage cannot persist them. Queue flushing also stops at the first failed
+action, preserving causal order so later staff actions cannot overtake an
+uncertain earlier mutation. The UI reports that synchronization is paused at
+the failed action; browser quota, crash recovery, and production transport
+fault-injection remain open.
