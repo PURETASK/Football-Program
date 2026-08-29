@@ -190,6 +190,30 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertIn(child["id"], approved["propagated_template_ids"])
         self.assertEqual(service.repository.get("play_design_templates", child["id"])["inherited_assignments"][0]["type"], "corner")
 
+    def test_lineage_and_variant_boundaries_preserve_professional_assignment_fields(self):
+        service = self.service()
+        candidate = design()
+        candidate["elements"][0]["id"] = "E-LINEAGE-ALLOWLIST"
+        source_template = service.save(design=candidate, actor="coach")
+        template = service.create_template(source_template["id"], name="Allowlist template", actor="coach")
+        assignment_key = template["assignments"][0]["key"]
+        proposal = service.propose_template_lineage_update(
+            template["id"],
+            patches=[{"key": assignment_key, "patch": {
+                "exchange_concept": "tex", "penetration_lane": "B", "block_target_element_id": "TARGET",
+                "protection_slide_direction": "left", "collision_intent": "intentional",
+            }}],
+            actor="coach",
+        )
+        self.assertEqual(proposal["patches"][0]["patch"]["penetration_lane"], "B")
+
+        source = service.save(design={"id": "PLAY-ALLOWLIST-SOURCE", "unit": "offense", "elements": [{"id": "E-1", "kind": "block"}]}, actor="coach")
+        report = service.create_batch_variants(source["id"], actor="coach", variants=[{
+            "label": "Protection look", "patch": {"formation": "trips_right"},
+            "assignment_patches": [{"element_id": "E-1", "patch": {"protection_scan_order": "edge-to-inside", "block_partner_element_id": "E-1"}}],
+        }])
+        self.assertEqual(report["variants"][0]["variant_look"]["assignment_patches"][0]["patch"]["protection_scan_order"], "edge-to-inside")
+
     def test_batch_variants_are_draft_children_with_look_lineage(self):
         service = self.service()
         candidate = design()

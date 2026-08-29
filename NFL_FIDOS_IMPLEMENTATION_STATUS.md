@@ -689,3 +689,10 @@ now validates every block-target, combo-partner, and protection-threat edge it
 emits, including self-reference rejection and stale-reference guidance. This
 prevents protection diagrams from presenting relationships that cannot be
 resolved within the authored play.
+
+Persistence allowlist integrity addendum (2026-08-29): template-lineage
+proposals and batch-variant assignment transforms now share one centralized
+professional assignment-field vocabulary. Route, exchange, rotation, blocking,
+protection, collision, and defensive responsibility metadata accepted by the
+Play Designer cannot be silently dropped at one API mutation boundary while
+remaining accepted at another; unsupported fields continue to fail closed.

@@ -48,6 +48,24 @@ def _parse_expiry(value: Any) -> datetime:
     return parsed.astimezone(timezone.utc)
 
 
+# One bounded vocabulary is shared by template lineage proposals and batch
+# variant transforms. Keeping this list centralized prevents newer Play
+# Designer authoring fields from being silently dropped at one persistence
+# boundary while accepted at another.
+PROFESSIONAL_ASSIGNMENT_PATCH_FIELDS = frozenset({
+    "kind", "type", "arrow_style", "arrow_ends", "note", "assignment", "responsibility", "objective", "technique", "landmark",
+    "depth_yards", "leverage", "gap", "fit_gap", "gap_owner", "gap_owner_label", "fit_rule", "zone", "coverage",
+    "phase", "read_key", "read_prompt", "exclusive_assignment", "asset_id", "start_ms", "end_ms", "timing", "points", "path",
+    "depends_on", "exchange_with", "exchange_concept", "exchange_role", "exchange_trigger", "exchange_communication", "exchange_direction",
+    "penetration_lane", "loop_landmark", "target_player_id", "target_element_id", "block_target_element_id", "block_partner_element_id",
+    "protection_mode", "protection_target_element_id", "protection_slide_direction", "protection_scan_order", "release_after_ms",
+    "route_family", "stem_depth_yards", "break_type", "break_depth_yards", "finish_direction", "option_rule", "option_condition",
+    "rush_lane", "blitz_path", "stunt", "rotation", "rotation_trigger", "rotation_from_zone", "rotation_to_zone",
+    "rotation_replacement_player_id", "rotation_vacated_zone", "rotation_sequence", "rotation_communication", "collision_intent",
+    "collision_corridor_yards", "collision_note", "arrow_ends", "path_mode", "line_style", "stroke_width", "line_cap", "target_element_key",
+})
+
+
 ASSET_REGISTRY: tuple[dict[str, Any], ...] = (
     {"id": "ASSET-ROUTE-POST", "kind": "route", "term": "post", "unit": "offense", "arrow_style": "route", "description": "Vertical stem with an inside break."},
     {"id": "ASSET-ROUTE-DIG", "kind": "route", "term": "dig", "unit": "offense", "arrow_style": "route", "description": "In-breaking route at a defined depth."},
@@ -496,7 +514,7 @@ class PlayDesignService:
             raise ValueError("Only organization-owned templates can be changed through lineage proposals")
         if not isinstance(patches, list) or not patches or len(patches) > 64:
             raise ValueError("patches must contain between 1 and 64 changes")
-        allowed = {"kind", "type", "arrow_style", "assignment", "responsibility", "objective", "technique", "landmark", "depth_yards", "leverage", "gap", "fit_gap", "zone", "coverage", "phase", "read_key", "read_prompt", "exclusive_assignment", "asset_id", "start_ms", "end_ms", "timing", "points", "depends_on", "exchange_with", "target_element_key"}
+        allowed = PROFESSIONAL_ASSIGNMENT_PATCH_FIELDS
         by_key = {str(item.get("key")): item for item in template.get("assignments", []) if isinstance(item, dict) and item.get("key")}
         normalized: list[dict[str, Any]] = []
         for index, item in enumerate(patches, start=1):
@@ -750,16 +768,7 @@ class PlayDesignService:
         if not clean_batch.startswith("VARIANT-BATCH-"):
             raise ValueError("batch_id must start with VARIANT-BATCH-")
         allowed_patch = {"formation", "front", "coverage", "personnel", "concept", "rule_profile"}
-        allowed_assignment_patch = {
-            "type", "points", "path", "note", "assignment", "responsibility", "objective", "technique",
-            "landmark", "depth_yards", "leverage", "gap", "fit_gap", "gap_owner", "gap_owner_label",
-            "fit_rule", "coverage", "rush_lane", "blitz_path", "stunt", "rotation", "rotation_trigger",
-            "rotation_from_zone", "rotation_to_zone", "rotation_replacement_player_id", "rotation_vacated_zone",
-            "rotation_sequence", "rotation_communication", "blocking_primitive", "protection_mode",
-            "release_after_ms", "route_family", "stem_depth_yards", "break_type", "break_depth_yards",
-            "finish_direction", "option_rule", "option_condition", "arrow_style", "arrow_ends", "path_mode",
-            "line_style", "stroke_width", "line_cap", "start_ms", "end_ms", "timing", "phase", "zone",
-        }
+        allowed_assignment_patch = PROFESSIONAL_ASSIGNMENT_PATCH_FIELDS
         created: list[dict[str, Any]] = []
         for index, item in enumerate(variants, start=1):
             if not isinstance(item, dict):
