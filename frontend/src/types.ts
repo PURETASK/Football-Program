@@ -505,6 +505,38 @@ export interface PlayTemplateAssignment {
   [key: string]: unknown;
 }
 
+export interface PlayTemplateLineageImpact {
+  template_id: string;
+  template_name?: string;
+  organization_id: string;
+  dependent_count: number;
+  propagation_required: boolean;
+  mutated: boolean;
+  dependents: Array<{
+    template_id: string;
+    name?: string;
+    depth: number;
+    status?: string;
+    inherited_assignment_count: number;
+    local_override_count: number;
+    overrides: Array<{ key: string; fields: string[] }>;
+    propagation_required: boolean;
+  }>;
+}
+
+export interface PlayTemplateLineageProposal {
+  id: string;
+  template_id: string;
+  template_name?: string;
+  patches: Array<{ key: string; patch: Record<string, unknown> }>;
+  impact: PlayTemplateLineageImpact;
+  status: string;
+  approval_required: boolean;
+  mutated: boolean;
+  propagated_template_ids?: string[];
+  updated_template_version?: string;
+}
+
 export interface PlayVersionSnapshot {
   id: string;
   design_id?: string;

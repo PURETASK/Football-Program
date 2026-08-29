@@ -358,6 +358,23 @@
 .template-tags span { padding: 0.16rem 0.24rem; border-radius: 4px; color: #ad9cff; background: rgb(152 115 255 / 0.08); font-size: 0.43rem; }
 .template-companion { display: flex; grid-column: 1 / -1; align-items: center; gap: 0.24rem; color: #7790a7; font-size: 0.47rem; }
 .template-companion svg { color: #9d88ff; }
+.template-lineage-controls { display: grid; grid-column: 1 / -1; gap: 0.35rem; padding: 0.38rem; border: 1px solid rgb(255 181 71 / 0.2); border-radius: 7px; background: linear-gradient(135deg, rgb(255 181 71 / 0.06), rgb(152 115 255 / 0.035)); }
+.template-lineage-controls > button { justify-self: start; }
+.template-lineage-controls > small { color: #ffb4bc; font-size: 0.44rem; }
+.template-lineage-report { display: grid; gap: 0.25rem; color: #f7d899; font-size: 0.47rem; }
+.template-lineage-report ul { display: grid; gap: 0.18rem; margin: 0; padding-left: 0.85rem; color: #b4c2d0; }
+.template-lineage-report li { display: grid; gap: 0.05rem; }
+.template-lineage-report li small { color: #8198ad; font-size: 0.42rem; }
+.template-lineage-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.25rem; }
+.template-lineage-form label { display: grid; gap: 0.12rem; min-width: 0; color: #91a6ba; font-size: 0.42rem; }
+.template-lineage-form select, .template-lineage-form input, .template-lineage-proposal input { min-width: 0; height: 27px; padding: 0 0.32rem; border: 1px solid rgb(255 255 255 / 0.1); border-radius: 5px; color: #dbe7f5; background: #0b1928; font-size: 0.45rem; }
+.template-lineage-form button, .template-lineage-proposal button { min-height: 27px; padding: 0 0.38rem; border: 1px solid rgb(255 181 71 / 0.28); border-radius: 5px; color: #ffe1a0; background: rgb(255 181 71 / 0.09); cursor: pointer; font-size: 0.43rem; font-weight: 800; }
+.template-lineage-form button { grid-column: 1 / -1; justify-self: start; }
+.template-lineage-form button:disabled, .template-lineage-proposal button:disabled { cursor: not-allowed; opacity: 0.45; }
+.template-lineage-proposal { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 0.25rem; align-items: center; padding-top: 0.28rem; border-top: 1px solid rgb(255 255 255 / 0.08); color: #b4c2d0; font-size: 0.43rem; }
+.template-lineage-proposal > span { overflow-wrap: anywhere; }
+.template-lineage-proposal strong { color: #f7d899; text-transform: uppercase; }
+.template-lineage-proposal small { grid-column: 1 / -1; color: #8cdbad; font-size: 0.43rem; }
 .variant-review-rail { display: grid; grid-column: 1 / -1; gap: 0.35rem; margin-top: 0.4rem; }
 .variant-review-rail > strong { color: #eaf7ff; font-size: 0.55rem; }
 .variant-review-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.18rem 0.4rem; padding: 0.42rem; border: 1px solid rgb(76 214 250 / 0.14); border-radius: 6px; background: rgb(5 16 29 / 0.72); }

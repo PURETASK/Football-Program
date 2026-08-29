@@ -115,6 +115,30 @@ describe('TemplateLibraryPanel', () => {
     expect(screen.getByText('Overrides: Type, Landmark')).toBeVisible();
   });
 
+  it('surfaces governed lineage impact and keeps propagation behind owner approval', async () => {
+    const user = userEvent.setup();
+    const template: PlayTemplate = { ...TEMPLATE, id: 'TPL-ORG', name: 'Organization package', scope: 'organization' };
+    const impact = { template_id: template.id, template_name: template.name, organization_id: 'ORG-1', dependent_count: 1, propagation_required: true, mutated: false, dependents: [{ template_id: 'TPL-CHILD', name: 'Child package', depth: 1, status: 'active', inherited_assignment_count: 1, local_override_count: 0, overrides: [], propagation_required: true }] };
+    const proposal = { id: 'TPL-PROP-001', template_id: template.id, template_name: template.name, patches: [{ key: 'X-GO', patch: { type: 'corner' } }], impact, status: 'pending_owner_approval', approval_required: true, mutated: false };
+    const onInspectLineage = vi.fn().mockResolvedValue(impact);
+    const onProposeLineage = vi.fn().mockResolvedValue(proposal);
+    const onApproveLineage = vi.fn().mockResolvedValue({ ...proposal, status: 'approved_and_applied', mutated: true, propagated_template_ids: ['TPL-CHILD'] });
+    render(<TemplateLibraryPanel templates={[template]} design={DESIGN} onApply={vi.fn()} onInspectLineage={onInspectLineage} onProposeLineage={onProposeLineage} onApproveLineage={onApproveLineage} canApproveLineage />);
+
+    await user.click(screen.getByRole('button', { name: 'Inspect parent impact' }));
+    expect(onInspectLineage).toHaveBeenCalledWith('TPL-ORG');
+    expect(screen.getByText('1 dependent package')).toBeVisible();
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Lineage assignment for Organization package' }), 'X-GO');
+    await user.type(screen.getByRole('textbox', { name: 'Lineage value for Organization package' }), 'corner');
+    await user.click(screen.getByRole('button', { name: 'Propose governed change' }));
+    expect(onProposeLineage).toHaveBeenCalledWith({ templateId: 'TPL-ORG', key: 'X-GO', field: 'type', value: 'corner' });
+    expect(screen.getByText(/pending_owner_approval/)).toBeVisible();
+    await user.type(screen.getByRole('textbox', { name: 'Lineage decision reference for Organization package' }), 'DEC-TPL-001');
+    await user.click(screen.getByRole('button', { name: 'Approve and propagate' }));
+    expect(onApproveLineage).toHaveBeenCalledWith({ proposalId: 'TPL-PROP-001', decisionRef: 'DEC-TPL-001' });
+    expect(screen.getByText(/Applied to 1 dependent package/)).toBeVisible();
+  });
+
   it('expands field-level changes for a generated variant', async () => {
     const user = userEvent.setup();
     const variant: PlayDesign = { ...DESIGN, id: 'PD-VARIANT', coverage: 'cover_3', elements: [{ ...DESIGN.elements![0], type: 'corner' }, { id: 'E-2', kind: 'route', type: 'flat', points: [{ x: 20, y: 32 }, { x: 30, y: 28 }] }] };

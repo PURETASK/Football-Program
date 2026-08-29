@@ -23,7 +23,7 @@ import {
   ApiError,
   addPlayComment,
   branchPlayDesign,
-  createPlayTemplate, createPlayVariants, requestPlayVariantBatchReview, approvePlayVariantBatchReview, createPlayVariantReleaseBundle, fetchPlayVariantReleaseBundle,
+  createPlayTemplate, createPlayVariants, requestPlayVariantBatchReview, approvePlayVariantBatchReview, createPlayVariantReleaseBundle, fetchPlayVariantReleaseBundle, fetchPlayTemplateLineageImpact, proposePlayTemplateLineageUpdate, approvePlayTemplateLineageUpdate,
   leavePlayPresence,
   mergePlayBranch,
   publishPlayDesign,
@@ -498,6 +498,24 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
     setActionMessage(`Template "${input.name}" captured from the immutable play snapshot.`);
   };
 
+  const inspectTemplateLineage = async (templateId: string) => {
+    if (!session) throw new Error('An authenticated organization session is required to inspect template lineage.');
+    return fetchPlayTemplateLineageImpact(session, templateId);
+  };
+
+  const proposeTemplateLineage = async (input: { templateId: string; key: string; field: string; value: string }) => {
+    if (!session) throw new Error('An authenticated organization session is required to propose a template change.');
+    return proposePlayTemplateLineageUpdate(session, { templateId: input.templateId, patches: [{ key: input.key, patch: { [input.field]: input.value } }] });
+  };
+
+  const approveTemplateLineage = async (input: { proposalId: string; decisionRef: string }) => {
+    if (!session) throw new Error('An authenticated organization session is required to approve a template change.');
+    const result = await approvePlayTemplateLineageUpdate(session, input);
+    await queryClient.invalidateQueries({ queryKey: ['play-templates', session.organizationId] });
+    setActionMessage(`Template lineage proposal ${input.proposalId} applied. Affected active packages are now in review.`);
+    return result;
+  };
+
   const createVariants = async (input: { field: 'front' | 'coverage' | 'formation' | 'concept'; labels: string[]; assignmentPatches?: Array<{ element_id: string; patch: Record<string, unknown> }> }) => {
     if (!session) throw new Error('An authenticated organization session is required to generate variants.');
     const variants = input.labels.map((label) => ({ label, patch: { [input.field]: label.toLowerCase().replaceAll(' ', '_') }, ...(input.assignmentPatches?.length ? { assignment_patches: input.assignmentPatches } : {}) }));
@@ -604,6 +622,10 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
             onApproveVariantReview={session?.role === 'program_owner' ? approveVariantReview : undefined}
             onCreateVariantReleaseBundle={session?.role === 'program_owner' ? freezeVariantReleaseBundle : undefined}
             onInspectVariantReleaseBundle={inspectVariantReleaseBundle}
+            onInspectLineage={inspectTemplateLineage}
+            onProposeLineage={proposeTemplateLineage}
+            onApproveLineage={session?.role === 'program_owner' ? approveTemplateLineage : undefined}
+            canApproveLineage={session?.role === 'program_owner'}
             onOpenVariant={(designId) => navigate(`/playbook/designer/${encodeURIComponent(designId)}`)}
             selectedElementIds={state.selected.filter((selection): selection is { kind: 'element'; id: string } => selection.kind === 'element').map((selection) => selection.id)}
           />

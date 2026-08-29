@@ -47,6 +47,8 @@ import type {
   PlayPresence,
   PlayRoleView,
   PlayTemplate,
+  PlayTemplateLineageImpact,
+  PlayTemplateLineageProposal,
   PlayVersionHistory,
   PlayerTodayData,
   PracticePlan,
@@ -147,6 +149,19 @@ export function createPlayTemplate(session: AppSession, input: { designId: strin
       ...(input.parentTemplateId ? { parent_template_id: input.parentTemplateId } : {}),
     }),
   });
+}
+
+export function fetchPlayTemplateLineageImpact(session: AppSession, templateId: string, signal?: AbortSignal): Promise<PlayTemplateLineageImpact> {
+  const params = new URLSearchParams({ organization_id: session.organizationId, template_id: templateId });
+  return request<PlayTemplateLineageImpact>(`/v1/playbook/designs/templates/lineage-impact?${params}`, session, { signal });
+}
+
+export function proposePlayTemplateLineageUpdate(session: AppSession, input: { templateId: string; patches: Array<{ key: string; patch: Record<string, unknown> }> }): Promise<PlayTemplateLineageProposal> {
+  return request<PlayTemplateLineageProposal>('/v1/playbook/designs/templates/lineage-proposal', session, { method: 'POST', body: organizationBody(session, { template_id: input.templateId, patches: input.patches }) });
+}
+
+export function approvePlayTemplateLineageUpdate(session: AppSession, input: { proposalId: string; decisionRef: string }): Promise<PlayTemplateLineageProposal> {
+  return request<PlayTemplateLineageProposal>('/v1/playbook/designs/templates/lineage-proposal/approve', session, { method: 'POST', body: organizationBody(session, { proposal_id: input.proposalId, decision_ref: input.decisionRef }) });
 }
 
 export interface PlayVariantBatchReview { ready: boolean; ready_count: number; blocked_count: number; items: Array<{ design_id: string; state: string; ready: boolean; validation_status?: string; lifecycle?: string; approval_state?: string; reasons: string[] }> }

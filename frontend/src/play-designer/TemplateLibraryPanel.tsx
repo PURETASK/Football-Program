@@ -1,7 +1,7 @@
 import { useDeferredValue, useMemo, useState } from 'react';
 import { BookmarkPlus, Check, Layers3, Search, ShieldAlert, Sparkles } from 'lucide-react';
 
-import type { PlayDesign, PlayTemplate } from '../types';
+import type { PlayDesign, PlayTemplate, PlayTemplateLineageImpact, PlayTemplateLineageProposal } from '../types';
 import { diffTemplateInheritance, resolveTemplateAssignments } from './templateMaterializer';
 import { diffPlayVariant } from './variantDiff';
 
@@ -10,6 +10,10 @@ interface TemplateLibraryPanelProps {
   design: PlayDesign;
   onApply: (template: PlayTemplate, mode: 'replace' | 'layer') => void;
   onSave?: (input: { name: string; description: string; tags: string[]; elementIds?: string[]; parentTemplateId?: string }) => Promise<void>;
+  onInspectLineage?: (templateId: string) => Promise<PlayTemplateLineageImpact>;
+  onProposeLineage?: (input: { templateId: string; key: string; field: string; value: string }) => Promise<PlayTemplateLineageProposal>;
+  onApproveLineage?: (input: { proposalId: string; decisionRef: string }) => Promise<PlayTemplateLineageProposal>;
+  canApproveLineage?: boolean;
   onCreateVariants?: (input: { field: 'front' | 'coverage' | 'formation' | 'concept'; labels: string[]; assignmentPatches?: Array<{ element_id: string; patch: Record<string, unknown> }> }) => Promise<{ variants: PlayDesign[]; count: number }>;
   variantBatches?: Array<{ id: string; variants: PlayDesign[]; count: number; status: string; human_review_required?: boolean; review?: { ready: boolean; ready_count: number; blocked_count: number }; release_bundle?: { id: string; status: string; immutable: boolean; manifest_hash?: string; created_at?: string; production_activation: boolean; integrity_valid?: boolean } }>;
   onRequestVariantReview?: (batchId: string) => Promise<void>;
@@ -89,7 +93,7 @@ function TemplatePreview({ template }: { template: PlayTemplate }) {
   );
 }
 
-export function TemplateLibraryPanel({ templates, design, variantBatches = [], onRequestVariantReview, onApproveVariantReview, onCreateVariantReleaseBundle, onInspectVariantReleaseBundle, onApply, onSave, onCreateVariants, onOpenVariant, selectedElementIds = [] }: TemplateLibraryPanelProps) {
+export function TemplateLibraryPanel({ templates, design, variantBatches = [], onRequestVariantReview, onApproveVariantReview, onCreateVariantReleaseBundle, onInspectVariantReleaseBundle, onInspectLineage, onProposeLineage, onApproveLineage, canApproveLineage = false, onApply, onSave, onCreateVariants, onOpenVariant, selectedElementIds = [] }: TemplateLibraryPanelProps) {
   const [search, setSearch] = useState('');
   const [kind, setKind] = useState('all');
   const [lifecycle, setLifecycle] = useState('all');
@@ -112,8 +116,33 @@ export function TemplateLibraryPanel({ templates, design, variantBatches = [], o
   const [inspectionBundleId, setInspectionBundleId] = useState<string | null>(null);
   const [inspectionResults, setInspectionResults] = useState<Record<string, { status: 'verified' | 'mismatch' | 'error'; expected?: string; declared?: string }>>({});
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  type LineageState = { status: 'idle' | 'loading' | 'error'; impact?: PlayTemplateLineageImpact; proposal?: PlayTemplateLineageProposal; key?: string; field?: string; value?: string; decisionRef?: string };
+  const [lineageState, setLineageState] = useState<Record<string, LineageState>>({});
   const deferredSearch = useDeferredValue(search);
   const kinds = useMemo(() => [...new Set(templates.map((template) => template.template_kind ?? 'custom'))].sort(), [templates]);
+
+  const updateLineage = (templateId: string, patch: Partial<LineageState>) => setLineageState((current) => ({ ...current, [templateId]: { ...current[templateId], status: 'idle', ...patch } }));
+  const inspectLineage = async (templateId: string) => {
+    if (!onInspectLineage) return;
+    updateLineage(templateId, { status: 'loading' });
+    try { updateLineage(templateId, { status: 'idle', impact: await onInspectLineage(templateId) }); }
+    catch { updateLineage(templateId, { status: 'error' }); }
+  };
+  const proposeLineage = async (templateId: string) => {
+    const current = lineageState[templateId];
+    const field = current?.field ?? 'type';
+    if (!onProposeLineage || !current?.key || !current?.value?.trim()) return;
+    updateLineage(templateId, { status: 'loading' });
+    try { updateLineage(templateId, { status: 'idle', proposal: await onProposeLineage({ templateId, key: current.key, field, value: current.value.trim() }) }); }
+    catch { updateLineage(templateId, { status: 'error' }); }
+  };
+  const approveLineage = async (templateId: string) => {
+    const current = lineageState[templateId];
+    if (!onApproveLineage || !current?.proposal?.id || !current.decisionRef?.trim()) return;
+    updateLineage(templateId, { status: 'loading' });
+    try { updateLineage(templateId, { status: 'idle', proposal: await onApproveLineage({ proposalId: current.proposal.id, decisionRef: current.decisionRef.trim() }) }); }
+    catch { updateLineage(templateId, { status: 'error' }); }
+  };
   const filtered = useMemo(() => {
     const query = deferredSearch.trim().toLowerCase();
     return templates.filter((template) => {
@@ -192,6 +221,14 @@ export function TemplateLibraryPanel({ templates, design, variantBatches = [], o
             <div className="template-card__meta"><span>{template.formation ?? template.front ?? 'Any look'}</span><span>{template.personnel ?? 'Open personnel'}</span><span>{resolveTemplateAssignments(template).length} assignments</span>{template.inherited_assignments?.length ? <span>{template.inherited_assignments.length} inherited</span> : null}<span>{template.assignments?.length ?? 0} local</span></div>
             {template.parent_template_id ? <small className="template-companion"><Layers3 size={12} /> Inherits from {templates.find((parent) => parent.id === template.parent_template_id)?.name ?? template.parent_template_id}</small> : null}
             {inheritanceDiff ? <details className="template-inheritance-details"><summary>Inspect inheritance and overrides</summary><div className="template-inheritance-details__body"><span>{inheritanceDiff.inherited.length} inherited unchanged</span><span>{inheritanceDiff.overridden.length} overridden</span><span>{inheritanceDiff.added.length} child additions</span>{inheritanceDiff.overridden.length ? <ul>{inheritanceDiff.overridden.map((item) => <li key={item.key}><code>{item.key}</code><small>Overrides: {item.fields.map(fieldLabel).join(', ')}</small></li>)}</ul> : null}{inheritanceDiff.added.length ? <small>Added assignments: {inheritanceDiff.added.join(', ')}</small> : null}</div></details> : null}
+            {onInspectLineage && template.scope === 'organization' ? <section className="template-lineage-controls" aria-label={`Governed lineage controls for ${template.name}`}>
+              <button type="button" className="template-action template-action--secondary" onClick={() => void inspectLineage(template.id)} disabled={lineageState[template.id]?.status === 'loading'}>{lineageState[template.id]?.status === 'loading' ? 'Inspecting lineage…' : 'Inspect parent impact'}</button>
+              {lineageState[template.id]?.status === 'error' ? <small role="alert">Lineage information could not be loaded.</small> : null}
+              {lineageState[template.id]?.impact ? <div className="template-lineage-report" role="status"><strong>{lineageState[template.id]?.impact?.dependent_count ?? 0} dependent package{lineageState[template.id]?.impact?.dependent_count === 1 ? '' : 's'}</strong>{lineageState[template.id]?.impact?.dependent_count ? <ul>{lineageState[template.id]?.impact?.dependents.map((dependent) => <li key={dependent.template_id}><span>{dependent.name ?? dependent.template_id} · depth {dependent.depth}</span><small>{dependent.inherited_assignment_count} inherited · {dependent.local_override_count} local override{dependent.local_override_count === 1 ? '' : 's'}</small></li>)}</ul> : <small>No child packages would be affected.</small>}
+                {onProposeLineage && template.assignments?.length && lineageState[template.id]?.proposal?.status !== 'approved_and_applied' ? <div className="template-lineage-form"><label><span>Assignment</span><select aria-label={`Lineage assignment for ${template.name}`} value={lineageState[template.id]?.key ?? ''} onChange={(event) => updateLineage(template.id, { key: event.target.value })}><option value="">Choose assignment</option>{template.assignments.map((assignment) => <option value={assignment.key} key={assignment.key}>{assignment.key} · {assignment.assignment ?? assignment.kind}</option>)}</select></label><label><span>Field</span><select aria-label={`Lineage field for ${template.name}`} value={lineageState[template.id]?.field ?? 'type'} onChange={(event) => updateLineage(template.id, { field: event.target.value })}><option value="type">Route/action type</option><option value="landmark">Landmark</option><option value="responsibility">Responsibility</option><option value="technique">Technique</option><option value="zone">Zone</option><option value="gap">Gap</option><option value="start_ms">Start time (ms)</option><option value="end_ms">End time (ms)</option></select></label><label><span>New value</span><input aria-label={`Lineage value for ${template.name}`} value={lineageState[template.id]?.value ?? ''} onChange={(event) => updateLineage(template.id, { value: event.target.value })} placeholder="Enter the approved change" /></label><button type="button" disabled={!lineageState[template.id]?.key || !lineageState[template.id]?.value?.trim() || lineageState[template.id]?.status === 'loading'} onClick={() => void proposeLineage(template.id)}>Propose governed change</button></div> : null}
+                {lineageState[template.id]?.proposal ? <div className="template-lineage-proposal"><span><strong>{lineageState[template.id]?.proposal?.status}</strong> · {lineageState[template.id]?.proposal?.id}</span>{lineageState[template.id]?.proposal?.status === 'pending_owner_approval' && canApproveLineage && onApproveLineage ? <><input aria-label={`Lineage decision reference for ${template.name}`} value={lineageState[template.id]?.decisionRef ?? ''} onChange={(event) => updateLineage(template.id, { decisionRef: event.target.value })} placeholder="DEC-TEMPLATE-001" /><button type="button" disabled={!lineageState[template.id]?.decisionRef?.trim() || lineageState[template.id]?.status === 'loading'} onClick={() => void approveLineage(template.id)}>Approve and propagate</button></> : null}{lineageState[template.id]?.proposal?.status === 'approved_and_applied' ? <small>Applied to {lineageState[template.id]?.proposal?.propagated_template_ids?.length ?? 0} dependent package{lineageState[template.id]?.proposal?.propagated_template_ids?.length === 1 ? '' : 's'}; affected active packages are now in review.</small> : null}</div> : null}
+              </div> : null}
+            </section> : null}
             {template.tags?.length ? <div className="template-tags">{template.tags.slice(0, 4).map((tag) => <span key={tag}>{tag}</span>)}</div> : null}
             {template.expected_companion_layers?.length ? <small className="template-companion"><Layers3 size={12} /> Pair with: {template.expected_companion_layers.map(titleCase).join(', ')}</small> : <small className="template-companion"><Check size={12} /> Complete package</small>}
             {confirming ? <div className="template-replace-warning" role="alert"><ShieldAlert size={14} /><span>This replaces the current {design.elements?.length ?? 0} assignments. Click again to confirm.</span></div> : null}

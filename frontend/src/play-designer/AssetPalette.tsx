@@ -1,7 +1,7 @@
 import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react';
 import { BookOpen, Check, Filter, Search, Sparkles } from 'lucide-react';
 
-import type { PlayAsset, PlayAssetCompatibility, PlayDesign, PlayTemplate } from '../types';
+import type { PlayAsset, PlayAssetCompatibility, PlayDesign, PlayTemplate, PlayTemplateLineageImpact, PlayTemplateLineageProposal } from '../types';
 import { DesignerSectionGuide } from './DesignerSectionGuide';
 
 const TemplateLibraryPanel = lazy(() => import('./TemplateLibraryPanel').then((module) => ({ default: module.TemplateLibraryPanel })));
@@ -15,6 +15,10 @@ interface AssetPaletteProps {
   onChoose: (asset: PlayAsset) => void;
   onApplyTemplate?: (template: PlayTemplate, mode: 'replace' | 'layer') => void;
   onSaveTemplate?: (input: { name: string; description: string; tags: string[]; elementIds?: string[]; parentTemplateId?: string }) => Promise<void>;
+  onInspectLineage?: (templateId: string) => Promise<PlayTemplateLineageImpact>;
+  onProposeLineage?: (input: { templateId: string; key: string; field: string; value: string }) => Promise<PlayTemplateLineageProposal>;
+  onApproveLineage?: (input: { proposalId: string; decisionRef: string }) => Promise<PlayTemplateLineageProposal>;
+  canApproveLineage?: boolean;
   onCreateVariants?: (input: { field: 'front' | 'coverage' | 'formation' | 'concept'; labels: string[] }) => Promise<{ variants: PlayDesign[]; count: number }>;
   variantBatches?: Array<{ id: string; variants: PlayDesign[]; count: number; status: string; human_review_required?: boolean; review?: { ready: boolean; ready_count: number; blocked_count: number }; release_bundle?: { id: string; status: string; immutable: boolean; manifest_hash?: string; created_at?: string; production_activation: boolean; integrity_valid?: boolean } }>;
   onRequestVariantReview?: (batchId: string) => Promise<void>;
@@ -98,7 +102,7 @@ function AssetGlyph({ asset }: { asset: PlayAsset }) {
   return <span className={`asset-glyph asset-glyph--${kind}`} aria-hidden="true"><i /></span>;
 }
 
-export function AssetPalette({ assets, design, activeAsset, templates = [], variantBatches = [], loading, onChoose, onApplyTemplate, onSaveTemplate, onCreateVariants, onOpenVariant, onRequestVariantReview, onApproveVariantReview, onCreateVariantReleaseBundle, onInspectVariantReleaseBundle, selectedElementIds = [] }: AssetPaletteProps) {
+export function AssetPalette({ assets, design, activeAsset, templates = [], variantBatches = [], loading, onChoose, onApplyTemplate, onSaveTemplate, onCreateVariants, onOpenVariant, onRequestVariantReview, onApproveVariantReview, onCreateVariantReleaseBundle, onInspectVariantReleaseBundle, onInspectLineage, onProposeLineage, onApproveLineage, canApproveLineage, selectedElementIds = [] }: AssetPaletteProps) {
   const [libraryMode, setLibraryMode] = useState<'assets' | 'templates'>('assets');
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
@@ -142,7 +146,7 @@ export function AssetPalette({ assets, design, activeAsset, templates = [], vari
 
       {libraryMode === 'templates' ? (
         <Suspense fallback={<div className="asset-list__loading"><i /><i /><i /><i /></div>}>
-          <TemplateLibraryPanel templates={templates} design={design} variantBatches={variantBatches} selectedElementIds={selectedElementIds} onApply={onApplyTemplate ?? (() => undefined)} onSave={onSaveTemplate} onCreateVariants={onCreateVariants} onOpenVariant={onOpenVariant} onRequestVariantReview={onRequestVariantReview} onApproveVariantReview={onApproveVariantReview} onCreateVariantReleaseBundle={onCreateVariantReleaseBundle} onInspectVariantReleaseBundle={onInspectVariantReleaseBundle} />
+          <TemplateLibraryPanel templates={templates} design={design} variantBatches={variantBatches} selectedElementIds={selectedElementIds} onApply={onApplyTemplate ?? (() => undefined)} onSave={onSaveTemplate} onCreateVariants={onCreateVariants} onOpenVariant={onOpenVariant} onRequestVariantReview={onRequestVariantReview} onApproveVariantReview={onApproveVariantReview} onCreateVariantReleaseBundle={onCreateVariantReleaseBundle} onInspectVariantReleaseBundle={onInspectVariantReleaseBundle} onInspectLineage={onInspectLineage} onProposeLineage={onProposeLineage} onApproveLineage={onApproveLineage} canApproveLineage={canApproveLineage} />
         </Suspense>
       ) : null}
 
