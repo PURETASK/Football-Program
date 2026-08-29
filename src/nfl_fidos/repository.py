@@ -41,6 +41,11 @@ class JsonRepository:
                 os.unlink(temporary)
 
     def put(self, collection: str, record_id: str, record: dict[str, Any], *, actor: str, reason: str) -> dict[str, Any]:
+        """Persist a record through the repository's serialized write boundary."""
+        with self._lock:
+            return self._put_unlocked(collection, record_id, record, actor=actor, reason=reason)
+
+    def _put_unlocked(self, collection: str, record_id: str, record: dict[str, Any], *, actor: str, reason: str) -> dict[str, Any]:
         if not collection or not record_id or not actor or not reason:
             raise ValueError("collection, record_id, actor, and reason are required")
         records = self._state["records"].setdefault(collection, {})
