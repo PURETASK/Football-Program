@@ -566,6 +566,7 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
           canUndo={Boolean(state.past.length)}
           canRedo={Boolean(state.future.length)}
           selectionCount={state.selected.length}
+          hasClipboard={Boolean(state.clipboard)}
           saveState={saveState}
           presence={presenceQuery.data ?? []}
           onTool={(tool) => dispatch({ type: 'set_tool', tool, asset: tool === 'select' || tool === 'pan' ? null : undefined })}

@@ -34,6 +34,7 @@ interface ToolbarProps {
   canUndo: boolean;
   canRedo: boolean;
   selectionCount: number;
+  hasClipboard?: boolean;
   saveState: 'idle' | 'saving' | 'saved' | 'error';
   presence: PlayPresence[];
   onTool: (tool: EditorTool) => void;
@@ -75,6 +76,7 @@ export function DesignerToolbar({
   canUndo,
   canRedo,
   selectionCount,
+  hasClipboard,
   saveState,
   presence,
   onTool,
@@ -118,7 +120,7 @@ export function DesignerToolbar({
         <button type="button" disabled={!canRedo} aria-label="Redo" title="Redo (Ctrl+Shift+Z)" onClick={onRedo}><Redo2 size={16} /></button>
         <button type="button" disabled={!selectionCount} aria-label="Duplicate selection" title="Duplicate (Ctrl+D)" onClick={onDuplicate}><Copy size={16} /></button>
         <button type="button" disabled={!selectionCount} aria-label="Copy selection" title="Copy selection (Ctrl+C)" onClick={onCopy}><Copy size={16} /></button>
-        <button type="button" aria-label="Paste selection" title="Paste selection (Ctrl+V)" onClick={onPaste}><ClipboardPaste size={16} /></button>
+        <button type="button" disabled={hasClipboard === false} aria-label="Paste selection" title="Paste selection (Ctrl+V)" onClick={onPaste}><ClipboardPaste size={16} /></button>
         <button type="button" disabled={!selectionCount} aria-label="Mirror selection" title="Mirror selection" onClick={onMirror}><Link2 size={16} /></button>
         <button type="button" disabled={!selectionCount} aria-label="Group selection" title="Group selection (Ctrl+G)" onClick={onGroup}><Users size={16} /></button>
         <button type="button" disabled={!selectionCount} className="toolbar-danger" aria-label="Delete selection" title="Delete" onClick={onDelete}><Trash2 size={16} /></button>
