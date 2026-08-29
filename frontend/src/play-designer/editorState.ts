@@ -21,6 +21,7 @@ export interface EditorState {
   dirty: boolean;
   savedFingerprint: string;
   serverRevision?: number;
+  clipboard: { players: PlayPlayer[]; elements: PlayElement[] } | null;
 }
 
 export type EditorAction =
@@ -41,6 +42,8 @@ export type EditorAction =
   | { type: 'update_element'; id: string; patch: Partial<PlayElement> }
   | { type: 'delete_selected' }
   | { type: 'duplicate_selected' }
+  | { type: 'copy_selected' }
+  | { type: 'paste_clipboard' }
   | { type: 'mirror_selected' }
   | { type: 'group_selected'; groupId: string }
   | { type: 'undo' }
@@ -90,6 +93,7 @@ export function createEditorState(design: PlayDesign): EditorState {
     dirty: false,
     savedFingerprint: designFingerprint(initial),
     serverRevision: initial._revision,
+    clipboard: null,
   };
 }
 
@@ -333,6 +337,37 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
       ];
       return commit(state, next, selected);
     }
+    case 'copy_selected': {
+      const selectedPlayers = new Set(state.selected.filter((item) => item.kind === 'player').map((item) => item.id));
+      const selectedElements = new Set(state.selected.filter((item) => item.kind === 'element').map((item) => item.id));
+      const players = (state.present.players ?? []).filter((player) => selectedPlayers.has(player.id)).map(clone);
+      const elements = (state.present.elements ?? []).filter((element) => selectedElements.has(element.id) || selectedPlayers.has(element.player_id ?? '')).map(clone);
+      return players.length || elements.length ? { ...state, clipboard: { players, elements } } : state;
+    }
+    case 'paste_clipboard': {
+      if (!state.clipboard || (!state.clipboard.players.length && !state.clipboard.elements.length)) return state;
+      const existingPlayerIds = new Set((state.present.players ?? []).map((item) => item.id));
+      const existingElementIds = new Set((state.present.elements ?? []).map((item) => item.id));
+      const playerIdMap = new Map<string, string>();
+      const players = state.clipboard.players.map((player) => {
+        const id = uniqueCopyId(player.id, existingPlayerIds);
+        existingPlayerIds.add(id);
+        playerIdMap.set(player.id, id);
+        return { ...clone(player), id, start: player.start ? normalizePoint({ x: player.start.x + 3, y: player.start.y + 3 }, state.snap) : undefined };
+      });
+      const elementIdMap = new Map<string, string>();
+      state.clipboard.elements.forEach((element) => {
+        const id = uniqueCopyId(element.id, existingElementIds);
+        existingElementIds.add(id);
+        elementIdMap.set(element.id, id);
+      });
+      const elements = state.clipboard.elements.map((element) => {
+        const copy = remapElementReferences(translateElementGeometry(clone(element), { x: 3, y: 3 }, state.snap), elementIdMap);
+        return { ...copy, id: elementIdMap.get(element.id)!, player_id: playerIdMap.get(element.player_id ?? '') ?? element.player_id };
+      });
+      const next = { ...state.present, players: [...(state.present.players ?? []), ...players], elements: [...(state.present.elements ?? []), ...elements] };
+      return commit(state, next, [...players.map((player) => ({ kind: 'player' as const, id: player.id })), ...elements.map((element) => ({ kind: 'element' as const, id: element.id }))]);
+    }
     case 'mirror_selected': {
       const selectedPlayers = new Set(state.selected.filter((item) => item.kind === 'player').map((item) => item.id));
       const selectedElements = new Set(state.selected.filter((item) => item.kind === 'element').map((item) => item.id));
@@ -382,7 +417,7 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
       };
     }
     case 'replace_design':
-      return createEditorState(action.design);
+      return { ...createEditorState(action.design), clipboard: state.clipboard };
     case 'recover_design': {
       const recovered = createEditorState(action.design);
       return {

@@ -293,6 +293,12 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
       } else if (command && event.key.toLowerCase() === 'd') {
         event.preventDefault();
         dispatch({ type: 'duplicate_selected' });
+      } else if (command && event.key.toLowerCase() === 'c') {
+        event.preventDefault();
+        dispatch({ type: 'copy_selected' });
+      } else if (command && event.key.toLowerCase() === 'v') {
+        event.preventDefault();
+        dispatch({ type: 'paste_clipboard' });
       } else if (command && event.key.toLowerCase() === 'g') {
         event.preventDefault();
         dispatch({ type: 'group_selected', groupId: `GROUP-${Date.now().toString(36).toUpperCase()}` });
@@ -557,6 +563,8 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
           onUndo={() => dispatch({ type: 'undo' })}
           onRedo={() => dispatch({ type: 'redo' })}
           onDuplicate={() => dispatch({ type: 'duplicate_selected' })}
+          onCopy={() => dispatch({ type: 'copy_selected' })}
+          onPaste={() => dispatch({ type: 'paste_clipboard' })}
           onMirror={() => dispatch({ type: 'mirror_selected' })}
           onGroup={() => dispatch({ type: 'group_selected', groupId: `GROUP-${Date.now().toString(36).toUpperCase()}` })}
           onDelete={() => dispatch({ type: 'delete_selected' })}

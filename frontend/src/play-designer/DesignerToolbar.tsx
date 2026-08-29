@@ -1,6 +1,7 @@
 import {
   ArrowLeft,
   Copy,
+  ClipboardPaste,
   CircleHelp,
   Download,
   GraduationCap,
@@ -40,6 +41,8 @@ interface ToolbarProps {
   onUndo: () => void;
   onRedo: () => void;
   onDuplicate: () => void;
+  onCopy: () => void;
+  onPaste: () => void;
   onMirror: () => void;
   onGroup: () => void;
   onDelete: () => void;
@@ -79,6 +82,8 @@ export function DesignerToolbar({
   onUndo,
   onRedo,
   onDuplicate,
+  onCopy,
+  onPaste,
   onMirror,
   onGroup,
   onDelete,
@@ -112,6 +117,8 @@ export function DesignerToolbar({
         <button type="button" disabled={!canUndo} aria-label="Undo" title="Undo (Ctrl+Z)" onClick={onUndo}><Undo2 size={16} /></button>
         <button type="button" disabled={!canRedo} aria-label="Redo" title="Redo (Ctrl+Shift+Z)" onClick={onRedo}><Redo2 size={16} /></button>
         <button type="button" disabled={!selectionCount} aria-label="Duplicate selection" title="Duplicate (Ctrl+D)" onClick={onDuplicate}><Copy size={16} /></button>
+        <button type="button" disabled={!selectionCount} aria-label="Copy selection" title="Copy selection (Ctrl+C)" onClick={onCopy}><Copy size={16} /></button>
+        <button type="button" aria-label="Paste selection" title="Paste selection (Ctrl+V)" onClick={onPaste}><ClipboardPaste size={16} /></button>
         <button type="button" disabled={!selectionCount} aria-label="Mirror selection" title="Mirror selection" onClick={onMirror}><Link2 size={16} /></button>
         <button type="button" disabled={selectionCount < 2} aria-label="Group selection" title="Group selection (Ctrl+G)" onClick={onGroup}><Users size={16} /></button>
         <button type="button" disabled={!selectionCount} className="toolbar-danger" aria-label="Delete selection" title="Delete" onClick={onDelete}><Trash2 size={16} /></button>

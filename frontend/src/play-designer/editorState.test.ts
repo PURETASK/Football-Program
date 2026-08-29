@@ -58,6 +58,18 @@ describe('play designer editor state', () => {
     expect(copies.find((element) => element.id.startsWith('ROUTE-Y'))?.branches?.[0].points[0]).toEqual({ x: 93, y: 33 });
   });
 
+  it('copies and pastes a self-contained selection with fresh ids and linked geometry', () => {
+    let state = createEditorState(design());
+    state = editorReducer(state, { type: 'select', selection: { kind: 'player', id: 'X' } });
+    state = editorReducer(state, { type: 'copy_selected' });
+    expect(state.present.players).toHaveLength(1);
+    state = editorReducer(state, { type: 'paste_clipboard' });
+    expect(state.present.players).toHaveLength(2);
+    expect(state.present.elements).toHaveLength(2);
+    expect(state.present.elements?.[1].player_id).toBe(state.present.players?.[1].id);
+    expect(state.present.elements?.[1].points?.[0]).toEqual({ x: 13, y: 33 });
+  });
+
   it('mirrors selected geometry across the field centerline', () => {
     let state = createEditorState(design());
     state = editorReducer(state, { type: 'select', selection: { kind: 'player', id: 'X' } });
