@@ -436,3 +436,11 @@ validation now requires every alternate path to carry a unique non-empty id,
 coach-facing label, and non-empty decision condition, in addition to its
 bounded two-point geometry and route semantics. Duplicate branch identities and
 missing teaching conditions are now explainable findings before save/review.
+
+Alternate-path collision parity addendum — 2026-08-29: advanced server legality
+validation now evaluates route-collision corridors across every primary and
+alternate route polyline. Findings identify the exact branch path, expose both
+path labels, preserve intentional-crossing documentation requirements, and keep
+the route-collision policy behavior consistent with the editor's collision
+engine. A regression test verifies a collision that exists only on an alternate
+path; browser, multi-user, and production-scale acceptance remain open.

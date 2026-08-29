@@ -176,6 +176,32 @@ def _timing_overlap(first: dict[str, Any], second: dict[str, Any]) -> bool:
     return max(first_start, second_start) <= min(first_end, second_end)
 
 
+def _route_path_candidates(element: dict[str, Any]) -> list[dict[str, Any]]:
+    """Expand one route into the primary and executable alternate paths."""
+    candidates: list[dict[str, Any]] = [{
+        "label": "Primary path",
+        "points": element.get("points", []),
+        "metadata": element,
+        "path": "points",
+    }]
+    branches = element.get("branches", [])
+    if not isinstance(branches, list):
+        return candidates
+    for index, branch in enumerate(branches):
+        if not isinstance(branch, dict):
+            continue
+        # Branch fields override the parent for collision intent, notes, and
+        # timing; unspecified values inherit the route's active window.
+        metadata = {**element, **branch}
+        candidates.append({
+            "label": str(branch.get("label") or f"Alternate path {index + 1}"),
+            "points": branch.get("points", []),
+            "metadata": metadata,
+            "path": f"branches[{index}].points",
+        })
+    return candidates
+
+
 def _effective_profile_configuration(design: dict[str, Any], profile: str, source: dict[str, Any], issues: list[dict[str, Any]]) -> dict[str, Any]:
     """Apply validated organization/local constraints to profiles that require adoption rules."""
     configuration = deepcopy(RULE_PROFILE_CATALOG[profile])
@@ -305,22 +331,34 @@ def validate_advanced_legality(design: dict[str, Any], *, rule_profile: str | No
             second = elements[second_index]
             if first.get("player_id") and first.get("player_id") == second.get("player_id") and _timing_overlap(first, second) and first.get("exclusive_assignment") and second.get("exclusive_assignment"):
                 issues.append(_finding("LEGALITY-ASSIGNMENT-CONFLICT", "One player has overlapping exclusive assignments.", f"elements[{index}].player_id", profile=profile, source=source, severity="error", observed=[first.get("id"), second.get("id")], expected="non-overlapping exclusive assignments"))
-            corridors = _path_collision_corridors(first.get("points", []), second.get("points", [])) if first.get("kind") == second.get("kind") == "route" and _timing_overlap(first, second) else []
-            if design.get("route_collision_policy") == "error" and corridors:
-                issues.append(_finding("LEGALITY-ROUTE-COLLISION", "Two route paths intersect during overlapping timing windows.", f"elements[{index}].points", profile=profile, source=source, severity="error", observed={"routes": [first.get("id"), second.get("id")], "corridors": corridors}, expected="separated route corridors"))
-            elif corridors:
-                intentional = first.get("collision_intent") == second.get("collision_intent") == "intentional"
-                first_note = str(first.get("collision_note", "")).strip()
-                second_note = str(second.get("collision_note", "")).strip()
-                if intentional and first_note and second_note:
-                    message = "Two route paths intersect during overlapping timing windows; the crossing is marked intentional and documented by both route owners."
-                    expected = "documented intentional crossing"
-                else:
-                    message = "Two route paths intersect during overlapping timing windows; confirm whether the crossing is intentional and document both assignments."
-                    expected = "separated route corridors or documented intentional crossing"
-                    if intentional:
-                        issues.append(_finding("LEGALITY-ROUTE-CROSSING-EXPLANATION", "Both routes are marked intentional, but each route must include a crossing explanation before approval.", f"elements[{index}].collision_note", profile=profile, source=source, severity="warning", observed={"first": bool(first_note), "second": bool(second_note)}, expected="non-empty collision_note on both routes"))
-                issues.append(_finding("LEGALITY-ROUTE-COLLISION", message, f"elements[{index}].points", profile=profile, source=source, severity="warning", observed={"routes": [first.get("id"), second.get("id")], "corridors": corridors, "intentional": intentional, "documented": bool(first_note and second_note)}, expected=expected))
+            if first.get("kind") == second.get("kind") == "route":
+                for first_path in _route_path_candidates(first):
+                    for second_path in _route_path_candidates(second):
+                        first_metadata = first_path["metadata"]
+                        second_metadata = second_path["metadata"]
+                        if not _timing_overlap(first_metadata, second_metadata):
+                            continue
+                        corridors = _path_collision_corridors(first_path["points"], second_path["points"])
+                        if not corridors:
+                            continue
+                        intentional = first_metadata.get("collision_intent") == second_metadata.get("collision_intent") == "intentional"
+                        first_note = str(first_metadata.get("collision_note", "")).strip()
+                        second_note = str(second_metadata.get("collision_note", "")).strip()
+                        route_labels = [first_path["label"], second_path["label"]]
+                        observed = {"routes": [first.get("id"), second.get("id")], "paths": route_labels, "corridors": corridors, "intentional": intentional, "documented": bool(first_note and second_note)}
+                        path = f"elements[{index}].{first_path['path']}"
+                        if design.get("route_collision_policy") == "error":
+                            issues.append(_finding("LEGALITY-ROUTE-COLLISION", "Two route paths intersect during overlapping timing windows.", path, profile=profile, source=source, severity="error", observed=observed, expected="separated route corridors"))
+                            continue
+                        if intentional and first_note and second_note:
+                            message = "Two route paths intersect during overlapping timing windows; the crossing is marked intentional and documented by both route owners."
+                            expected = "documented intentional crossing"
+                        else:
+                            message = "Two route paths intersect during overlapping timing windows; confirm whether the crossing is intentional and document both assignments."
+                            expected = "separated route corridors or documented intentional crossing"
+                            if intentional:
+                                issues.append(_finding("LEGALITY-ROUTE-CROSSING-EXPLANATION", "Both routes are marked intentional, but each route must include a crossing explanation before approval.", path, profile=profile, source=source, severity="warning", observed={"first": bool(first_note), "second": bool(second_note), "paths": route_labels}, expected="non-empty collision_note on both routes"))
+                        issues.append(_finding("LEGALITY-ROUTE-COLLISION", message, path, profile=profile, source=source, severity="warning", observed=observed, expected=expected))
 
     protections = [item for item in elements if item.get("kind") == "block" or item.get("assignment_type") in {"block", "protection", "combo"}]
     protection_keys: dict[str, list[str]] = {}

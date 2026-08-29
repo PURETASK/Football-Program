@@ -402,6 +402,20 @@ class PlayCreationTests(unittest.TestCase):
         self.assertTrue(collision["observed"]["documented"])
         self.assertEqual(len(collision["observed"]["corridors"]), 1)
 
+    def test_route_collision_checks_alternate_paths_and_reports_branch_path(self):
+        candidate = design()
+        candidate["elements"][0]["id"] = "E-ROUTE-1"
+        candidate["elements"][0]["branches"] = [{
+            "id": "OPTION-ALERT", "label": "Alert path", "condition": "If safety rotates",
+            "points": [{"x": 30, "y": 30}, {"x": 50, "y": 5}],
+        }]
+        candidate["elements"].append({"id": "E-ROUTE-2", "kind": "route", "player_id": "P1", "type": "post", "points": [{"x": 10, "y": 30}, {"x": 50, "y": 5}], "arrow_style": "route"})
+        findings = validate_advanced_legality(candidate)
+        collisions = [issue for issue in findings if issue["code"] == "LEGALITY-ROUTE-COLLISION"]
+        branch_collision = next(issue for issue in collisions if "Alert path" in issue["observed"]["paths"])
+        self.assertEqual(branch_collision["path"], "elements[0].branches[0].points")
+        self.assertEqual(branch_collision["observed"]["routes"], [candidate["elements"][0]["id"], "E-ROUTE-2"])
+
     def test_advanced_legality_reports_defensive_coverage_protection_and_fit_conflicts(self):
         candidate = design("defense")
         candidate["coverage_zones"] = ["deep_left", "deep_middle"]
