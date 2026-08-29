@@ -57,6 +57,13 @@ class PlayDesignServiceTests(unittest.TestCase):
         declared = set(contract["$defs"]["element"]["properties"])
         self.assertTrue(set(PROFESSIONAL_ASSIGNMENT_PATCH_FIELDS).issubset(declared))
 
+    def test_canonical_play_schema_declares_professional_route_branch_contract(self):
+        root = Path(__file__).resolve().parents[1]
+        contract = json.loads((root / "contracts" / "play-design.schema.json").read_text(encoding="utf-8"))
+        branch = contract["$defs"]["routeBranch"]["properties"]
+        for field in ("route_family", "stem_depth_yards", "break_type", "break_depth_yards", "finish_direction", "option_rule", "timing", "collision_note"):
+            self.assertIn(field, branch)
+
     def test_registry_exposes_assets_and_templates(self):
         service = self.service()
         self.assertGreaterEqual(len(service.assets()), 60)

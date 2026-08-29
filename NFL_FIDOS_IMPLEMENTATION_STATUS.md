@@ -707,3 +707,9 @@ schema now explicitly declares the professional exchange, route, blocking,
 protection, collision, and target fields used by the runtime assignment
 allowlist. A regression guard ensures every runtime assignment field remains
 represented in the canonical direct-save/version/publish contract.
+
+Route-branch contract addendum (2026-08-29): alternate paths now use an
+explicit reusable `routeBranch` schema with geometry, inherited route-family
+semantics, stem/break/finish metadata, option conditions, timing, and crossing
+review fields. This makes branch authoring first-class instead of relying on an
+unstructured extension of the primary element schema.

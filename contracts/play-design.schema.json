@@ -87,6 +87,30 @@
       },
       "additionalProperties": true
     },
+    "routeBranch": {
+      "type": "object",
+      "required": ["id", "label", "condition", "points"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "label": {"type": "string", "minLength": 1},
+        "condition": {"type": "string", "minLength": 1},
+        "points": {"type": "array", "items": {"$ref": "#/$defs/point"}},
+        "route_family": {"type": "string"},
+        "stem_depth_yards": {"type": "number", "minimum": 0, "maximum": 60},
+        "break_type": {"type": "string"},
+        "break_depth_yards": {"type": "number", "minimum": 0, "maximum": 60},
+        "finish_direction": {"type": "string"},
+        "option_rule": {"type": "string"},
+        "option_condition": {"type": "string"},
+        "start_ms": {"type": "integer", "minimum": -5000},
+        "end_ms": {"type": "integer", "minimum": -4999},
+        "timing": {"$ref": "#/$defs/timing"},
+        "collision_intent": {"type": "string"},
+        "collision_corridor_yards": {"type": "number", "minimum": 0},
+        "collision_note": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
     "element": {
       "type": "object",
       "required": ["id", "kind"],
@@ -145,7 +169,7 @@
         "stroke_width": {"type": "number", "minimum": 0},
         "line_cap": {"type": "string"},
         "target_element_key": {"type": "string"},
-        "branches": {"type": "array", "items": {"type": "object", "required": ["id", "label", "condition", "points"], "properties": {"id": {"type": "string"}, "label": {"type": "string"}, "condition": {"type": "string"}, "points": {"type": "array", "items": {"$ref": "#/$defs/point"}}, "start_ms": {"type": "integer", "minimum": -5000}, "end_ms": {"type": "integer", "minimum": -4999}, "timing": {"type": "object", "additionalProperties": true}}, "additionalProperties": true}},
+        "branches": {"type": "array", "items": {"$ref": "#/$defs/routeBranch"}},
         "zone": {"type": "string"},
         "phase": {"type": "string"},
         "read_key": {"type": "string"},
