@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import tempfile
+import threading
 from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
@@ -19,6 +20,7 @@ from typing import Any, Callable
 class JsonRepository:
     def __init__(self, path: str | Path):
         self.path = Path(path)
+        self._lock = threading.RLock()
         self._state = {"records": {}, "events": []}
         if self.path.exists():
             with self.path.open(encoding="utf-8") as handle:
@@ -60,12 +62,53 @@ class JsonRepository:
         self._persist()
         return deepcopy(saved)
 
+    def put_if_revision(self, collection: str, record_id: str, record: dict[str, Any], *, expected_revision: int | None, actor: str, reason: str) -> dict[str, Any]:
+        """Atomically write only when the record is still at ``expected_revision``.
+
+        The compare-and-swap boundary is intentionally inside the repository
+        lock.  Play Designer clients can therefore safely use this primitive
+        for concurrent edits instead of relying on a check followed by a
+        separate write.
+        """
+        if not collection or not record_id or not actor or not reason:
+            raise ValueError("collection, record_id, actor, and reason are required")
+        with self._lock:
+            records = self._state["records"].setdefault(collection, {})
+            previous = records.get(record_id)
+            actual_revision = previous.get("_revision") if previous else None
+            if actual_revision != expected_revision:
+                raise ValueError({
+                    "code": "DESIGN-CONFLICT",
+                    "message": "Design changed since it was loaded",
+                    "expected_revision": expected_revision,
+                    "actual_revision": actual_revision,
+                    "server_record": deepcopy(previous) if previous else None,
+                })
+            revision = (previous.get("_revision", 0) + 1) if previous else 1
+            saved = deepcopy(record)
+            saved.update({"_revision": revision, "_saved_at": datetime.now(timezone.utc).isoformat(), "_saved_by": actor})
+            records[record_id] = saved
+            self._state["events"].append({
+                "event_id": f"EVENT-{len(self._state['events']) + 1:06d}",
+                "type": "record_saved",
+                "collection": collection,
+                "record_id": record_id,
+                "revision": revision,
+                "actor": actor,
+                "reason": reason,
+                "at": saved["_saved_at"],
+            })
+            self._persist()
+            return deepcopy(saved)
+
     def get(self, collection: str, record_id: str) -> dict[str, Any] | None:
-        record = self._state["records"].get(collection, {}).get(record_id)
-        return deepcopy(record) if record is not None else None
+        with self._lock:
+            record = self._state["records"].get(collection, {}).get(record_id)
+            return deepcopy(record) if record is not None else None
 
     def list(self, collection: str) -> list[dict[str, Any]]:
-        return [deepcopy(record) for record in self._state["records"].get(collection, {}).values()]
+        with self._lock:
+            return [deepcopy(record) for record in self._state["records"].get(collection, {}).values()]
 
     def history(self, *, collection: str | None = None, record_id: str | None = None) -> list[dict[str, Any]]:
         events = self._state["events"]

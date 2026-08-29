@@ -404,3 +404,13 @@ requires all 13 authoring families and rejects missing replacement targets or
 malformed compatibility metadata. The 128-asset canonical catalog passes this
 contract; organization-scale catalog governance and deployment validation
 remain open.
+
+Atomic concurrent-save addendum — 2026-08-29: expected-revision Play Designer
+saves now use a repository-level compare-and-swap boundary in both the JSON and
+SQLite adapters. The check and write execute under the adapter's lock, and a
+stale writer receives the server snapshot and explicit expected/actual
+revisions. A two-editor API race rehearsal passes for both adapters and proves
+exactly one 201 winner, one 409 conflict, and a final persisted design matching
+the winner. This strengthens the local convergence contract; multi-process
+deployment concurrency, network partitions, and production database behavior
+remain deployment acceptance work.

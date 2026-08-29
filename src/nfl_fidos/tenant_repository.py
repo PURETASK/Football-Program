@@ -8,6 +8,7 @@ from typing import Any, Protocol
 
 class RepositoryLike(Protocol):
     def put(self, collection: str, record_id: str, record: dict[str, Any], *, actor: str, reason: str) -> dict[str, Any]: ...
+    def put_if_revision(self, collection: str, record_id: str, record: dict[str, Any], *, expected_revision: int | None, actor: str, reason: str) -> dict[str, Any]: ...
     def get(self, collection: str, record_id: str) -> dict[str, Any] | None: ...
     def list(self, collection: str) -> list[dict[str, Any]]: ...
     def history(self, *, collection: str | None = None, record_id: str | None = None) -> list[dict[str, Any]]: ...
@@ -38,6 +39,12 @@ class TenantRepository:
 
     def get(self, collection: str, record_id: str) -> dict[str, Any] | None:
         return self._visible(self.repository.get(collection, record_id))
+
+    def put_if_revision(self, collection: str, record_id: str, record: dict[str, Any], *, expected_revision: int | None, actor: str | None = None, reason: str = "tenant_scoped_compare_and_swap") -> dict[str, Any]:
+        if record.get("organization_id") != self.organization_id:
+            raise PermissionError("record organization_id does not match repository scope")
+        saved = self.repository.put_if_revision(collection, record_id, record, expected_revision=expected_revision, actor=actor or self.actor, reason=reason)
+        return self._visible(saved) or saved
 
     def list(self, collection: str) -> list[dict[str, Any]]:
         return [record for record in (self._visible(item) for item in self.repository.list(collection)) if record is not None]

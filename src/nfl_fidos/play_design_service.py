@@ -752,7 +752,19 @@ class PlayDesignService:
         issues = self._apply_approved_legality_overrides(candidate, validate_play_design(candidate) + validate_legality(candidate))
         has_errors = any(issue.get("severity", "error") == "error" for issue in issues)
         candidate["validation"] = {"status": "invalid" if has_errors else "valid", "issues": issues}
-        saved = self.repository.put("play_designs", candidate["id"], candidate, actor=actor, reason="play_design_saved")
+        if expected_revision is None:
+            saved = self.repository.put("play_designs", candidate["id"], candidate, actor=actor, reason="play_design_saved")
+        else:
+            try:
+                saved = self.repository.put_if_revision("play_designs", candidate["id"], candidate, expected_revision=expected_revision, actor=actor, reason="play_design_saved")
+            except ValueError as exc:
+                if not isinstance(exc.args[0] if exc.args else None, dict) or (exc.args[0] or {}).get("code") != "DESIGN-CONFLICT":
+                    raise
+                details = exc.args[0]
+                raise ValueError({
+                    **details,
+                    "server_design": details.get("server_record"),
+                }) from exc
         snapshot = build_snapshot(saved, actor=actor, source="save")
         self._store_immutable_snapshot(snapshot, actor=actor, reason="play_design_snapshot_created")
         return saved

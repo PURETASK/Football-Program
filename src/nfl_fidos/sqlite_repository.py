@@ -73,6 +73,41 @@ class SqliteRepository:
                 )
         return deepcopy(saved)
 
+    def put_if_revision(self, collection: str, record_id: str, record: dict[str, Any], *, expected_revision: int | None, actor: str, reason: str) -> dict[str, Any]:
+        """Atomically compare the current revision and persist the next one."""
+        if not collection or not record_id or not actor or not reason:
+            raise ValueError("collection, record_id, actor, and reason are required")
+        with self._lock:
+            current = self.connection.execute(
+                "SELECT revision, data_json FROM canonical_records WHERE collection = ? AND record_id = ?",
+                (collection, record_id),
+            ).fetchone()
+            actual_revision = current["revision"] if current else None
+            if actual_revision != expected_revision:
+                server_record = json.loads(current["data_json"]) if current else None
+                raise ValueError({
+                    "code": "DESIGN-CONFLICT",
+                    "message": "Design changed since it was loaded",
+                    "expected_revision": expected_revision,
+                    "actual_revision": actual_revision,
+                    "server_record": server_record,
+                })
+            revision = (actual_revision + 1) if actual_revision is not None else 1
+            timestamp = datetime.now(timezone.utc).isoformat()
+            saved = deepcopy(record)
+            saved.update({"_revision": revision, "_saved_at": timestamp, "_saved_by": actor})
+            event_id = f"EVENT-{collection}-{record_id}-{revision}"
+            with self.connection:
+                self.connection.execute(
+                    "INSERT OR REPLACE INTO canonical_records(collection, record_id, revision, data_json, saved_at, saved_by, organization_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (collection, record_id, revision, json.dumps(saved, sort_keys=True), timestamp, actor, saved.get("organization_id")),
+                )
+                self.connection.execute(
+                    "INSERT INTO audit_events(event_id, event_type, collection, record_id, revision, actor, reason, occurred_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    (event_id, "record_saved", collection, record_id, revision, actor, reason, timestamp),
+                )
+            return deepcopy(saved)
+
     def get(self, collection: str, record_id: str) -> dict[str, Any] | None:
         with self._lock:
             row = self.connection.execute(

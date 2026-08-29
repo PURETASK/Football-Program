@@ -2,6 +2,8 @@ import os
 import sys
 import tempfile
 from copy import deepcopy
+from concurrent.futures import ThreadPoolExecutor
+import threading
 import unittest
 from pathlib import Path
 
@@ -10,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).parents[1] / "src"))
 from nfl_fidos.api import handle_request
 from nfl_fidos.auth import issue_token
 from nfl_fidos.repository import JsonRepository
+from nfl_fidos.sqlite_repository import SqliteRepository
 from nfl_fidos.service import FootballIntelligenceService
 from tests.test_play_creation import design
 
@@ -267,6 +270,47 @@ class PlayDesignApiTests(unittest.TestCase):
             self.assertEqual(conflict[1]["data"]["expected_revision"], current["_revision"])
             self.assertEqual(conflict[1]["data"]["actual_revision"], second[1]["data"]["_revision"])
         os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
+
+    def test_concurrent_editors_have_one_atomic_winner_for_json_and_sqlite(self):
+        """A simultaneous pair of saves must not both pass a stale revision."""
+        secret = "play-design-atomic-race-secret-012345678901234567890"
+        os.environ["NFL_FIDOS_AUTH_SECRET"] = secret
+        try:
+            adapters = (("json", JsonRepository), ("sqlite", SqliteRepository))
+            for adapter_name, adapter in adapters:
+                with self.subTest(adapter=adapter_name), tempfile.TemporaryDirectory() as directory:
+                    repository = adapter(Path(directory) / ("state.json" if adapter_name == "json" else "state.sqlite3"))
+                    try:
+                        service = FootballIntelligenceService(repository)
+                        coach_a = {"Authorization": "Bearer " + issue_token(subject="COACH-RACE-A", role="coach_staff", organization_id="ORG-RACE", secret=secret)}
+                        coach_b = {"Authorization": "Bearer " + issue_token(subject="COACH-RACE-B", role="coach_staff", organization_id="ORG-RACE", secret=secret)}
+                        created_status, created = handle_request(method="POST", path="/v1/playbook/designs", headers=coach_a, body={"organization_id":"ORG-RACE", "design": design()}, service=service)
+                        self.assertEqual(created_status, 201)
+                        current = created["data"]
+                        barrier = threading.Barrier(2)
+
+                        def save_from_editor(headers, concept):
+                            candidate = design()
+                            candidate.update({"id": current["id"], "concept": concept})
+                            barrier.wait(timeout=3)
+                            return handle_request(method="POST", path="/v1/playbook/designs", headers=headers, body={"organization_id":"ORG-RACE", "design":candidate, "expected_revision":current["_revision"]}, service=service)
+
+                        with ThreadPoolExecutor(max_workers=2) as pool:
+                            results = list(pool.map(lambda args: save_from_editor(*args), ((coach_a, "Atomic winner A"), (coach_b, "Atomic winner B"))))
+                        self.assertEqual(sorted(result[0] for result in results), [201, 409])
+                        winner = next(result[1]["data"] for result in results if result[0] == 201)
+                        conflict = next(result[1]["data"] for result in results if result[0] == 409)
+                        self.assertEqual(winner["_revision"], current["_revision"] + 1)
+                        self.assertEqual(conflict["code"], "DESIGN-CONFLICT")
+                        self.assertEqual(conflict["actual_revision"], winner["_revision"])
+                        persisted = repository.get("play_designs", current["id"])
+                        self.assertEqual(persisted["concept"], winner["concept"])
+                        self.assertEqual(persisted["_revision"], winner["_revision"])
+                    finally:
+                        if hasattr(repository, "close"):
+                            repository.close()
+        finally:
+            os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
 
     def test_collaboration_presence_threads_replies_resolution_and_events(self):
         secret = "play-design-collab-secret-012345678901234567890"
