@@ -75,6 +75,20 @@ describe('PlayDesignerCanvas', () => {
     expect(screen.getByText('COMPARE')).toBeInTheDocument();
   });
 
+  it('marks added, changed, and removed objects in the rendered comparison field', () => {
+    const callbacks = props();
+    const currentRoute = { ...DESIGN.elements![0], points: [{ x: 14, y: 30 }, { x: 34, y: 14 }] };
+    render(<PlayDesignerCanvas
+      {...callbacks}
+      compareVisible
+      design={{ ...DESIGN, elements: [currentRoute, { id: 'ADDED', kind: 'route', type: 'corner', points: [{ x: 20, y: 30 }, { x: 40, y: 18 }] }] }}
+      compareDesign={{ ...DESIGN, elements: [DESIGN.elements![0], { id: 'REMOVED', kind: 'route', type: 'old route', points: [{ x: 70, y: 30 }, { x: 80, y: 18 }] }] }}
+    />);
+    expect(document.querySelector('.designer-element.is-version-changed')).toBeInTheDocument();
+    expect(document.querySelector('.designer-element.is-version-added')).toBeInTheDocument();
+    expect(screen.getByLabelText(/removed from current version/)).toBeInTheDocument();
+  });
+
   it('shows defensive technique and relationship labels beside front players', () => {
     const callbacks = props();
     render(<PlayDesignerCanvas {...callbacks} design={{ ...DESIGN, unit: 'defense', players: [{ id: 'DT', position: 'DT', start: { x: 42, y: 22 }, defensive_technique: '3', defensive_alignment: 'outside_eye' }], elements: [] }} />);
