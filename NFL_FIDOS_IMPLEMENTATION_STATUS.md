@@ -669,3 +669,10 @@ explicit exchange or shared-ownership explanation, and identifies rotations
 with no destination responsibility. This keeps the interactive shell map and
 release gate aligned; scheme-specific shared-zone doctrine and human
 coordinator review remain external.
+
+Server-side rotation sequencing addendum (2026-08-29): post-snap rotation
+assignments now receive authoritative checks for positive sequence order,
+duplicate order conflicts, trigger declaration, and replacement-defender
+references. This preserves deterministic shell teaching and prevents stale
+replacement links from reaching release or export; team-specific simultaneous
+rotation doctrine remains reviewable rather than inferred.

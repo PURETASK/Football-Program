@@ -350,6 +350,26 @@ def validate_advanced_legality(design: dict[str, Any], *, rule_profile: str | No
     for zone, owners in zone_owners.items():
         if len(owners) > 1 and not any(item.get("exchange_with") or item.get("coverage_shared") is True for item in owners):
             issues.append(_finding("LEGALITY-COVERAGE-OWNERSHIP-CONFLICT", "Multiple coverage or rotation assignments claim one shell destination without an explicit exchange or shared-ownership explanation.", "elements[].zone", profile=profile, source=source, severity="warning", observed={"zone": zone, "owners": [item.get("id") or item.get("player_id") for item in owners]}, expected="one owner or explicit exchange/shared ownership"))
+    rotations = [item for item in elements if item.get("kind") == "rotation"]
+    rotation_sequences: dict[int, list[str]] = {}
+    for item in rotations:
+        index = elements.index(item)
+        path = f"elements[{index}]"
+        sequence = item.get("rotation_sequence")
+        if sequence is None:
+            issues.append(_finding("LEGALITY-ROTATION-SEQUENCE-MISSING", "A post-snap rotation has no sequence order.", f"{path}.rotation_sequence", profile=profile, source=source, severity="warning", expected="positive integer sequence order", observed=None))
+        elif isinstance(sequence, bool) or not isinstance(sequence, int) or sequence < 1:
+            issues.append(_finding("LEGALITY-ROTATION-SEQUENCE-INVALID", "Post-snap rotation sequence order must be a positive integer.", f"{path}.rotation_sequence", profile=profile, source=source, severity="error", expected="positive integer", observed=sequence, overrideable=False))
+        else:
+            rotation_sequences.setdefault(sequence, []).append(str(item.get("id") or item.get("player_id") or index))
+        if not str(item.get("rotation_trigger") or "").strip():
+            issues.append(_finding("LEGALITY-ROTATION-TRIGGER-MISSING", "A post-snap rotation has no declared trigger.", f"{path}.rotation_trigger", profile=profile, source=source, severity="warning", expected="snap, motion, route, pressure, or coverage trigger", observed=None))
+        replacement_player = item.get("rotation_replacement_player_id")
+        if replacement_player is not None and replacement_player not in {player.get("id") for player in players if isinstance(player, dict)}:
+            issues.append(_finding("LEGALITY-ROTATION-REPLACEMENT-REF", "Rotation replacement defender is not present in the formation.", f"{path}.rotation_replacement_player_id", profile=profile, source=source, severity="error", expected="player id present in players", observed=replacement_player, overrideable=False))
+    for sequence, ids in rotation_sequences.items():
+        if len(ids) > 1:
+            issues.append(_finding("LEGALITY-ROTATION-SEQUENCE-CONFLICT", "Multiple post-snap rotations share one sequence order without a deterministic order.", "elements[].rotation_sequence", profile=profile, source=source, severity="warning", observed={"sequence": sequence, "rotations": ids}, expected="unique sequence order or an explicit simultaneous group"))
     fits = [item for item in elements if item.get("kind") in {"fit", "coverage"} and (item.get("gap") or item.get("fit_gap"))]
     fit_keys: dict[str, list[str]] = {}
     for item in fits:

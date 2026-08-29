@@ -247,6 +247,17 @@ class PlayCreationTests(unittest.TestCase):
         self.assertIn("LEGALITY-COVERAGE-OWNERSHIP-CONFLICT", codes)
         self.assertIn("LEGALITY-ROTATION-DESTINATION-UNDECLARED", codes)
 
+    def test_advanced_legality_validates_rotation_order_trigger_and_replacement(self):
+        candidate = design("defense")
+        candidate["elements"] = [
+            {"id": "ROT-1", "kind": "rotation", "player_id": "P1", "rotation_sequence": 1, "rotation_trigger": "motion", "rotation_replacement_player_id": "P2", "rotation_to_zone": "flat_left"},
+            {"id": "ROT-2", "kind": "rotation", "player_id": "P2", "rotation_sequence": 1, "rotation_replacement_player_id": "MISSING"},
+        ]
+        codes = {issue["code"] for issue in validate_advanced_legality(candidate)}
+        self.assertIn("LEGALITY-ROTATION-SEQUENCE-CONFLICT", codes)
+        self.assertIn("LEGALITY-ROTATION-TRIGGER-MISSING", codes)
+        self.assertIn("LEGALITY-ROTATION-REPLACEMENT-REF", codes)
+
     def test_assignment_graph_nodes_preserve_professional_authoring_semantics(self):
         candidate = normalize_timeline_design(design())
         candidate["assignment_model_version"] = "1.0"
