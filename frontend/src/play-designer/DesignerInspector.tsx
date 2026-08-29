@@ -3,6 +3,8 @@ import {
   AlertTriangle,
   ArrowDown,
   ArrowUp,
+  ChevronsDown,
+  ChevronsUp,
   CheckCircle2,
   Eye,
   EyeOff,
@@ -451,6 +453,8 @@ function LayersPanel({ design, selected, onSelect, onPlayer, onElement, onReorde
               <button type="button" aria-label={`${element.locked ? 'Unlock' : 'Lock'} ${element.type ?? element.kind}`} onClick={() => onElement(element.id, { locked: !element.locked })}>{element.locked ? <Lock size={14} /> : <Unlock size={14} />}</button>
               <button type="button" aria-label={`Bring ${element.type ?? element.kind} forward`} title="Bring forward" disabled={!onReorderElement} onClick={() => onReorderElement?.(element.id, 'up')}><ArrowUp size={14} /></button>
               <button type="button" aria-label={`Send ${element.type ?? element.kind} backward`} title="Send backward" disabled={!onReorderElement} onClick={() => onReorderElement?.(element.id, 'down')}><ArrowDown size={14} /></button>
+              <button type="button" aria-label={`Bring ${element.type ?? element.kind} to front`} title="Bring to front" disabled={!onReorderElement} onClick={() => onReorderElement?.(element.id, 'front')}><ChevronsUp size={14} /></button>
+              <button type="button" aria-label={`Send ${element.type ?? element.kind} to back`} title="Send to back" disabled={!onReorderElement} onClick={() => onReorderElement?.(element.id, 'back')}><ChevronsDown size={14} /></button>
             </div>
           ))}
         </div>

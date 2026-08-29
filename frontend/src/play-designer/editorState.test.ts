@@ -102,6 +102,16 @@ describe('play designer editor state', () => {
     expect(state.past).toHaveLength(2);
   });
 
+  it('supports direct send-to-back and bring-to-front layer commands', () => {
+    const source = design();
+    source.elements!.push({ id: 'RUN-2', kind: 'run' }, { id: 'BLOCK-3', kind: 'block' });
+    let state = createEditorState(source);
+    state = editorReducer(state, { type: 'reorder_element', id: 'ROUTE-X', direction: 'back' });
+    expect(state.present.elements?.map((element) => element.id)).toEqual(['ROUTE-X', 'RUN-2', 'BLOCK-3']);
+    state = editorReducer(state, { type: 'reorder_element', id: 'RUN-2', direction: 'front' });
+    expect(state.present.elements?.map((element) => element.id)).toEqual(['ROUTE-X', 'BLOCK-3', 'RUN-2']);
+  });
+
   it('mirrors selected geometry across the field centerline', () => {
     let state = createEditorState(design());
     state = editorReducer(state, { type: 'select', selection: { kind: 'player', id: 'X' } });
