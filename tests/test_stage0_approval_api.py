@@ -58,6 +58,23 @@ class Stage0ApprovalApiTests(unittest.TestCase):
         self.assertEqual(status, 403)
         self.assertEqual(response["status"], "error")
 
+    def test_authenticated_read_can_inspect_non_activating_review_bundle(self):
+        status, response = handle_request(
+            method="GET",
+            path="/v1/control/stage-0-review-bundle?organization_id=ORG-1",
+            service=self.service,
+            headers=self.owner_headers,
+        )
+        self.assertEqual(status, 200)
+        bundle = response["data"]
+        self.assertEqual(bundle["organization_id"], "ORG-1")
+        self.assertEqual(bundle["review_status"], "ready_for_owner_review")
+        self.assertFalse(bundle["synthetic_demo"]["present"])
+        self.assertFalse(bundle["safety"]["approval_recorded"])
+        self.assertFalse(bundle["safety"]["stage_advance_authorized"])
+        self.assertFalse(bundle["safety"]["production_implementation_allowed"])
+        self.assertFalse(bundle["safety"]["external_state_changed"])
+
 
 if __name__ == "__main__":
     unittest.main()

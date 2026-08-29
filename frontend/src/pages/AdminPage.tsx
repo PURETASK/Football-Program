@@ -269,6 +269,12 @@ export function AdminPage() {
 
             {tab === 'stage0' ? (
               <>
+                <WorkbenchStats stats={[
+                  { label: 'Synthetic tenant', value: data?.stageZeroReviewBundle.synthetic_demo.present ? 'Populated' : 'Not present', hint: data?.stageZeroReviewBundle.synthetic_demo.present ? `${Object.values(data.stageZeroReviewBundle.synthetic_demo.record_counts).reduce((total, count) => total + count, 0)} marked records` : 'No synthetic records for this organization' },
+                  { label: 'Review packet', value: sentenceCase(data?.stageZeroReviewBundle.review_status ?? 'not loaded'), hint: 'Registry, gap audit, gate, and source references' },
+                  { label: 'Safety boundary', value: 'Non-activating', hint: 'Approval and stage advancement remain human-controlled' },
+                ]} />
+                <div className="approval-boundary"><TriangleAlert aria-hidden="true" size={17} /> {data?.stageZeroReviewBundle.synthetic_demo.present ? `Synthetic review seed ${data.stageZeroReviewBundle.synthetic_demo.seed_id} is available for walkthrough only.` : 'This organization has no synthetic review seed.'} The review bundle is evidence preparation, not owner approval.</div>
                 <div className="workbench-split">
                   <div className="workbench-pane workbench-pane--soft">
                     <RecordInspector eyebrow="Exit gate evaluation" facts={[

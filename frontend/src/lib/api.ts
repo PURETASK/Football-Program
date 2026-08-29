@@ -1,6 +1,7 @@
 import type {
   ApiEnvelope,
   AdminWorkspaceData,
+  StageZeroReviewBundleData,
   AnalyticsWorkspaceData,
   AppSession,
   CollaborationActivity,
@@ -924,10 +925,11 @@ export function createPlayerAssignment(session: AppSession, values: {
 
 export async function fetchAdminWorkspace(session: AppSession, signal?: AbortSignal): Promise<AdminWorkspaceData> {
   const params = organizationParams(session);
-  const [organization, sourcePayload, stageZero, pilot, pilotOrganization, pilotPackage, usability] = await Promise.all([
+  const [organization, sourcePayload, stageZero, stageZeroReviewBundle, pilot, pilotOrganization, pilotPackage, usability] = await Promise.all([
     request<OrganizationContextData>(`/v1/organizations/context?${params}`, session, { signal }),
     request<{ sources: FootballRecord[] }>(`/v1/sources?${params}`, session, { signal }),
     request<StageZeroData>(`/v1/control/stage-0-approval?${params}`, session, { signal }),
+    request<StageZeroReviewBundleData>(`/v1/control/stage-0-review-bundle?${params}`, session, { signal }),
     request<PilotReadinessData>(`/v1/delivery/pilot-readiness?${params}`, session, { signal }),
     request<{ selections: FootballRecord[] }>(`/v1/delivery/pilot-organization?${params}`, session, { signal }),
     request<{ packages: FootballRecord[] }>(`/v1/delivery/pilot-package?${params}`, session, { signal }),
@@ -937,6 +939,7 @@ export async function fetchAdminWorkspace(session: AppSession, signal?: AbortSig
     organization,
     sources: sourcePayload.sources ?? [],
     stageZero,
+    stageZeroReviewBundle,
     pilot,
     pilotSelections: pilotOrganization.selections ?? [],
     pilotPackages: pilotPackage.packages ?? [],

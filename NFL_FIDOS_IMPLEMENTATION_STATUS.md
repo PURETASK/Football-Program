@@ -713,3 +713,14 @@ explicit reusable `routeBranch` schema with geometry, inherited route-family
 semantics, stem/break/finish metadata, option conditions, timing, and crossing
 review fields. This makes branch authoring first-class instead of relying on an
 unstructured extension of the primary element schema.
+
+Stage 0 application evidence addendum (2026-08-29): the authenticated React
+Admin governance workspace now loads a safe Stage 0 review-bundle summary from
+`/v1/control/stage-0-review-bundle`. Program owners and authorized governance
+readers can see whether the synthetic tenant is populated, how many marked
+records are available, the review-packet status, and the non-activating safety
+boundary without exposing secrets or gaining a path to approve or advance the
+stage. Organization scope is enforced server-side; non-demo organizations
+receive no synthetic records. API, frontend contract, and authorization tests
+pass. This remains evidence preparation and does not satisfy real owner
+approval.

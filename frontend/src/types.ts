@@ -1165,6 +1165,26 @@ export interface StageZeroData {
   stage_advance_authorized: boolean;
 }
 
+export interface StageZeroReviewBundleData {
+  bundle_id: string;
+  organization_id: string;
+  review_status: string;
+  gate: FootballRecord & { blockers?: Array<string | Record<string, unknown>> };
+  required_evidence_refs: string[];
+  synthetic_demo: {
+    present: boolean;
+    seed_id?: string | null;
+    record_counts: Record<string, number>;
+    synthetic_only: boolean;
+  };
+  safety: {
+    approval_recorded: boolean;
+    stage_advance_authorized: boolean;
+    production_implementation_allowed: boolean;
+    external_state_changed: boolean;
+  };
+}
+
 export interface PilotReadinessData {
   organization_id: string;
   reports: FootballRecord[];
@@ -1188,6 +1208,7 @@ export interface AdminWorkspaceData {
   pilotSelections: FootballRecord[];
   pilotPackages: FootballRecord[];
   usabilityFeedback: FootballRecord[];
+  stageZeroReviewBundle: StageZeroReviewBundleData;
 }
 
 export interface GovernanceInboxItem {

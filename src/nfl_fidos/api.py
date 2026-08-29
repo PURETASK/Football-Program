@@ -58,6 +58,7 @@ from .pilot_readiness import evaluate_pilot_readiness
 from .organization_onboarding import approve_onboarding_package, build_onboarding_package
 from .stage0 import evaluate_stage0_exit
 from .stage0_approval import build_stage0_owner_approval, validate_stage0_owner_approval
+from .stage0_owner_packet import build_stage0_owner_packet
 from .pilot_selection import build_pilot_selection
 from .pilot_delivery import build_pilot_delivery_package
 from .master_spec_acceptance import build_stage25_spec_acceptance, load_master_spec, validate_stage25_spec_acceptance
@@ -76,6 +77,7 @@ from .organization_special_teams import approve_organization_special_teams, buil
 from .organization_performance import approve_organization_performance, build_organization_performance
 from .organization_media_review import approve_organization_media_review, build_organization_media_review
 from .organization_operating_bundle import approve_organization_operating_bundle, build_organization_operating_bundle, load_persisted_organization_components
+from .demo_data import DEMO_ORGANIZATION_ID, DEMO_SEED_ID, find_demo_records
 from .provider_adapter_registration import approve_provider_adapter_registration, build_provider_adapter_registration
 from .organization_media_review import approve_organization_media_review, build_organization_media_review
 from .source_authorization import validate_source_authorization
@@ -968,6 +970,40 @@ def handle_request(*, method: str, path: str, body: dict[str, Any] | None = None
         gate = evaluate_stage0_exit(registry, gap_audit_complete=gap_audit.get("status") == "complete")
         approvals = [item for item in service.repository.list("stage0_owner_approvals") if item.get("organization_id") == principal.organization_id]
         return 200, _response("ok", {"gate": gate, "approvals": approvals, "production_implementation_allowed": False, "stage_advance_authorized": False})
+    if parsed.path == "/v1/control/stage-0-review-bundle" and method.upper() == "GET":
+        organization_id = query.get("organization_id", [""])[0]
+        if not organization_id:
+            return 400, _response("error", None, "organization_id query parameter is required")
+        service = service or FootballIntelligenceService(JsonRepository(Path.cwd() / ".runtime" / "core-slice-state.json"))
+        principal, denial = _authenticated(headers, action="read_governance", organization_id=organization_id)
+        if denial:
+            return denial
+        root = Path(__file__).resolve().parents[2]
+        registry = json.loads((root / "control" / "stage-0a-registry.json").read_text(encoding="utf-8"))
+        gap_audit = json.loads((root / "control" / "stage-0-gap-audit.json").read_text(encoding="utf-8"))
+        gate = evaluate_stage0_exit(registry, gap_audit_complete=gap_audit.get("status") == "complete")
+        owner_packet = build_stage0_owner_packet(registry=registry, gap_audit=gap_audit)
+        tenant = TenantRepository(service.repository, organization_id=principal.organization_id, actor=principal.subject)
+        demo_counts = find_demo_records(tenant, organization_id=DEMO_ORGANIZATION_ID, seed_id=DEMO_SEED_ID) if principal.organization_id == DEMO_ORGANIZATION_ID else {}
+        return 200, _response("ok", {
+            "bundle_id": "STAGE0-REVIEW-BUNDLE-NFL-FIDOS-001",
+            "organization_id": principal.organization_id,
+            "review_status": owner_packet["review_status"],
+            "gate": gate,
+            "required_evidence_refs": owner_packet["required_evidence_refs"],
+            "synthetic_demo": {
+                "present": bool(demo_counts),
+                "seed_id": DEMO_SEED_ID if principal.organization_id == DEMO_ORGANIZATION_ID else None,
+                "record_counts": demo_counts,
+                "synthetic_only": True,
+            },
+            "safety": {
+                "approval_recorded": False,
+                "stage_advance_authorized": False,
+                "production_implementation_allowed": False,
+                "external_state_changed": False,
+            },
+        })
     if parsed.path == "/v1/control/stage-0-approval" and method.upper() == "POST":
         required = ("organization_id", "approval_id", "rationale", "evidence_refs", "approved_at")
         missing = [field for field in required if field not in body]

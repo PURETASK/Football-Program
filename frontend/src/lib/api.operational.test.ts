@@ -160,6 +160,7 @@ describe('operational API wiring', () => {
       if (path.startsWith('/v1/organizations/context?')) return response({ contexts: [], terminology_bundles: [] });
       if (path.startsWith('/v1/sources?')) return response({ sources: [] });
       if (path.startsWith('/v1/control/stage-0-approval?')) return response({ gate: {}, approvals: [], production_implementation_allowed: false, stage_advance_authorized: false });
+      if (path.startsWith('/v1/control/stage-0-review-bundle?')) return response({ bundle_id: 'BUNDLE-1', organization_id: 'ORG-TEST-001', review_status: 'ready_for_owner_review', gate: {}, required_evidence_refs: [], synthetic_demo: { present: false, record_counts: {}, synthetic_only: true }, safety: { approval_recorded: false, stage_advance_authorized: false, production_implementation_allowed: false, external_state_changed: false } });
       if (path.startsWith('/v1/delivery/pilot-readiness?')) return response({ reports: [], human_review_required: true, production_implementation_allowed: false });
       if (path.startsWith('/v1/delivery/pilot-organization?')) return response({ selections: [{ id: 'PILOT-SEL-1' }] });
       if (path.startsWith('/v1/delivery/pilot-package?')) return response({ packages: [{ id: 'PILOT-PKG-1' }] });
@@ -172,7 +173,8 @@ describe('operational API wiring', () => {
     expect(workspace.pilotSelections).toEqual([{ id: 'PILOT-SEL-1' }]);
     expect(workspace.pilotPackages).toEqual([{ id: 'PILOT-PKG-1' }]);
     expect(workspace.usabilityFeedback).toEqual([{ id: 'UX-1' }]);
-    expect(fetchMock).toHaveBeenCalledTimes(7);
+    expect(workspace.stageZeroReviewBundle.bundle_id).toBe('BUNDLE-1');
+    expect(fetchMock).toHaveBeenCalledTimes(8);
     for (const [path, options] of fetchMock.mock.calls) {
       expect(String(path)).toContain('organization_id=ORG-TEST-001');
       expect((options?.headers as Record<string, string>).Authorization).toBe('Bearer test-token');
