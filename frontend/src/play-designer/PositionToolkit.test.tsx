@@ -6,7 +6,7 @@ import { PositionToolkit } from './PositionToolkit';
 
 const design: PlayDesign = { id: 'TOOLKIT-1', unit: 'offense', formation: 'shotgun_2x2', players: [], elements: [] };
 const assets: PlayAsset[] = [
-  { id: 'POST', category: 'route', kind: 'route', term: 'post', display_name: 'Post', unit: 'offense', status: 'active', default_timing_ms: 1500 },
+  { id: 'POST', category: 'route', kind: 'route', term: 'post', display_name: 'Post', unit: 'offense', status: 'active', default_timing_ms: 1500, description: 'Break inside after the vertical stem.' },
   { id: 'JET', category: 'motion', kind: 'motion', term: 'jet', display_name: 'Jet Motion', unit: 'offense', status: 'active' },
 ];
 const templates: PlayTemplate[] = [{ id: 'DAGGER', name: 'Dagger', unit: 'offense', layer: 'route_concept', scope: 'system' }];
@@ -19,6 +19,7 @@ describe('PositionToolkit', () => {
     render(<PositionToolkit player={{ id: 'X', position: 'WR', start: { x: 12, y: 26 } }} design={design} assets={assets} templates={templates} onChooseAsset={onChooseAsset} onApplyTemplate={onApplyTemplate} onMaterializeAsset={onMaterializeAsset} />);
 
     expect(screen.getByRole('heading', { name: 'WR options' })).toBeInTheDocument();
+    expect(screen.getByText('Break inside after the vertical stem. Compatible with the current play context.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Draw Post from WR' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Draw Post from WR' }));
     expect(onChooseAsset).toHaveBeenCalledWith(assets[0]);
