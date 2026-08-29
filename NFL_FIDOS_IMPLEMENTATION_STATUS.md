@@ -570,3 +570,11 @@ position, assignment count and IDs, assignment kinds, target references, and
 assigned/unassigned status with aggregate counts. This creates a shared quality
 signal for position-aware authoring, teaching, practice linkage, and release
 readiness without inferring coverage from canvas pixels.
+
+Position-options API addendum (2026-08-29): the organization-scoped Play
+Designer service now ranks selectable registry assets and templates for a
+requested player position and unit, applying formation, personnel, rule-profile,
+compatibility, lifecycle, and position-family preferences. The authenticated
+`/v1/playbook/designs/position-options` route returns bounded candidates with
+explainable scores and reasons for coach-facing recommendations; focused service
+and API tests pass, while organization-specific terminology remains pending.

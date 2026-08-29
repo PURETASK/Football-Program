@@ -15,6 +15,17 @@ from tests.test_play_creation import design
 
 
 class PlayDesignApiTests(unittest.TestCase):
+    def test_position_options_api_is_authenticated_and_ranked(self):
+        secret = "play-design-position-options-secret-012345678901234567890"
+        os.environ["NFL_FIDOS_AUTH_SECRET"] = secret
+        coach = {"Authorization": "Bearer " + issue_token(subject="COACH-POSITION", role="coach_staff", organization_id="ORG-POSITION", secret=secret)}
+        with tempfile.TemporaryDirectory() as directory:
+            service = FootballIntelligenceService(JsonRepository(Path(directory) / "state.json"))
+            status, payload = handle_request(method="GET", path="/v1/playbook/designs/position-options?organization_id=ORG-POSITION&position=QB&unit=offense&limit=4", headers=coach, service=service)
+            self.assertEqual(status, 200)
+            self.assertEqual(payload["data"]["family"], "qb")
+            self.assertLessEqual(len(payload["data"]["assets"]), 4)
+        os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
     def test_variant_api_rejects_malformed_contract_shapes_before_service(self):
         secret = "play-design-variant-shape-secret-012345678901234567890"
         os.environ["NFL_FIDOS_AUTH_SECRET"] = secret

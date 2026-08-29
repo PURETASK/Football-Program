@@ -191,7 +191,7 @@ def handle_request(*, method: str, path: str, body: dict[str, Any] | None = None
     post_routes.update({"/v1/roster/players", "/v1/roster/depth-charts", "/v1/roster/personnel-packages", "/v1/game-plan/release-room/snapshots", "/v1/game-plan/release-room/approve", "/v1/game-plan/release-room/rollback", "/v1/delivery/tasks", "/v1/delivery/tasks/complete", "/v1/delivery/packets", "/v1/collaboration/threads", "/v1/collaboration/comments", "/v1/collaboration/threads/resolve", "/v1/collaboration/threads/assign", "/v1/collaboration/notifications/read", "/v1/collaboration/presence", "/v1/collaboration/presence/leave"})
     if method.upper() != "GET" and parsed.path not in post_routes and parsed.path not in extra_post_routes and not parsed.path.startswith("/v1/workflows/core-play/") and not parsed.path.startswith("/v1/film/quizzes/") and not parsed.path.startswith("/v1/media/jobs/") and not parsed.path.startswith("/v1/sources/") and not (parsed.path.startswith("/v1/playbook/visuals/") and parsed.path.endswith("/what-if")) and not (parsed.path.startswith("/v1/film/annotation-sessions/") and parsed.path.endswith("/annotations")):
         return 405, _response("error", None, "Only GET is supported except declared POST workflow, compiler, and film-room routes")
-    if parsed.path in {"/v1/playbook/designs/assets", "/v1/playbook/designs/templates", "/v1/playbook/designs/templates/lineage-impact", "/v1/playbook/designs/rule-profiles"} and method.upper() == "GET":
+    if parsed.path in {"/v1/playbook/designs/assets", "/v1/playbook/designs/templates", "/v1/playbook/designs/templates/lineage-impact", "/v1/playbook/designs/rule-profiles", "/v1/playbook/designs/position-options"} and method.upper() == "GET":
         organization_id = query.get("organization_id", [""])[0]
         if not organization_id:
             return 400, _response("error", None, "organization_id query parameter is required")
@@ -202,6 +202,15 @@ def handle_request(*, method: str, path: str, body: dict[str, Any] | None = None
         registry = _play_designs(service, organization_id=principal.organization_id, actor=principal.subject)
         if parsed.path.endswith("/rule-profiles"):
             return 200, _response("ok", {"profiles": [{"id": profile_id, **profile} for profile_id, profile in RULE_PROFILE_CATALOG.items()]})
+        if parsed.path.endswith("/position-options"):
+            position = query.get("position", [""])[0]
+            unit = query.get("unit", [""])[0]
+            if not position or not unit:
+                return 400, _response("error", None, "position and unit query parameters are required")
+            try:
+                return 200, _response("ok", registry.position_options(position=position, unit=unit, formation=query.get("formation", [None])[0], personnel=query.get("personnel", [None])[0], rule_profile=query.get("rule_profile", [None])[0], limit=int(query.get("limit", [24])[0])))
+            except (TypeError, ValueError) as exc:
+                return 422, _response("invalid", None, str(exc))
         if parsed.path.endswith("/lineage-impact"):
             template_id = query.get("template_id", [""])[0]
             if not template_id:

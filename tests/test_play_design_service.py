@@ -22,6 +22,14 @@ class PlayDesignServiceTests(unittest.TestCase):
         repository = JsonRepository(path)
         return PlayDesignService(TenantRepository(repository, organization_id="ORG-PLAY", actor="coach"))
 
+    def test_position_options_rank_compatible_assets_and_templates(self):
+        result = self.service().position_options(position="QB", unit="offense", formation="shotgun_2x2", limit=8)
+        self.assertEqual(result["family"], "qb")
+        self.assertEqual(result["status"], "ready")
+        self.assertLessEqual(len(result["assets"]), 8)
+        self.assertTrue(result["assets"])
+        self.assertIn("recommendation", result["assets"][0])
+
     def test_variant_contract_describes_bounded_batch_and_assignment_transformations(self):
         root = Path(__file__).resolve().parents[1]
         contract = json.loads((root / "contracts" / "play-design-variant.schema.json").read_text(encoding="utf-8"))

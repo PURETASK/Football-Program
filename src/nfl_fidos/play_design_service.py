@@ -286,6 +286,28 @@ TEMPLATES: tuple[dict[str, Any], ...] = (
     {"id": "TEMPLATE-DEF-3RD", "name": "Third-Down Pressure", "unit": "defense", "formation": "nickel_mug", "front": "4-2-5_over", "coverage": "cover_1", "concept": "Pressure"},
 )
 
+POSITION_CATEGORY_PREFERENCES: dict[str, tuple[str, ...]] = {
+    "qb": ("teaching", "check", "run", "motion", "route", "protection"),
+    "ol": ("protection", "block", "run", "teaching", "check"),
+    "back": ("run", "route", "motion", "block", "check", "teaching"),
+    "receiver": ("route", "motion", "block", "check", "read", "teaching"),
+    "front": ("front", "rush", "stunt", "fit", "read", "teaching"),
+    "linebacker": ("fit", "coverage", "rush", "stunt", "rotation", "read", "check", "teaching"),
+    "secondary": ("coverage", "rotation", "fit", "rush", "read", "check", "teaching"),
+}
+
+
+def _position_family(position: str | None) -> str:
+    token = str(position or "").strip().upper()
+    if token in {"QB", "QUARTERBACK"}: return "qb"
+    if token in {"LT", "LG", "C", "RG", "RT", "OL", "OT", "OG", "CENTER", "GUARD", "TACKLE"}: return "ol"
+    if token in {"RB", "TB", "HB", "FB", "F", "BACK"}: return "back"
+    if token in {"WR", "X", "Z", "H", "SLOT", "TE", "U", "Y", "RECEIVER", "TIGHT END"}: return "receiver"
+    if token in {"DE", "DT", "NT", "DL", "EDGE", "NOSE"}: return "front"
+    if token in {"LB", "ILB", "MLB", "WLB", "WILL", "SAM", "MIKE", "OLB", "JACK", "BUCK", "LINEBACKER"}: return "linebacker"
+    if token in {"CB", "NB", "S", "FS", "SS", "DB", "SAFETY", "CORNER", "NICKEL"}: return "secondary"
+    return "general"
+
 
 class PlayDesignService:
     def __init__(self, repository: TenantRepository):
@@ -327,6 +349,39 @@ class PlayDesignService:
             asset["compatibility"] = asset_compatibility(asset, unit=unit, formation=context_formation, personnel=personnel, rule_profile=rule_profile)
             output.append(asset)
         return output
+
+    def position_options(self, *, position: str, unit: str, formation: str | None = None, personnel: str | None = None, rule_profile: str | None = None, limit: int = 24) -> dict[str, Any]:
+        """Return ranked, organization-scoped authoring options for a position."""
+        if not isinstance(position, str) or not position.strip():
+            raise ValueError("position is required")
+        if unit not in {"offense", "defense", "special_teams"}:
+            raise ValueError("unit is invalid")
+        bounded_limit = max(1, min(int(limit), 64))
+        family = _position_family(position)
+        preferences = POSITION_CATEGORY_PREFERENCES.get(family, ("route", "motion", "run", "block", "coverage", "rush", "stunt", "fit", "read", "check", "teaching"))
+        assets = self.assets(unit=unit, context_formation=formation, personnel=personnel, rule_profile=rule_profile)
+        ranked_assets: list[dict[str, Any]] = []
+        for asset in assets:
+            if asset.get("status", "active") not in {"active", "approved"}:
+                continue
+            category = str(asset.get("category") or asset.get("kind") or "")
+            preference_index = preferences.index(category) if category in preferences else len(preferences) + 1
+            compatibility = asset.get("compatibility") if isinstance(asset.get("compatibility"), dict) else {}
+            score = 100 - preference_index * 8 + (30 if compatibility.get("compatible", True) else -30)
+            candidate = deepcopy(asset)
+            candidate["recommendation"] = {"family": family, "score": score, "reason": f"{category.replace('_', ' ')} is a {family.replace('_', ' ')} position preference" if category in preferences else f"General {category.replace('_', ' ')} option for {family.replace('_', ' ')}"}
+            ranked_assets.append(candidate)
+        ranked_assets.sort(key=lambda item: (-item["recommendation"]["score"], str(item.get("display_name") or item.get("term") or item.get("id"))))
+        templates = self.templates(unit=unit, formation=formation, personnel=personnel)
+        ranked_templates = []
+        for template in templates:
+            layer = str(template.get("layer") or "")
+            preference = 100 if layer in preferences else 25
+            item = deepcopy(template)
+            item["recommendation"] = {"family": family, "score": preference, "reason": f"Template layer {layer.replace('_', ' ')} matches the position toolkit" if layer else "General team template"}
+            ranked_templates.append(item)
+        ranked_templates.sort(key=lambda item: (-item["recommendation"]["score"], str(item.get("name") or item.get("id"))))
+        return {"position": position, "unit": unit, "family": family, "assets": ranked_assets[:bounded_limit], "templates": ranked_templates[:bounded_limit], "status": "ready"}
 
     def templates(self, *, unit: str | None = None, formation: str | None = None, personnel: str | None = None, front: str | None = None, coverage: str | None = None, status: str | None = None, query: str | None = None) -> list[dict[str, Any]]:
         system_templates = load_concept_templates()
