@@ -43,6 +43,21 @@ STATIC_MEDIA_TYPES = {
 }
 
 
+class FidosHTTPServer(ThreadingHTTPServer):
+    """Threaded server that drains request handlers before repository teardown.
+
+    ``ThreadingHTTPServer`` defaults to daemon request threads. That is
+    convenient for a short-lived demo server, but unsafe for the SQLite
+    adapter: a long-lived SSE collaboration request can still be reading
+    while an owner calls ``server_close()`` and closes the shared connection.
+    Non-daemon handlers plus ``block_on_close`` make shutdown a real lifecycle
+    boundary and prevent use-after-close races.
+    """
+
+    daemon_threads = False
+    block_on_close = True
+
+
 def _safe_child(root: Path, relative_path: str) -> Path | None:
     """Resolve a request-owned relative path without allowing traversal."""
     try:
@@ -382,9 +397,9 @@ class FidosRequestHandler(BaseHTTPRequestHandler):
         return
 
 
-def create_server(host: str = "127.0.0.1", port: int = 8080, database_path: str | Path | None = None) -> tuple[ThreadingHTTPServer, object]:
+def create_server(host: str = "127.0.0.1", port: int = 8080, database_path: str | Path | None = None) -> tuple[FidosHTTPServer, object]:
     repository = SqliteRepository(database_path) if database_path else JsonRepository(Path.cwd() / ".runtime" / "http-state.json")
-    server = ThreadingHTTPServer((host, port), FidosRequestHandler)
+    server = FidosHTTPServer((host, port), FidosRequestHandler)
     server.fidos_service = FootballIntelligenceService(repository)
     server.request_rate_limiter = SlidingWindowRateLimiter(limit=configured_rate_limit(), window_seconds=60)
     return server, repository
