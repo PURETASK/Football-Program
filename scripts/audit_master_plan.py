@@ -23,8 +23,14 @@ def main() -> int:
     parser.add_argument("--docx", type=Path, default=DEFAULT_DOCX)
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--traceability", type=Path, default=ROOT / "control" / "requirements-traceability.json")
+    parser.add_argument("--output", type=Path, help="Also persist the conformance report to this local JSON path")
     args = parser.parse_args()
     result = audit_master_plan(args.markdown, args.docx, args.root, args.traceability)
+    if args.output:
+        output = args.output.expanduser().resolve()
+        output.parent.mkdir(parents=True, exist_ok=True)
+        result["evidence_output"] = str(output)
+        output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0 if result["status"] == "passed" else 1
 
