@@ -221,6 +221,19 @@ class PlayCreationTests(unittest.TestCase):
         codes = {issue["code"] for issue in validate_assignment_graph(candidate)}
         self.assertIn("ASSIGNMENT-EXCHANGE-CONCEPT-RECIPROCITY", codes)
 
+    def test_assignment_graph_validates_authored_defensive_front_slots(self):
+        candidate = design("defense")
+        candidate["assignment_model_version"] = "1.0"
+        candidate["players"] = [
+            {"id": "DT-1", "position": "DT", "alignment_key": "3T", "defensive_technique": "3", "defensive_alignment": "outside_eye"},
+            {"id": "DT-2", "position": "DT", "alignment_key": "3T", "defensive_technique": "made_up", "defensive_alignment": "outside_eye"},
+            {"id": "EDGE-1", "position": "EDGE", "alignment_key": "9T", "defensive_technique": "9"},
+        ]
+        codes = {issue["code"] for issue in validate_assignment_graph(candidate)}
+        self.assertIn("ASSIGNMENT-FRONT-SLOT-DUPLICATE", codes)
+        self.assertIn("ASSIGNMENT-FRONT-TECHNIQUE-INVALID", codes)
+        self.assertIn("ASSIGNMENT-FRONT-TECHNIQUE-MISSING", codes)
+
     def test_assignment_graph_nodes_preserve_professional_authoring_semantics(self):
         candidate = normalize_timeline_design(design())
         candidate["assignment_model_version"] = "1.0"

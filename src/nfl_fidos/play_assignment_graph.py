@@ -41,6 +41,8 @@ EXCHANGE_CONCEPT_POSITION_RULES = {
 INTERIOR_POSITIONS = {"DT", "NT", "DL", "TACKLE", "NOSE", "3T", "4I", "4T", "0T", "1T"}
 EDGE_POSITIONS = {"DE", "EDGE", "END", "OLB", "5T", "6T", "7T", "9T", "RUSH"}
 LINEBACKER_POSITIONS = {"LB", "ILB", "MLB", "WLB", "WILL", "SAM", "MIKE", "OLB", "JACK", "BUCK", "LINEBACKER"}
+FRONT_TECHNIQUES = {"0", "1", "2i", "2", "3", "4i", "4", "5", "7", "9"}
+FRONT_ALIGNMENTS = {"head_up", "inside_eye", "outside_eye", "inside_shade", "outside_shade", "wide"}
 
 
 def _issue(code: str, message: str, path: str, severity: str = "error", *, suggestion: str | None = None) -> dict[str, Any]:
@@ -75,6 +77,32 @@ def _position_family(player: dict[str, Any] | None) -> str | None:
     if tokens & LINEBACKER_POSITIONS:
         return "linebacker"
     return None
+
+
+def _validate_defensive_front(players: list[dict[str, Any]], issues: list[dict[str, Any]]) -> None:
+    """Validate authored front slots when a design carries front metadata."""
+    authored = any(player.get("alignment_key") or player.get("defensive_technique") or player.get("defensive_alignment") for player in players)
+    if not authored:
+        return
+    by_slot: dict[str, list[tuple[int, dict[str, Any]]]] = {}
+    for index, player in enumerate(players):
+        slot = player.get("alignment_key")
+        if isinstance(slot, str) and slot.strip():
+            by_slot.setdefault(slot.strip().upper(), []).append((index, player))
+    for slot, entries in by_slot.items():
+        if len(entries) > 1:
+            issues.append(_issue("ASSIGNMENT-FRONT-SLOT-DUPLICATE", f"Defensive alignment slot {slot} is assigned to more than one player.", f"players[{entries[0][0]}].alignment_key", suggestion="Move one defender to a unique front slot before publishing the front."))
+    front_positions = INTERIOR_POSITIONS | EDGE_POSITIONS | LINEBACKER_POSITIONS
+    for index, player in enumerate(players):
+        position = str(player.get("position") or player.get("role") or "").strip().upper()
+        if player.get("alignment_key") and position in front_positions and (not player.get("defensive_technique") or not player.get("defensive_alignment")):
+            issues.append(_issue("ASSIGNMENT-FRONT-TECHNIQUE-MISSING", f"Defensive front player {player.get('id') or position} has a slot but no complete technique/alignment relationship.", f"players[{index}].defensive_alignment", "warning", suggestion="Choose both the technique and its alignment relationship for this front slot."))
+        technique = player.get("defensive_technique")
+        if technique is not None and str(technique).strip().lower() not in FRONT_TECHNIQUES:
+            issues.append(_issue("ASSIGNMENT-FRONT-TECHNIQUE-INVALID", f"Defensive technique {technique!r} is outside the controlled front vocabulary.", f"players[{index}].defensive_technique", "warning", suggestion="Choose a supported 0, 1, 2i, 2, 3, 4i, 4, 5, 7, or 9 technique."))
+        alignment = player.get("defensive_alignment")
+        if alignment is not None and str(alignment).strip().lower() not in FRONT_ALIGNMENTS:
+            issues.append(_issue("ASSIGNMENT-FRONT-ALIGNMENT-INVALID", f"Defensive alignment {alignment!r} is outside the controlled relationship vocabulary.", f"players[{index}].defensive_alignment", "warning", suggestion="Choose head-up, inside eye/shade, outside eye/shade, or wide."))
 
 
 def _validate_named_exchange_concept(
@@ -132,6 +160,8 @@ def validate_assignment_graph(design: dict[str, Any]) -> list[dict[str, Any]]:
     player_ids = {player.get("id") for player in players if isinstance(player, dict) and isinstance(player.get("id"), str)}
     player_by_id = {str(player.get("id")): player for player in players if isinstance(player, dict) and isinstance(player.get("id"), str)}
     element_by_id = {element.get("id"): element for element in elements if isinstance(element.get("id"), str) and element.get("id")}
+    if design.get("unit") == "defense":
+        _validate_defensive_front([player for player in players if isinstance(player, dict)], issues)
 
     for index, element in enumerate(elements):
         path = f"elements[{index}]"

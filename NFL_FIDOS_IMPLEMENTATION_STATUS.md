@@ -653,3 +653,11 @@ position, role, personnel-group, and explicitly authored player aliases. This
 keeps formation counts reliable when a program uses equivalent roster language
 and retains explainable mismatch findings for unresolved labels; local league
 adoption and human officiating review remain external.
+
+Server-side defensive front integrity addendum (2026-08-29): when a design
+authors defensive front metadata, the assignment graph now validates unique
+front slots, complete technique/alignment relationships, and controlled
+technique/alignment vocabularies. These findings align the server contract with
+the interactive front editor so duplicate or incomplete front data cannot be
+silently carried into teaching, release, or export; local scheme terminology
+and human coordinator review remain external.
