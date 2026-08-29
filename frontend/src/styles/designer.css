@@ -1308,6 +1308,12 @@
 .designer-compare-path--fit { stroke: #ffc45c; }
 .designer-compare-path--rush,
 .designer-compare-path--stunt { stroke: #ff8390; }
+.designer-compare-path--changed { stroke: #ffcf70; stroke-width: 0.78; }
+.designer-compare-path--removed { stroke: #ff6f79; stroke-dasharray: 0.6 0.7; opacity: 0.95; }
+.designer-element.is-version-added .designer-path { filter: drop-shadow(0 0 1.1px rgb(126 255 184 / 0.82)); }
+.designer-element.is-version-changed .designer-path { filter: drop-shadow(0 0 1.1px rgb(255 207 112 / 0.9)); }
+.designer-compare-player--changed .designer-compare-player__shape { fill: rgb(255 207 112 / 0.34); stroke: #ffcf70; }
+.designer-compare-player--removed .designer-compare-player__shape { fill: rgb(255 111 121 / 0.38); stroke: #ff6f79; stroke-dasharray: 0.55 0.4; }
 .designer-compare-annotation { fill: rgb(193 172 255 / 0.18); stroke: #c1acff; stroke-width: 0.35; stroke-dasharray: 0.9 0.55; vector-effect: non-scaling-stroke; }
 .designer-compare-player__shape { fill: rgb(255 152 124 / 0.28); stroke: #ff987c; stroke-width: 0.35; vector-effect: non-scaling-stroke; }
 .designer-compare-player text { fill: #ffd2c5; font-size: 1.05px; font-weight: 850; text-anchor: middle; pointer-events: none; }

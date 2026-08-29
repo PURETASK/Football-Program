@@ -28,6 +28,7 @@ import { defensiveAlignmentLabel } from './defensiveAlignment';
 import { branchProgress, playbackPathForElement, playbackPathStateForElement } from './routeBranches';
 import { timelineEventEnd, timelineEventKind, timelineEventStart } from './timelineEvents';
 import { routeBranchGeometryPatch, routeBranchPointRemovalPatch, routeGeometryPatch, routePointRemovalPatch } from './routeAuthoring';
+import { versionChangeLabel, versionOverlayChanges } from './versionOverlay';
 
 interface CanvasProps {
   design: PlayDesign;
@@ -209,6 +210,7 @@ export function PlayDesignerCanvas({
   const lineOfScrimmageY = Number(design.field_context?.line_of_scrimmage_y ?? 26.5);
   const ballPoint = normalizePoint({ x: Number(design.field_context?.ball_x ?? 50), y: Number(design.field_context?.ball_y ?? lineOfScrimmageY) }, false);
   const elements = design.elements ?? [];
+  const versionChanges = useMemo(() => versionOverlayChanges(design, compareVisible ? compareDesign : undefined), [compareDesign, compareVisible, design]);
   const routeCollisionRecords = useMemo(() => routeCollisions(elements), [elements]);
   const routeCollisionIds = useMemo(() => new Set(routeCollisionRecords.flatMap((collision) => [collision.firstId, collision.secondId])), [routeCollisionRecords]);
   const routeCollisionByElement = useMemo(() => {
@@ -630,7 +632,8 @@ export function PlayDesignerCanvas({
                 const anchor = points[0] ?? { x: 50, y: 26 };
                 return <circle className="designer-compare-annotation" key={element.id} cx={anchor.x} cy={anchor.y} r="1.7" />;
               }
-              return <path className={`designer-compare-path designer-compare-path--${element.kind}`} key={element.id} d={smoothPathData(points)} />;
+              const change = versionChanges.removedElements.has(element.id) ? 'removed' : versionChanges.elements.get(element.id) ?? 'unchanged';
+              return <path className={`designer-compare-path designer-compare-path--${element.kind} designer-compare-path--${change}`} key={element.id} d={smoothPathData(points)} aria-label={`${element.type ?? element.kind} ${versionChangeLabel(change)}`} />;
             })}
             {(compareDesign.players ?? []).map((player) => {
               if (player.hidden || !player.start) return null;
@@ -638,7 +641,7 @@ export function PlayDesignerCanvas({
                 ? <path className="designer-compare-player__shape" d="M-1.45,-1.45 L1.45,-1.45 L1.45,1.45 L-1.45,1.45 Z" />
                 : <circle className="designer-compare-player__shape" r="1.55" />;
               return (
-                <g className="designer-compare-player" key={player.id} transform={`translate(${player.start.x} ${player.start.y})`}>
+                <g className={`designer-compare-player designer-compare-player--${versionChanges.removedPlayers.has(player.id) ? 'removed' : versionChanges.players.get(player.id) ?? 'unchanged'}`} key={player.id} transform={`translate(${player.start.x} ${player.start.y})`}>
                   {shape}
                   <text y=".55">{(player.position ?? player.role ?? '?').slice(0, 3)}</text>
                 </g>
@@ -743,7 +746,7 @@ export function PlayDesignerCanvas({
             return (
               <g
                 key={element.id}
-                className="designer-element"
+                className={`designer-element${compareVisible && compareDesign ? ` is-version-${versionChanges.elements.get(element.id) ?? 'added'}` : ''}`}
                 role="button"
                 tabIndex={0}
                   aria-label={`${element.type ?? element.kind} assignment${element.player_id ? ` for ${element.player_id}` : ''}${collision ? ` with ${collision.kind} route collision: ${collision.explanation}` : ''}`}

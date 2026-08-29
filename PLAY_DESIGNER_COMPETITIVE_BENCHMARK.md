@@ -532,3 +532,12 @@ and emits an explainable timing warning when a narration cue falls outside the
 referenced alternate path window. This keeps teaching narration aligned with
 the executable route model across save, validation, and export flows; live
 organization policy and production renderer verification remain open.
+
+Visual version-overlay addendum — 2026-08-29: the field comparison layer now
+classifies current objects as added, changed, or unchanged and compared-only
+objects as removed. Changed paths and players receive an explicit visual
+accent, while removed compared objects remain visible with a removal treatment;
+the same states are exposed through accessible labels. This makes the existing
+element-level version diff actionable on the field rather than inspector-only.
+Networked review convergence, deployment browser evidence, and release
+acceptance remain open.
