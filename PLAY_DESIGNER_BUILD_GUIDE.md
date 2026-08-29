@@ -1319,7 +1319,7 @@ production Vite build passes.
 
 ### Implementation addendum — professional asset catalog expansion (2026-08-28)
 
-The canonical asset registry now contains 113 versioned, searchable assets
+The canonical asset registry now contains 128 versioned, searchable assets
 across formation, route, motion, run, protection, block, front, coverage,
 pressure, stunt, rotation, check, and teaching families. The expanded catalog
 adds professional front variants (under, even, odd, mint, wide, reduced,

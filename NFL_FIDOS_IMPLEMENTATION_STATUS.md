@@ -2,8 +2,8 @@
 
 This is a living traceability summary against the uploaded Master Codex Plan. It is not a claim that the entire 26-stage program is complete.
 
-Current Play Designer catalog verification (2026-08-28): the canonical
-`playbook/asset-registry.json` contains 113 valid assets across 13 authoring
+Current Play Designer catalog verification (2026-08-29): the canonical
+`playbook/asset-registry.json` contains 128 valid assets across 13 authoring
 families, including the expanded professional front, coverage, pressure,
 line-game, rotation, blocking, protection, route, motion, run, check, and
 teaching vocabulary. The registry service contract passes and the React asset
