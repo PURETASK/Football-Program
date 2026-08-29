@@ -27,6 +27,18 @@ class TenantRepositoryTests(unittest.TestCase):
             self.assertEqual(len(scoped.history(collection="game_plans")), 1)
             base.close()
 
+    def test_history_uses_collection_and_record_identity_for_isolation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = JsonRepository(Path(directory) / "state.json")
+            one = TenantRepository(base, organization_id="ORG-1", actor="coach-1")
+            two = TenantRepository(base, organization_id="ORG-2", actor="coach-2")
+            one.put("plays", "SHARED-ID", {"id": "SHARED-ID", "organization_id": "ORG-1"})
+            two.put("game_plans", "SHARED-ID", {"id": "SHARED-ID", "organization_id": "ORG-2"})
+
+            visible = one.history()
+
+            self.assertEqual([(event["collection"], event["record_id"]) for event in visible], [("plays", "SHARED-ID")])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -46,8 +46,16 @@ class TenantRepository:
         events = self.repository.history(collection=collection, record_id=record_id)
         if self.approved_cross_org_scope:
             return events
-        visible_ids = {record_id for collection_name in self._collections() for record_id in self._record_ids(collection_name)}
-        return [event for event in events if event.get("record_id") in visible_ids]
+        visible_keys = {
+            (collection_name, record_id)
+            for collection_name in self._collections()
+            for record_id in self._record_ids(collection_name)
+        }
+        return [
+            event
+            for event in events
+            if (event.get("collection"), event.get("record_id")) in visible_keys
+        ]
 
     def _collections(self) -> list[str]:
         # Repository adapters intentionally expose only the current collection

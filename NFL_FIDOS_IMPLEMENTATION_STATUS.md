@@ -484,3 +484,11 @@ non-string, duplicate, and unknown play IDs before a packet is assembled. This
 keeps source manifests, pagination, signatures, and printed artifacts aligned
 with the staff selection. Focused export coverage and the full Python suite
 pass; printer/device and deployment-environment certification remain open.
+
+Tenant audit isolation addendum (2026-08-29): organization-scoped audit history
+now filters by the complete `(collection, record_id)` identity instead of the
+record ID alone. This prevents a same-ID collision across collections from
+exposing another organization’s event. A dedicated collision regression test
+passes, and the full Python suite now totals 666 passing tests; production
+database deployment, independent tenant-isolation testing, and operational
+security review remain open.
