@@ -45,6 +45,11 @@ WRISTBAND_LAYOUTS = {
     "wristband_3col": {"columns": 3, "rows": 18, "title": "Three-column compact wristband", "call_chars": 19, "detail_chars": 22, "call_size": 7, "detail_size": 5.8},
     "wristband_4col": {"columns": 4, "rows": 18, "title": "Four-column sideline strip", "call_chars": 14, "detail_chars": 16, "call_size": 6.2, "detail_size": 5.1},
 }
+PRINT_PROFILES = {
+    "letter_portrait": {"page_size": "letter", "orientation": "portrait", "safe_area_in": 0.35},
+    "letter_portrait_wristband": {"page_size": "letter", "orientation": "portrait", "safe_area_in": 0.2},
+    "data_export": {"page_size": None, "orientation": None, "safe_area_in": None},
+}
 DEFAULT_BRAND = {"organization_name": "NFL FIDOS", "team_name": "Team Playbook", "accent_color": "#10213d", "footer": "Human-reviewed play artifact"}
 COLOR_BY_KIND = {"route": "#2563eb", "motion": "#7c3aed", "run": "#087443", "block": "#8a5500", "read": "#0891b2", "coverage": "#334155", "rush": "#a51d2d", "fit": "#a51d2d", "stunt": "#a51d2d", "rotation": "#0f766e", "annotation": "#475569"}
 
@@ -705,10 +710,17 @@ def _source_lock(designs: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def _artifact_page_metadata(*, designs: list[dict[str, Any]], kind: str, format: str, layout: str, role: str | None, black_white: bool) -> dict[str, Any]:
+    printer_format = format in {"pdf", "html", "svg", "png"}
+    print_profile = "data_export" if not printer_format else "letter_portrait_wristband" if kind == "wristband" else "letter_portrait"
+    profile = PRINT_PROFILES[print_profile]
     return {
-        "page_size": "letter",
+        "page_size": profile["page_size"],
         "page_count": _page_count(designs=designs, kind=kind, layout=layout),
-        "printer_safe": format in {"pdf", "html", "svg", "png", "csv", "json"},
+        "printer_safe": printer_format,
+        "print_profile": print_profile,
+        "print_orientation": profile["orientation"],
+        "safe_area_in": profile["safe_area_in"],
+        "color_mode": "black_and_white" if black_white else "color",
         "black_white": black_white,
         "accessibility": {"has_alt_text": format in {"svg", "html"}, "has_accessible_text": format in {"pdf", "svg", "html", "json"}, "role": role or "coach"},
     }
@@ -737,6 +749,15 @@ def verify_export_artifact(artifact: dict[str, Any]) -> dict[str, Any]:
         issues.append({"code": "EXPORT-ARTIFACT-LAYOUT-KIND", "severity": "error", "message": "Wristband artifacts must use a wristband layout."})
     if artifact_format in {"svg", "png"} and artifact_layout != "single":
         issues.append({"code": "EXPORT-ARTIFACT-LAYOUT-FORMAT", "severity": "error", "message": "SVG and PNG artifacts must use the single layout."})
+    print_profile = artifact.get("print_profile")
+    if print_profile not in PRINT_PROFILES:
+        issues.append({"code": "EXPORT-PRINT-PROFILE", "severity": "error", "message": "Artifact is missing a supported print profile."})
+    elif artifact_format in {"pdf", "html", "svg", "png"} and print_profile == "data_export":
+        issues.append({"code": "EXPORT-PRINT-PROFILE-KIND", "severity": "error", "message": "Rendered visual artifacts must use a printer profile."})
+    elif artifact_format in {"csv", "json"} and print_profile != "data_export":
+        issues.append({"code": "EXPORT-PRINT-PROFILE-DATA", "severity": "error", "message": "CSV and JSON artifacts must use the data-export profile."})
+    if artifact.get("color_mode") not in {"color", "black_and_white"}:
+        issues.append({"code": "EXPORT-COLOR-MODE", "severity": "error", "message": "Artifact must declare color or black-and-white output mode."})
     if artifact.get("bytes") != len(payload):
         issues.append({"code": "EXPORT-ARTIFACT-BYTES", "severity": "error", "message": "Declared byte length does not match artifact content."})
     if artifact.get("sha256") != actual_hash:

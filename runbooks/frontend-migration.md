@@ -220,6 +220,11 @@ partner/dependency/target references are malformed. Duplicate timeline marker
 IDs, missing marker metadata, out-of-window markers, and unknown defensive
 exchange partners are covered by the Play Designer service regression suite.
 
+Export print-profile addendum (2026-08-29): rendered artifacts now declare
+their page profile, orientation, safe area, and color mode. The verifier keeps
+visual PDF/HTML/SVG/PNG outputs distinct from CSV/JSON data exports and rejects
+tampered or contradictory printer metadata.
+
 Local runtime readiness addendum (2026-08-28): a browser smoke pass against the
 running local application verified Film Room rendering, Playbook routing, and
 the protected Play Designer organization-session boundary with no console

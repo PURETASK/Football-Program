@@ -183,8 +183,21 @@ class PlayDesignExportTests(unittest.TestCase):
         self.assertEqual(rendered["page_size"], "letter")
         self.assertEqual(rendered["page_count"], 1)
         self.assertTrue(rendered["printer_safe"])
+        self.assertEqual(rendered["print_profile"], "letter_portrait")
+        self.assertEqual(rendered["print_orientation"], "portrait")
+        self.assertEqual(rendered["safe_area_in"], 0.35)
+        self.assertEqual(rendered["color_mode"], "color")
         self.assertTrue(rendered["accessibility"]["has_alt_text"])
         self.assertEqual(rendered["source_lock"]["status"], "review")
+
+    def test_data_exports_declare_non_printing_profile_and_visual_exports_reject_it(self):
+        data_export = build_export(designs=[design()], kind="play_card", format="json")
+        self.assertFalse(data_export["printer_safe"])
+        self.assertEqual(data_export["print_profile"], "data_export")
+        self.assertIsNone(data_export["safe_area_in"])
+        tampered = dict(data_export)
+        tampered["print_profile"] = "letter_portrait"
+        self.assertEqual(verify_export_artifact(tampered)["status"], "invalid")
 
     def test_artifact_verifier_detects_tampering(self):
         rendered = build_export(designs=[design()], kind="play_card", format="json")

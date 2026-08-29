@@ -161,6 +161,15 @@ markers cannot collide or fall outside the supported pre-snap/play window.
 Invalid catalog records fail closed during load and are covered by regression
 tests alongside the 17 approved system templates.
 
+## Export print-profile addendum — 2026-08-29
+
+Rendered exports now carry an explicit print profile, orientation, safe-area
+margin, and color-mode declaration. Visual artifacts use a letter portrait
+profile (with a tighter wristband safe area), while CSV and JSON artifacts use
+a non-printing data-export profile. Artifact verification rejects mismatches,
+so delivery metadata cannot describe a data payload as printer-safe or omit
+the intended black-and-white mode.
+
 The local quality suite now includes a deterministic two-editor convergence
 rehearsal. It proves that disjoint formation/assignment edits converge to the
 same checksum regardless of merge order and that overlapping edits preserve a
