@@ -140,16 +140,17 @@ defensive-authoring, timeline, API, and export tests:
 - Multi-track timeline controls for phases, markers, narration, ball events,
   reads, exchanges, rotations, playback speed, and pause cues.
 
-The remaining benchmark gaps are narrower and still active: governed parent
-change propagation (the current impact report is read-only), true multi-user
+The remaining benchmark gaps are narrower and still active: true multi-user
 edit convergence under concurrent mutations, complete provider-grade export
 layout/device certification, authoritative depth for every supported rule
 profile, automated browser visual/screen-reader/tablet traces, and moderated
-coach/coordinator/player pilot evidence. Partial-play stencil capture,
-inheritance, and persisted multi-look assignment transformations are now
-implemented locally, but they still require production-scale administration
-and real-team pilot evidence before they can be considered operationally
-complete.
+coach/coordinator/player pilot evidence. Governed parent change propagation is
+implemented locally: the impact report is read-only by design, while an
+owner-approved proposal performs fingerprint-checked versioning and descendant
+propagation. Partial-play stencil capture, inheritance, and persisted
+multi-look assignment transformations are also implemented locally, but they
+still require production-scale administration and real-team pilot evidence
+before they can be considered operationally complete.
 
 ## Template integrity addendum — 2026-08-29
 
@@ -187,11 +188,12 @@ gaps for replay. Network partition, multi-browser, and production transport
 ordering tests remain external acceptance work.
 
 Repository verification for this reconciliation: the frontend suite passes
-163 tests across 42 files, the Python suite passes 598 tests, TypeScript
-typecheck and the production build pass, and GitHub Actions validates the
-master-plan audit plus the production-configured container runtime. Those
-results prove the local and CI foundation; they do not prove production
-deployment, real organization adoption, or owner approval.
+279 tests across 49 files, the Python suite passes 693 tests, TypeScript
+typecheck and the production build pass, and the local Stage 0 runtime smoke
+validates the React routes, static assets, authenticated Playbook/catalog
+surfaces, and non-activating governance evidence path. Those results prove the
+local foundation; they do not prove production deployment, real organization
+adoption, moderated pilot outcomes, or owner approval.
 
 ## Partial stencil capture addendum — 2026-08-28
 
