@@ -57,7 +57,7 @@ export function positionAssetFit(asset: PlayAsset, design: PlayDesign): Position
 export function positionAssetOptions(player: PlayPlayer, design: PlayDesign, assets: PlayAsset[]): PlayAsset[] {
   const profile = positionProfile(player, design.unit);
   return assets
-    .filter((asset) => asset.kind !== 'formation' && asset.kind !== 'front' && asset.status !== 'retired')
+    .filter((asset) => asset.kind !== 'formation' && asset.kind !== 'front' && asset.status !== 'retired' && asset.compatibility?.selectable !== false)
     .map((asset) => {
       const category = asset.category ?? asset.kind;
       const preference = profile.preferredCategories.indexOf(category);

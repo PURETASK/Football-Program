@@ -59,4 +59,14 @@ describe('position-aware play authoring options', () => {
       'Lifecycle state is deprecated.',
     ]));
   });
+
+  it('does not offer catalog assets that are explicitly closed for authoring', () => {
+    const player: PlayPlayer = { id: 'X', position: 'WR', start: { x: 12, y: 26 } };
+    const options = positionAssetOptions(player, OFFENSE, [
+      asset('OPEN-POST', 'route'),
+      { ...asset('CLOSED-POST', 'route'), compatibility: { compatible: false, selectable: false, score: 0, reasons: ['Asset is closed for new authoring.'], warnings: [], basis: [] } },
+    ]);
+
+    expect(options.map((item) => item.id)).toEqual(['OPEN-POST']);
+  });
 });
