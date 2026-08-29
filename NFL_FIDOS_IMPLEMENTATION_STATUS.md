@@ -676,3 +676,10 @@ duplicate order conflicts, trigger declaration, and replacement-defender
 references. This preserves deterministic shell teaching and prevents stale
 replacement links from reaching release or export; team-specific simultaneous
 rotation doctrine remains reviewable rather than inferred.
+
+Protection graph authority addendum (2026-08-29): professional blocking and
+protection fields now activate the assignment graph even when a design does
+not also contain a generic objective, target, or dependency field. Graph nodes
+preserve primitive, protection mode, partner, threat, slide, and scan-order
+metadata alongside their relationship edges, keeping protection-only authoring
+available to teaching, analytics, collaboration, and export consumers.

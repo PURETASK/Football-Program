@@ -273,6 +273,18 @@ class PlayCreationTests(unittest.TestCase):
         self.assertEqual(node["break_depth_yards"], 14)
         self.assertEqual(node["responsibility"], "clear middle")
 
+    def test_assignment_graph_activates_for_protection_metadata_without_generic_fields(self):
+        candidate = design()
+        candidate["elements"] = [{
+            "id": "PULL-ONLY", "kind": "block", "player_id": "P1",
+            "blocking_primitive": "pull", "protection_mode": "half_slide_left",
+            "protection_slide_direction": "left", "protection_scan_order": "edge-to-inside",
+        }]
+        graph = build_assignment_graph(candidate)
+        self.assertEqual(graph["summary"]["node_count"], 1)
+        self.assertEqual(graph["nodes"][0]["blocking_primitive"], "pull")
+        self.assertEqual(graph["nodes"][0]["protection_slide_direction"], "left")
+
     def test_assignment_graph_connects_protection_target_partner_and_threat_edges(self):
         candidate = normalize_timeline_design(design())
         candidate["assignment_model_version"] = "1.0"
