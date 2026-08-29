@@ -264,6 +264,8 @@ class PlayDesignApiTests(unittest.TestCase):
             self.assertEqual(conflict[1]["status"], "conflict")
             self.assertEqual(conflict[1]["data"]["code"], "DESIGN-CONFLICT")
             self.assertEqual(conflict[1]["data"]["server_design"]["concept"], "Changed by another coach")
+            self.assertEqual(conflict[1]["data"]["expected_revision"], current["_revision"])
+            self.assertEqual(conflict[1]["data"]["actual_revision"], second[1]["data"]["_revision"])
         os.environ.pop("NFL_FIDOS_AUTH_SECRET", None)
 
     def test_collaboration_presence_threads_replies_resolution_and_events(self):

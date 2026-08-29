@@ -187,6 +187,14 @@ replay ordering. Client SSE consumers continue to reject duplicates and hold
 gaps for replay. Network partition, multi-browser, and production transport
 ordering tests remain external acceptance work.
 
+Authenticated stale-save addendum — 2026-08-29: the API regression contract
+now proves that two editor snapshots loaded at one revision cannot overwrite
+one another. The first save advances the canonical revision; the stale second
+save returns HTTP 409 with the conflict code, expected revision, actual server
+revision, and server snapshot required by the client three-way merge path.
+This strengthens local multi-editor evidence without claiming networked
+multi-browser or production-scale convergence.
+
 Repository verification for this reconciliation: the frontend suite passes
 279 tests across 49 files, the Python suite passes 693 tests, TypeScript
 typecheck and the production build pass, and the local Stage 0 runtime smoke
