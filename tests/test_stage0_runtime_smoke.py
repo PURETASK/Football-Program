@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.stage0_runtime_smoke import run_smoke
+from scripts.stage0_runtime_smoke import FRONTEND_ROUTES, run_smoke
 
 
 class Stage0RuntimeSmokeTests(unittest.TestCase):
@@ -14,7 +14,7 @@ class Stage0RuntimeSmokeTests(unittest.TestCase):
         self.assertFalse(result["safety"]["external_state_changed"])
         self.assertEqual(result["cleanup"]["status"], "purged")
         self.assertEqual(result["cleanup_verification"], {})
-        self.assertGreaterEqual(len(result["checks"]), 5)
+        self.assertGreaterEqual(len(result["checks"]), 5 + len(FRONTEND_ROUTES))
         self.assertTrue(all(item["passed"] for item in result["checks"]))
 
 

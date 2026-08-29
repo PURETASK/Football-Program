@@ -17,6 +17,29 @@ from nfl_fidos.http_server import create_server
 
 DEMO_SECRET = "stage0-runtime-smoke-secret-012345678901234567890"
 
+# These are the shipped React route contracts.  Keeping the list in the
+# served-app smoke prevents a route from silently regressing to a 404 or an
+# HTML fallback with missing assets while component tests still pass.
+FRONTEND_ROUTES = (
+    "/app/",
+    "/app/inbox",
+    "/app/roster",
+    "/app/analytics",
+    "/app/delivery",
+    "/app/collaboration",
+    "/app/playbook",
+    "/app/film",
+    "/app/practice",
+    "/app/scouting",
+    "/app/game-plan",
+    "/app/player",
+    "/app/admin",
+    "/app/admin/stage-25",
+    "/app/admin/population-readiness",
+    "/app/reviews",
+    "/app/playbook/designer/new",
+)
+
 
 def _get(base: str, path: str, headers: dict[str, str] | None = None) -> tuple[int, bytes]:
     request = Request(base.rstrip("/") + path, headers=headers or {})
@@ -51,6 +74,9 @@ def run_smoke(database: Path) -> dict[str, object]:
 
         check("health", "/health")
         index = check("react_shell", "/app/playbook/designer/new").decode("utf-8")
+        for route in FRONTEND_ROUTES:
+            if route != "/app/playbook/designer/new":
+                check("react_route", route)
         asset_paths = re.findall(r'(?:src|href)="(/app/assets/[^"]+)"', index)
         for asset_path in asset_paths:
             check("react_asset", asset_path)
