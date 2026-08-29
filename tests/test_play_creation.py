@@ -39,6 +39,16 @@ class PlayCreationTests(unittest.TestCase):
         self.assertIn("DESIGN-PATH", codes)
         self.assertIn("DESIGN-ARROW", codes)
 
+    def test_alternate_paths_use_the_same_shape_and_bounds_contract_as_primary_paths(self):
+        candidate = design()
+        candidate["elements"][0]["branches"] = [{"id": "BRANCH-OOB", "points": [{"x": 10, "y": 20}, {"x": 101, "y": 20}]}]
+        issues = validate_play_design(candidate)
+        self.assertTrue(any(issue["code"] == "DESIGN-BOUNDS" and issue["path"] == "elements[0].branches[0].points[1]" for issue in issues))
+
+        malformed = design()
+        malformed["elements"][0]["branches"] = [{"id": "BRANCH-SHORT", "points": [{"x": 10, "y": 20}]}]
+        self.assertIn("DESIGN-BRANCH-PATH", {issue["code"] for issue in validate_play_design(malformed)})
+
     def test_legality_lints_motion_and_timeline(self):
         candidate = design()
         candidate["rule_profile"] = "nfl"

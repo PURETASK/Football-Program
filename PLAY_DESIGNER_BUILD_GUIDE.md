@@ -1128,6 +1128,14 @@ catalog and clipping-safety gaps; organization-specific catalog administration,
 printer/device certification, and production deployment remain separate
 acceptance requirements.
 
+Draft/export geometry consistency addendum — 2026-08-29: the canonical play
+validator now applies the field-bounds and minimum-path contract to alternate
+route branches as well as primary paths. Malformed branch objects, short branch
+paths, malformed points, and out-of-bounds coordinates are reported with
+deterministic `DESIGN-*` paths before a draft can be treated as valid. Export
+preflight applies the corresponding `EXPORT-*` checks, so draft validation and
+artifact validation cannot disagree about clipped alternate geometry.
+
 ### Implementation addendum — route corridor intent and explanations (2026-08-28)
 
 Route collisions now produce an explainable pair report. The inspector identifies

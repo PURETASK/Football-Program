@@ -96,6 +96,22 @@ def validate_play_design(design: dict[str, Any]) -> list[dict[str, str]]:
                 else:
                     for j, point in enumerate(points):
                         _validate_point(point, f"{path}.points[{j}]", issues)
+                branches = element.get("branches")
+                if branches is not None:
+                    if not isinstance(branches, list):
+                        issues.append(_issue("DESIGN-BRANCHES", "Alternate paths must be a list", f"{path}.branches"))
+                    else:
+                        for branch_index, branch in enumerate(branches):
+                            branch_path = f"{path}.branches[{branch_index}]"
+                            if not isinstance(branch, dict):
+                                issues.append(_issue("DESIGN-BRANCH-SHAPE", "Alternate path must be an object", branch_path))
+                                continue
+                            branch_points = branch.get("points")
+                            if not isinstance(branch_points, list) or len(branch_points) < 2:
+                                issues.append(_issue("DESIGN-BRANCH-PATH", "Alternate paths require at least two points", f"{branch_path}.points"))
+                            else:
+                                for point_index, point in enumerate(branch_points):
+                                    _validate_point(point, f"{branch_path}.points[{point_index}]", issues)
                 if element.get("arrow_style") not in ARROW_STYLES:
                     issues.append(_issue("DESIGN-ARROW", "Movement elements require a canonical arrow style", f"{path}.arrow_style"))
     timeline = design.get("timeline")

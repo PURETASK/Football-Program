@@ -435,3 +435,10 @@ coordinates against the canonical 100 x 53.33 field. Errors preserve exact
 source paths and prevent clipped geometry from reaching rendered artifacts.
 Focused export coverage and the full Python regression suite pass; printer,
 device, and deployment-environment certification remain pending.
+
+Draft/export geometry consistency addendum (2026-08-29): alternate route
+branches now use the same canonical shape and field-bounds validation contract
+as primary play paths. Draft checks report deterministic branch paths for short,
+malformed, or out-of-bounds geometry, and export preflight independently
+fail-closes the corresponding artifact risk. Focused play-creation/export tests
+pass; physical device and deployment validation remain pending.
