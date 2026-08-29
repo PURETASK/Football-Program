@@ -83,11 +83,31 @@ def run_smoke(database: Path) -> dict[str, object]:
             check("react_asset", asset_path)
 
         token = issue_token(subject="DEMO-COACH", role="coach_staff", organization_id=DEMO_ORGANIZATION_ID, secret=DEMO_SECRET)
+        owner_token = issue_token(subject="DEMO-PROGRAM-OWNER", role="program_owner", organization_id=DEMO_ORGANIZATION_ID, secret=DEMO_SECRET)
         check(
             "authenticated_playbook_workspace",
             f"/v1/playbook/workspace?organization_id={DEMO_ORGANIZATION_ID}",
             {"Authorization": f"Bearer {token}"},
         )
+        review_bundle_body = check(
+            "authenticated_stage0_review_bundle",
+            f"/v1/control/stage-0-review-bundle?organization_id={DEMO_ORGANIZATION_ID}",
+            {"Authorization": f"Bearer {owner_token}"},
+        )
+        try:
+            review_bundle = json.loads(review_bundle_body).get("data", {})
+            safety = review_bundle.get("safety", {})
+            checks.append({
+                "name": "stage0_review_bundle_safe_and_populated",
+                "path": "/v1/control/stage-0-review-bundle",
+                "status_code": 200,
+                "bytes": len(review_bundle_body),
+                "review_status": review_bundle.get("review_status"),
+                "synthetic_present": review_bundle.get("synthetic_demo", {}).get("present"),
+                "passed": review_bundle.get("review_status") == "ready_for_owner_review" and review_bundle.get("synthetic_demo", {}).get("present") is True and all(safety.get(key) is False for key in ("approval_recorded", "stage_advance_authorized", "production_implementation_allowed", "external_state_changed")),
+            })
+        except (TypeError, ValueError, AttributeError):
+            checks.append({"name": "stage0_review_bundle_safe_and_populated", "path": "/v1/control/stage-0-review-bundle", "status_code": 200, "bytes": len(review_bundle_body), "passed": False})
         for unit, expected_kinds in (
             ("offense", {"formation", "route", "motion", "run", "block"}),
             ("defense", {"front", "coverage", "pressure", "stunt", "rotation"}),
