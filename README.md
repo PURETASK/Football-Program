@@ -11,6 +11,10 @@ and its DOCX companion. The project is NFL-scoped and intentionally keeps
 owner approval, production activation, live-source authorization, and pilot
 evidence behind explicit gates.
 
+Product north star and the current play-design capability benchmark are
+documented in
+[`PRODUCT_NORTH_STAR_AND_RESEARCH.md`](PRODUCT_NORTH_STAR_AND_RESEARCH.md).
+
 ## Quick start
 
 Requirements:

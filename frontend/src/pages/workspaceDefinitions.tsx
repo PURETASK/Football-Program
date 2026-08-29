@@ -378,3 +378,19 @@ export const REVIEWS_WORKSPACE: WorkspaceDefinition = {
   ],
   boundary: 'Visibility never grants approval authority. Every state-changing decision is re-authorized by the Python API and preserved in organization-scoped audit history.',
 };
+
+/** Canonical definitions shared by workspace pages, tutorials, and future onboarding surfaces. */
+export const ALL_WORKSPACE_DEFINITIONS: WorkspaceDefinition[] = [
+  INBOX_WORKSPACE,
+  ROSTER_WORKSPACE,
+  ANALYTICS_WORKSPACE,
+  DELIVERY_WORKSPACE,
+  COLLABORATION_WORKSPACE,
+  FILM_WORKSPACE,
+  PRACTICE_WORKSPACE,
+  SCOUTING_WORKSPACE,
+  GAME_PLAN_WORKSPACE,
+  PLAYER_WORKSPACE,
+  ADMIN_WORKSPACE,
+  REVIEWS_WORKSPACE,
+];

@@ -57,4 +57,15 @@ describe('AppShell', () => {
     expect(screen.getByRole('complementary', { name: 'Primary navigation' })).not.toHaveClass('sidebar--open');
     expect(document.querySelector('.sidebar-scrim')).not.toBeInTheDocument();
   });
+
+  it('lets a coach choose an operating lens without changing authorization', async () => {
+    const user = userEvent.setup();
+    renderApp(<App />);
+    await user.click(screen.getByRole('button', { name: 'Operating lens: Head coach' }));
+    expect(screen.getByRole('dialog', { name: 'Choose your operating lens' })).toBeInTheDocument();
+    expect(screen.getByText(/does not grant permissions/i)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Offensive coordinator/i }));
+    expect(screen.getByRole('button', { name: 'Operating lens: Offensive coordinator' })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'Choose your operating lens' })).not.toBeInTheDocument();
+  });
 });

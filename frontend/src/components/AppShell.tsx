@@ -10,6 +10,7 @@ import {
   MessageCircle,
   Film,
   Home,
+  BookOpenCheck,
   Menu,
   Search,
   Settings2,
@@ -27,6 +28,9 @@ import { BrandMark } from './BrandMark';
 import { CommandPalette } from './CommandPalette';
 import { SessionDialog } from './SessionDialog';
 import { StatusPill, statusTone } from './StatusPill';
+import { WorkspaceTutorial, tutorialForPath } from './WorkspaceTutorial';
+import { useLocation } from 'react-router-dom';
+import { OperatingLens, OperatingLensButton, useOperatingLens } from './OperatingLens';
 
 interface NavigationItem {
   label: string;
@@ -60,13 +64,18 @@ function roleLabel(role?: string): string {
 
 export function AppShell() {
   const { session } = useSession();
+  const location = useLocation();
   const summaryQuery = useOperatorSummaryQuery();
   const [menuOpen, setMenuOpen] = useState(false);
   const [sessionOpen, setSessionOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
+  const [lensOpen, setLensOpen] = useState(false);
+  const operatingLens = useOperatingLens();
   const closeSession = useCallback(() => setSessionOpen(false), []);
   const closeCommand = useCallback(() => setCommandOpen(false), []);
   const summary = summaryQuery.data;
+  const tutorial = tutorialForPath(location.pathname);
 
   const navigation = useMemo(() => {
     const allowed = new Set(summary?.allowed_sections ?? []);
@@ -159,6 +168,8 @@ export function AppShell() {
             </div>
           </div>
           <div className="topbar__actions">
+            <OperatingLensButton label={operatingLens.label} onClick={() => setLensOpen(true)} />
+            {tutorial ? <button className="icon-button tutorial-launcher" type="button" aria-label={`Open ${tutorial.title} tutorial`} title={`Learn ${tutorial.title}`} onClick={() => setTutorialOpen(true)}><BookOpenCheck size={18} /></button> : null}
             <button className="command-search" type="button" aria-label="Open command search" onClick={() => setCommandOpen(true)}>
               <Search size={17} />
               <span>Search plays, clips, people…</span>
@@ -181,6 +192,8 @@ export function AppShell() {
       </div>
       <CommandPalette open={commandOpen} onClose={closeCommand} navigation={navigation} />
       <SessionDialog open={sessionOpen} onClose={closeSession} />
+      {tutorial ? <WorkspaceTutorial model={tutorial} open={tutorialOpen} onClose={() => setTutorialOpen(false)} /> : null}
+      <OperatingLens open={lensOpen} onClose={() => setLensOpen(false)} value={operatingLens.value} onChange={operatingLens.update} />
     </div>
   );
 }

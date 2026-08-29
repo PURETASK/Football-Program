@@ -305,6 +305,80 @@
   text-align: left;
 }
 
+.tutorial-launcher {
+  width: 40px;
+  min-height: 40px;
+  color: var(--blue-600);
+  background: var(--blue-100);
+}
+
+.operating-lens-button { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface-raised); color: var(--text-secondary); font: inherit; font-size: 12px; font-weight: 750; cursor: pointer; }
+.operating-lens-button:hover { border-color: var(--accent); color: var(--text-primary); }
+.operating-lens__options { display: grid; gap: 8px; padding: 20px 24px 24px; }
+.operating-lens__option { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; padding: 13px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-raised); color: var(--text-primary); text-align: left; cursor: pointer; }
+.operating-lens__option:hover, .operating-lens__option.is-selected { border-color: var(--accent); background: var(--accent-soft); }
+.operating-lens__option span { display: grid; gap: 4px; }
+.operating-lens__option small { color: var(--text-secondary); font-size: 12px; line-height: 1.4; }
+@media (max-width: 860px) { .operating-lens-button span { display: none; } }
+
+.tutorial-launcher:hover {
+  border-color: var(--blue-300);
+  background: #fff;
+}
+
+.workspace-tutorial {
+  position: relative;
+  width: min(100%, 620px);
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-xl);
+  background: #fff;
+  box-shadow: var(--shadow-lg);
+  animation: modal-enter 200ms ease both;
+}
+
+.workspace-tutorial__header,
+.workspace-tutorial__intro,
+.workspace-tutorial__footer {
+  display: flex;
+  align-items: center;
+}
+
+.workspace-tutorial__header {
+  gap: 0.75rem;
+  padding: 1.25rem 1.35rem;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(135deg, #f7fbff, #fff);
+}
+
+.workspace-tutorial__header > div { flex: 1; }
+.workspace-tutorial__header p,
+.workspace-tutorial__eyebrow { margin: 0 0 0.2rem; color: var(--blue-600); font-size: 0.67rem; font-weight: 850; letter-spacing: 0.1em; text-transform: uppercase; }
+.workspace-tutorial__header strong { color: var(--ink-900); font-size: 1.05rem; }
+.workspace-tutorial__icon { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 13px; color: var(--blue-600); background: var(--blue-100); }
+.workspace-tutorial__intro { gap: 0.45rem; padding: 0.85rem 1.35rem 0; color: var(--ink-600); font-size: 0.78rem; line-height: 1.45; }
+.workspace-tutorial__progress { display: flex; gap: 0.35rem; padding: 1rem 1.35rem 0; overflow-x: auto; }
+.workspace-tutorial__progress button { display: grid; width: 25px; height: 25px; flex: 0 0 auto; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 50%; color: var(--ink-500); background: var(--ink-50); cursor: pointer; font-size: 0.62rem; font-weight: 800; }
+.workspace-tutorial__progress button.is-active { border-color: var(--blue-600); color: #fff; background: var(--blue-600); }
+.workspace-tutorial__progress button.is-complete { border-color: var(--green-500); color: var(--green-700); background: var(--green-100); }
+.workspace-tutorial__content { min-height: 320px; padding: 1.15rem 1.35rem 1.35rem; }
+.workspace-tutorial__content h2 { margin: 0 0 0.55rem; color: var(--ink-900); font-size: 1.65rem; }
+.workspace-tutorial__content > p:not(.workspace-tutorial__eyebrow) { margin: 0; color: var(--ink-600); font-size: 0.9rem; line-height: 1.55; }
+.workspace-tutorial__content ul { display: grid; gap: 0.5rem; margin: 1rem 0 0; padding: 0; list-style: none; }
+.workspace-tutorial__content li { position: relative; padding-left: 1.2rem; color: var(--ink-700); font-size: 0.78rem; line-height: 1.45; }
+.workspace-tutorial__content li::before { position: absolute; top: 0.45em; left: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--blue-500); content: ''; }
+.workspace-tutorial__try { display: flex; gap: 0.55rem; margin-top: 1rem; padding: 0.75rem; border: 1px solid #f5dca8; border-radius: 10px; color: var(--ink-700); background: #fffaf0; }
+.workspace-tutorial__try > svg { flex: 0 0 auto; color: var(--amber-600); }
+.workspace-tutorial__try div { display: grid; gap: 0.18rem; }
+.workspace-tutorial__try strong { color: var(--amber-700); font-size: 0.72rem; }
+.workspace-tutorial__try span { font-size: 0.76rem; line-height: 1.45; }
+.workspace-tutorial__footer { justify-content: space-between; gap: 0.75rem; padding: 0.85rem 1.35rem; border-top: 1px solid var(--line); background: var(--ink-50); }
+.workspace-tutorial__footer > span { color: var(--ink-500); font-size: 0.72rem; font-weight: 750; }
+.workspace-tutorial__footer button { display: inline-flex; min-height: 38px; align-items: center; gap: 0.3rem; padding: 0 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.74rem; font-weight: 800; }
+.workspace-tutorial__footer button:disabled { cursor: default; opacity: 0.4; }
+.workspace-tutorial__footer .tutorial-secondary { border: 1px solid var(--line); color: var(--ink-600); background: #fff; }
+.workspace-tutorial__footer .tutorial-primary { border: 1px solid var(--blue-600); color: #fff; background: var(--blue-600); }
+
 .command-search:hover {
   border-color: var(--line-strong);
   background: #fff;
