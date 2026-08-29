@@ -629,3 +629,11 @@ accessible coach-review warning before the reciprocal preset is applied, while
 the server-side validator remains authoritative and preserves the warning for
 review. Focused exchange/inspector coverage passes; organization-specific
 position aliases and live coordinator validation remain pending.
+
+Exchange responsibility authoring addendum (2026-08-28): named TEX and ET
+authoring now exposes stunt direction, penetration lane, and loop-landmark
+controls. Applying the pair writes lane metadata to the penetration side and
+landmark metadata to the looping side; the assignment graph warns when either
+required responsibility is missing. This makes the exchange actionable for
+timeline, teaching, and export consumers; organization-specific lane language
+and live coordinator review remain pending.

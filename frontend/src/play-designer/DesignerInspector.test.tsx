@@ -238,9 +238,11 @@ describe('DesignerInspector assignment graph controls', () => {
 
     fireEvent.change(screen.getByLabelText('Named exchange concept'), { target: { value: 'tex' } });
     expect(screen.getByText(/Interior tackle-end exchange/)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Penetration lane'), { target: { value: 'B' } });
+    fireEvent.change(screen.getByLabelText('Loop landmark'), { target: { value: 'near_hip' } });
     fireEvent.click(screen.getByRole('button', { name: 'Create reciprocal exchange' }));
-    expect(props.onElement).toHaveBeenCalledWith('TACKLE-RUSH', expect.objectContaining({ exchange_with: 'END-LOOP', exchange_concept: 'tex', exchange_concept_label: 'TEX · tackle-end exchange', phase: 'exchange' }));
-    expect(props.onElement).toHaveBeenCalledWith('END-LOOP', expect.objectContaining({ exchange_with: 'TACKLE-RUSH', exchange_role: 'loop_penetrate', exchange_concept: 'tex' }));
+    expect(props.onElement).toHaveBeenCalledWith('TACKLE-RUSH', expect.objectContaining({ exchange_with: 'END-LOOP', exchange_concept: 'tex', exchange_concept_label: 'TEX · tackle-end exchange', phase: 'exchange', penetration_lane: 'B' }));
+    expect(props.onElement).toHaveBeenCalledWith('END-LOOP', expect.objectContaining({ exchange_with: 'TACKLE-RUSH', exchange_role: 'loop_penetrate', exchange_concept: 'tex', loop_landmark: 'near_hip' }));
   });
 
   it('drags an unlocked defender to a new front location', () => {

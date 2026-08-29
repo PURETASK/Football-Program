@@ -426,6 +426,9 @@ function ExchangePairAuthoring({ elements, players, onElement }: { elements: [Pl
   const [concept, setConcept] = useState<string>(typeof elements[0].exchange_concept === 'string' ? elements[0].exchange_concept : '');
   const [vacatedZone, setVacatedZone] = useState<string>(elements[0].gap_owner ?? elements[0].zone ?? '');
   const [replacementZone, setReplacementZone] = useState<string>(elements[1].rotation_to_zone ?? elements[1].zone ?? '');
+  const [direction, setDirection] = useState<string>(typeof elements[0].exchange_direction === 'string' ? elements[0].exchange_direction : 'inside');
+  const [penetrationLane, setPenetrationLane] = useState<string>(typeof elements[0].penetration_lane === 'string' ? elements[0].penetration_lane : '');
+  const [loopLandmark, setLoopLandmark] = useState<string>(typeof elements[1].loop_landmark === 'string' ? elements[1].loop_landmark : '');
   const [first, second] = elements;
   const firstPlayer = players.find((player) => player.id === first.player_id);
   const secondPlayer = players.find((player) => player.id === second.player_id);
@@ -437,6 +440,11 @@ function ExchangePairAuthoring({ elements, players, onElement }: { elements: [Pl
     {concept ? <p className="inspector-help">{DEFENSIVE_EXCHANGE_PRESETS.find((preset) => preset.value === concept)?.description} The concept is stored on both assignments for teaching, validation, and export.</p> : null}
     {concept && !conceptFit.compatible ? <div className="player-legality-warning exchange-compatibility-warning" role="alert" aria-label="Exchange partner compatibility review"><strong>Partner compatibility review</strong><span>{conceptFit.reasons.join(' ')}</span><small>The server will preserve this as a coach-review warning until the partner positions or concept are corrected.</small></div> : null}
     <label className="inspector-field"><span>Exchange relationship</span><select value={role} onChange={(event) => setRole(event.target.value)}>{DEFENSIVE_EXCHANGE_ROLES.map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label>
+    {concept ? <div className="inspector-form inspector-form--two inspector-form--nested">
+      <label className="inspector-field"><span>Stunt direction</span><select value={direction} onChange={(event) => setDirection(event.target.value)}><option value="inside">Inside</option><option value="outside">Outside</option><option value="left">Left</option><option value="right">Right</option></select></label>
+      <label className="inspector-field"><span>Penetration lane</span><select value={penetrationLane} onChange={(event) => setPenetrationLane(event.target.value)}><option value="">Choose lane</option>{['A', 'B', 'C', 'edge', 'contain'].map((lane) => <option value={lane} key={lane}>{lane} gap / lane</option>)}</select></label>
+      <label className="inspector-field"><span>Loop landmark</span><select value={loopLandmark} onChange={(event) => setLoopLandmark(event.target.value)}><option value="">Choose landmark</option>{[['near_hip', 'Near hip'], ['far_hip', 'Far hip'], ['heels', 'Heels'], ['second_level', 'Second level'], ['replace', 'Replace vacated lane']].map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+    </div> : null}
     <div className="inspector-form inspector-form--two inspector-form--nested">
       <label className="inspector-field"><span>Vacated gap / zone</span><select value={vacatedZone} onChange={(event) => setVacatedZone(event.target.value)}><option value="">Not specified</option>{DEFENSIVE_GAP_OPTIONS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
       <label className="inspector-field"><span>Replacement zone</span><select value={replacementZone} onChange={(event) => setReplacementZone(event.target.value)}><option value="">Not specified</option>{DEFENSIVE_GAP_OPTIONS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
@@ -445,7 +453,13 @@ function ExchangePairAuthoring({ elements, players, onElement }: { elements: [Pl
       const pair = concept
         ? defensiveExchangePresetPatch(concept, first.id, second.id, { vacated_zone: vacatedZone || undefined, replacement_zone: replacementZone || undefined })
         : defensiveExchangePairPatch(first.id, second.id, role, { vacated_zone: vacatedZone || undefined, replacement_zone: replacementZone || undefined });
-      pair.forEach(([id, patch]) => onElement(id, { ...patch, ...exchangeConceptPatch(concept) }));
+      pair.forEach(([id, patch]) => onElement(id, {
+        ...patch,
+        ...exchangeConceptPatch(concept),
+        exchange_direction: concept ? direction : undefined,
+        ...(patch.exchange_role === 'penetrate_loop' ? { penetration_lane: penetrationLane || undefined } : {}),
+        ...(patch.exchange_role === 'loop_penetrate' ? { loop_landmark: loopLandmark || undefined } : {}),
+      }));
     }}>{first.exchange_with === second.id && second.exchange_with === first.id ? 'Update reciprocal exchange' : 'Create reciprocal exchange'}</button>{first.exchange_with === second.id && second.exchange_with === first.id ? <button className="button button--ghost" type="button" onClick={() => clearDefensiveExchangePairPatch(first.id, second.id).forEach(([id, patch]) => onElement(id, patch))}>Clear exchange</button> : null}</div>
   </InspectorSection>;
 }

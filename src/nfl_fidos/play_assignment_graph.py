@@ -96,6 +96,10 @@ def _validate_named_exchange_concept(
     partner_role = str(partner.get("exchange_role") or "")
     if {role, partner_role} != {"penetrate_loop", "loop_penetrate"} and concept in {"tex", "et", "cross_dog", "cross_dog_fire"}:
         findings.append(_issue("ASSIGNMENT-EXCHANGE-ROLE-MISMATCH", f"Named {concept} exchange requires one penetrate_loop side and one loop_penetrate side.", f"{path}.exchange_role", "warning", suggestion="Set reciprocal penetration and loop responsibilities on the pair."))
+    if concept in {"tex", "et"} and role == "penetrate_loop" and not str(element.get("penetration_lane") or "").strip():
+        findings.append(_issue("ASSIGNMENT-PENETRATION-LANE-MISSING", f"Named {concept} penetration side has no declared rush lane.", f"{path}.penetration_lane", "warning", suggestion="Choose the A, B, C, edge, or contain lane the penetrator attacks."))
+    if concept in {"tex", "et"} and role == "loop_penetrate" and not str(element.get("loop_landmark") or "").strip():
+        findings.append(_issue("ASSIGNMENT-LOOP-LANDMARK-MISSING", f"Named {concept} loop side has no declared landmark or replacement path.", f"{path}.loop_landmark", "warning", suggestion="Choose the hip, heels, replace, or second-level landmark for the looping defender."))
     first_family = _position_family(player_by_id.get(str(element.get("player_id"))))
     second_family = _position_family(player_by_id.get(str(partner.get("player_id"))))
     expected = EXCHANGE_CONCEPT_POSITION_RULES[concept]
@@ -269,6 +273,9 @@ def build_assignment_graph(design: dict[str, Any]) -> dict[str, Any]:
             "target_player_id": element.get("target_player_id"),
             "exchange_with": element.get("exchange_with"),
             "exchange_concept": element.get("exchange_concept"),
+            "penetration_lane": element.get("penetration_lane"),
+            "loop_landmark": element.get("loop_landmark"),
+            "exchange_direction": element.get("exchange_direction"),
             "start_ms": start,
             "end_ms": end,
         })

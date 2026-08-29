@@ -191,8 +191,8 @@ class PlayCreationTests(unittest.TestCase):
         candidate["assignment_model_version"] = "1.0"
         candidate["players"] = [{"id": "DT", "position": "DT"}, {"id": "DE", "position": "DE"}]
         candidate["elements"] = [
-            {"id": "A-TEX", "kind": "stunt", "player_id": "DT", "exchange_with": "B-TEX", "exchange_role": "penetrate_loop", "exchange_concept": "tex", "exchange_trigger": "on_snap", "exchange_communication": "TEX alert"},
-            {"id": "B-TEX", "kind": "stunt", "player_id": "DE", "exchange_with": "A-TEX", "exchange_role": "loop_penetrate", "exchange_concept": "tex", "exchange_trigger": "on_snap", "exchange_communication": "TEX alert"},
+            {"id": "A-TEX", "kind": "stunt", "player_id": "DT", "exchange_with": "B-TEX", "exchange_role": "penetrate_loop", "exchange_concept": "tex", "exchange_trigger": "on_snap", "exchange_communication": "TEX alert", "penetration_lane": "B"},
+            {"id": "B-TEX", "kind": "stunt", "player_id": "DE", "exchange_with": "A-TEX", "exchange_role": "loop_penetrate", "exchange_concept": "tex", "exchange_trigger": "on_snap", "exchange_communication": "TEX alert", "loop_landmark": "near_hip"},
         ]
         self.assertEqual(validate_assignment_graph(candidate), [])
         candidate["players"][1]["position"] = "CB"
