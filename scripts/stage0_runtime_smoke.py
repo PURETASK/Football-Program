@@ -38,6 +38,7 @@ FRONTEND_ROUTES = (
     "/app/admin/population-readiness",
     "/app/reviews",
     "/app/playbook/designer/new",
+    "/app/playbook/designer/new?unit=defense",
 )
 
 
@@ -87,6 +88,42 @@ def run_smoke(database: Path) -> dict[str, object]:
             f"/v1/playbook/workspace?organization_id={DEMO_ORGANIZATION_ID}",
             {"Authorization": f"Bearer {token}"},
         )
+        for unit, expected_kinds in (
+            ("offense", {"formation", "route", "motion", "run", "block"}),
+            ("defense", {"front", "coverage", "pressure", "stunt", "rotation"}),
+        ):
+            catalog_body = check(
+                f"authenticated_{unit}_asset_catalog",
+                f"/v1/playbook/designs/assets?organization_id={DEMO_ORGANIZATION_ID}&unit={unit}",
+                {"Authorization": f"Bearer {token}"},
+            )
+            try:
+                catalog = json.loads(catalog_body)
+                assets = catalog.get("data", {}).get("assets", [])
+                found_kinds = {asset.get("kind") for asset in assets}
+                found_categories = {asset.get("category") for asset in assets}
+                catalog_check = {
+                    "name": f"{unit}_asset_catalog_populated",
+                    "path": f"/v1/playbook/designs/assets?unit={unit}",
+                    "status_code": 200,
+                    "bytes": len(catalog_body),
+                    "asset_count": len(assets),
+                    "kinds": sorted(kind for kind in found_kinds if kind),
+                    "categories": sorted(category for category in found_categories if category),
+                    "passed": bool(assets) and expected_kinds.issubset(found_kinds | found_categories),
+                }
+            except (TypeError, ValueError, AttributeError):
+                catalog_check = {
+                    "name": f"{unit}_asset_catalog_populated",
+                    "path": f"/v1/playbook/designs/assets?unit={unit}",
+                    "status_code": 200,
+                    "bytes": len(catalog_body),
+                    "asset_count": 0,
+                    "kinds": [],
+                    "categories": [],
+                    "passed": False,
+                }
+            checks.append(catalog_check)
         jobs_body = check(
             "authenticated_media_jobs",
             f"/v1/media/jobs?organization_id={DEMO_ORGANIZATION_ID}",
