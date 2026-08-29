@@ -221,6 +221,28 @@ describe('DesignerInspector assignment graph controls', () => {
     expect(props.onSelect).toHaveBeenCalledWith({ kind: 'player', id: 'DE' });
   });
 
+  it('authors a named TEX exchange with reciprocal concept metadata', () => {
+    const props = inspectorProps();
+    const defenseDesign = {
+      ...DESIGN,
+      elements: [
+        { id: 'TACKLE-RUSH', kind: 'rush', type: 'tackle rush', player_id: 'DT', points: [{ x: 44, y: 20 }, { x: 42, y: 30 }] },
+        { id: 'END-LOOP', kind: 'stunt', type: 'end loop', player_id: 'DE', points: [{ x: 36, y: 20 }, { x: 48, y: 28 }] },
+      ],
+      players: [
+        { id: 'DT', position: 'DT', start: { x: 44, y: 20 } },
+        { id: 'DE', position: 'DE', start: { x: 36, y: 20 } },
+      ],
+    };
+    render(<DesignerInspector {...props} design={defenseDesign} selected={[{ kind: 'element', id: 'TACKLE-RUSH' }, { kind: 'element', id: 'END-LOOP' }]} />);
+
+    fireEvent.change(screen.getByLabelText('Named exchange concept'), { target: { value: 'tex' } });
+    expect(screen.getByText(/Interior tackle-end exchange/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Create reciprocal exchange' }));
+    expect(props.onElement).toHaveBeenCalledWith('TACKLE-RUSH', expect.objectContaining({ exchange_with: 'END-LOOP', exchange_concept: 'tex', exchange_concept_label: 'TEX · tackle-end exchange', phase: 'exchange' }));
+    expect(props.onElement).toHaveBeenCalledWith('END-LOOP', expect.objectContaining({ exchange_with: 'TACKLE-RUSH', exchange_role: 'loop_penetrate', exchange_concept: 'tex' }));
+  });
+
   it('drags an unlocked defender to a new front location', () => {
     const props = inspectorProps();
     const design = { ...DESIGN, unit: 'defense' as const, players: [{ id: 'DE', position: 'DE', start: { x: 30, y: 18 }, defensive_technique: '5', defensive_alignment: 'outside_eye', alignment_key: '5T' }] };

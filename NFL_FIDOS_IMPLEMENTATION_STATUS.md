@@ -603,3 +603,11 @@ the same canonical points used by drag/keyboard editing and remains
 non-interactive so it does not interfere with pointer targeting; focused canvas
 coverage passes, while visual regression and device certification remain
 pending.
+
+Named defensive exchange authoring addendum (2026-08-28): the two-assignment
+defensive exchange panel now exposes named TEX, ET, cross-dog, rush-replace,
+and carry-transfer presets. Applying a preset writes reciprocal roles plus the
+relationship-level concept label and exchange phase to both assignments, while
+the existing generic role and replacement-zone controls remain available.
+Inspector regression coverage verifies a TEX authoring action end to end;
+organization terminology and live coordinator review remain pending.
