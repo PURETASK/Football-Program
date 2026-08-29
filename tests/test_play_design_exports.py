@@ -63,6 +63,14 @@ class PlayDesignExportTests(unittest.TestCase):
         focused = service.export_artifact([first["id"]], kind="play_card", format="json", actor="coach", role="P1")
         self.assertEqual(focused["role"], "P1")
 
+    def test_export_selection_rejects_duplicate_and_malformed_design_ids(self):
+        service = self.service()
+        first = service.save(design(), actor="coach")
+        with self.assertRaisesRegex(ValueError, "Duplicate export design id"):
+            service.export_preflight([first["id"], first["id"]], kind="play_card", format="pdf")
+        with self.assertRaisesRegex(ValueError, "must be a non-empty string"):
+            service.export_artifact([first["id"], None], kind="play_card", format="pdf", actor="coach")
+
     def test_export_validation_explains_invalid_design(self):
         candidate = design()
         candidate["validation"] = {"status": "invalid"}

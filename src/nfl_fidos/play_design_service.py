@@ -1109,15 +1109,26 @@ class PlayDesignService:
         record = {"id": attempt_id or f"MASTERY-{design_id}-{user_id}-{safe_role}-{len(self.repository.list('play_design_mastery')) + 1:04d}", "organization_id": self.repository.organization_id, "design_id": design_id, "role": role, "user_id": user_id, "step_id": step_id, "score": round(normalized_score, 3), "result": result, "status": status, "practice_ref": practice_ref, "notes": notes.strip() if isinstance(notes, str) else "", "recorded_at": datetime.now(timezone.utc).isoformat(), "recorded_by": actor}
         return self.repository.put("play_design_mastery", record["id"], record, actor=actor, reason="play_design_mastery_recorded")
 
-    def export_artifact(self, design_ids: list[str], *, kind: str, format: str, actor: str, role: str | None = None, black_white: bool = False, branding: dict[str, Any] | None = None, layout: str | None = None, signing_secret: str | None = None) -> dict[str, Any]:
+    def _load_export_designs(self, design_ids: list[str]) -> list[dict[str, Any]]:
         if not isinstance(design_ids, list) or not design_ids:
             raise ValueError("At least one design id is required")
-        designs = []
-        for design_id in design_ids:
-            design = self.repository.get("play_designs", design_id)
+        designs: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        for index, design_id in enumerate(design_ids):
+            if not isinstance(design_id, str) or not design_id.strip():
+                raise ValueError(f"Export design id at index {index} must be a non-empty string")
+            normalized_id = design_id.strip()
+            if normalized_id in seen:
+                raise ValueError(f"Duplicate export design id: {normalized_id}")
+            seen.add(normalized_id)
+            design = self.repository.get("play_designs", normalized_id)
             if design is None:
-                raise KeyError(f"Unknown play design: {design_id}")
+                raise KeyError(f"Unknown play design: {normalized_id}")
             designs.append(design)
+        return designs
+
+    def export_artifact(self, design_ids: list[str], *, kind: str, format: str, actor: str, role: str | None = None, black_white: bool = False, branding: dict[str, Any] | None = None, layout: str | None = None, signing_secret: str | None = None) -> dict[str, Any]:
+        designs = self._load_export_designs(design_ids)
         artifact = build_export(designs=designs, kind=kind, format=format, role=role, black_white=black_white, branding=branding, layout=layout)
         artifact["organization_id"] = self.repository.organization_id
         artifact["requested_by"] = actor
@@ -1130,15 +1141,7 @@ class PlayDesignService:
 
     def export_preflight(self, design_ids: list[str], *, kind: str, format: str, role: str | None = None, layout: str | None = None) -> dict[str, Any]:
         """Run export validation against organization-scoped source records."""
-        if not isinstance(design_ids, list) or not design_ids:
-            raise ValueError("At least one design id is required")
-        designs = []
-        for design_id in design_ids:
-            design = self.repository.get("play_designs", design_id)
-            if design is None:
-                raise KeyError(f"Unknown play design: {design_id}")
-            designs.append(design)
-        return build_export_preflight(designs=designs, kind=kind, format=format, role=role, layout=layout)
+        return build_export_preflight(designs=self._load_export_designs(design_ids), kind=kind, format=format, role=role, layout=layout)
 
     def submit_quiz(self, design_id: str, *, role: str, user_id: str, quiz_id: str, answer: Any, actor: str, practice_ref: str | None = None) -> dict[str, Any]:
         design = self.repository.get("play_designs", design_id)

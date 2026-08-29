@@ -477,3 +477,10 @@ reach the worker. Existing path authorization, bounded ffprobe/transform
 execution, retry state, and output lineage remain intact. Focused media-worker
 coverage and the full Python regression suite pass; external media tooling,
 managed storage, and deployment-worker certification remain open.
+
+Export selection integrity addendum (2026-08-29): Play Designer preflight and
+rendering now share one organization-scoped design loader that rejects blank,
+non-string, duplicate, and unknown play IDs before a packet is assembled. This
+keeps source manifests, pagination, signatures, and printed artifacts aligned
+with the staff selection. Focused export coverage and the full Python suite
+pass; printer/device and deployment-environment certification remain open.
