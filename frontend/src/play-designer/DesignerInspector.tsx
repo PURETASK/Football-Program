@@ -50,7 +50,7 @@ import { DEFENSIVE_ALIGNMENTS, DEFENSIVE_TECHNIQUES, defensiveAlignmentIssues, d
 import { CoverageShellEditor } from './CoverageShellEditor';
 import { coverageShellOwners } from './coverageShell';
 import { rotationLabel } from './rotationSequencing';
-import { DEFENSIVE_EXCHANGE_PRESETS, DEFENSIVE_EXCHANGE_ROLES, clearDefensiveExchangePairPatch, defensiveExchangePairPatch, defensiveExchangePresetPatch, exchangeConceptPatch } from './defensiveExchanges';
+import { DEFENSIVE_EXCHANGE_PRESETS, DEFENSIVE_EXCHANGE_ROLES, clearDefensiveExchangePairPatch, defensiveExchangePairPatch, defensiveExchangePresetPatch, defensiveExchangePresetCompatibility, exchangeConceptPatch } from './defensiveExchanges';
 import { defensiveResponsibilityIssues } from './defensiveResponsibilityValidation';
 import { offensiveBlockingIssues } from './offensiveBlocking';
 import { timelineIntegrityIssues } from './timelineValidation';
@@ -310,7 +310,7 @@ function SelectionInspector({
   }
   if (selected.length > 1) {
     const selectedElements = selected.filter((item): item is { kind: 'element'; id: string } => item.kind === 'element').map((item) => (design.elements ?? []).find((element) => element.id === item.id)).filter((element): element is PlayElement => Boolean(element));
-    if (design.unit === 'defense' && selectedElements.length === 2) return <ExchangePairAuthoring elements={selectedElements} onElement={onElement} />;
+    if (design.unit === 'defense' && selectedElements.length === 2) return <ExchangePairAuthoring elements={selectedElements} players={design.players ?? []} onElement={onElement} />;
     return (
       <div className="multi-selection-card">
         <Layers3 size={20} />
@@ -421,17 +421,21 @@ function SelectionInspector({
   );
 }
 
-function ExchangePairAuthoring({ elements, onElement }: { elements: [PlayElement, PlayElement] | PlayElement[]; onElement: (id: string, patch: Partial<PlayElement>) => void }) {
+function ExchangePairAuthoring({ elements, players, onElement }: { elements: [PlayElement, PlayElement] | PlayElement[]; players: PlayPlayer[]; onElement: (id: string, patch: Partial<PlayElement>) => void }) {
   const [role, setRole] = useState<string>(elements[0].exchange_role ?? 'penetrate_loop');
   const [concept, setConcept] = useState<string>(typeof elements[0].exchange_concept === 'string' ? elements[0].exchange_concept : '');
   const [vacatedZone, setVacatedZone] = useState<string>(elements[0].gap_owner ?? elements[0].zone ?? '');
   const [replacementZone, setReplacementZone] = useState<string>(elements[1].rotation_to_zone ?? elements[1].zone ?? '');
   const [first, second] = elements;
+  const firstPlayer = players.find((player) => player.id === first.player_id);
+  const secondPlayer = players.find((player) => player.id === second.player_id);
+  const conceptFit = defensiveExchangePresetCompatibility(concept, firstPlayer, secondPlayer);
   return <InspectorSection title="Create defensive exchange">
     <p className="inspector-help">Two defensive assignments are selected. Choose the relationship and create both reciprocal responsibilities together.</p>
     <div className="exchange-pair-preview"><strong>{first.player_id ?? first.type ?? first.id}</strong><span>↔</span><strong>{second.player_id ?? second.type ?? second.id}</strong></div>
     <label className="inspector-field"><span>Named exchange concept</span><select value={concept} onChange={(event) => setConcept(event.target.value)}><option value="">Generic relationship</option>{DEFENSIVE_EXCHANGE_PRESETS.map((preset) => <option value={preset.value} key={preset.value}>{preset.label}</option>)}</select></label>
     {concept ? <p className="inspector-help">{DEFENSIVE_EXCHANGE_PRESETS.find((preset) => preset.value === concept)?.description} The concept is stored on both assignments for teaching, validation, and export.</p> : null}
+    {concept && !conceptFit.compatible ? <div className="player-legality-warning exchange-compatibility-warning" role="alert" aria-label="Exchange partner compatibility review"><strong>Partner compatibility review</strong><span>{conceptFit.reasons.join(' ')}</span><small>The server will preserve this as a coach-review warning until the partner positions or concept are corrected.</small></div> : null}
     <label className="inspector-field"><span>Exchange relationship</span><select value={role} onChange={(event) => setRole(event.target.value)}>{DEFENSIVE_EXCHANGE_ROLES.map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label>
     <div className="inspector-form inspector-form--two inspector-form--nested">
       <label className="inspector-field"><span>Vacated gap / zone</span><select value={vacatedZone} onChange={(event) => setVacatedZone(event.target.value)}><option value="">Not specified</option>{DEFENSIVE_GAP_OPTIONS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>

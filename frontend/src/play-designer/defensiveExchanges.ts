@@ -1,4 +1,4 @@
-import type { PlayDesign, PlayElement } from '../types';
+import type { PlayDesign, PlayElement, PlayPlayer } from '../types';
 import { timelineEventKind, timelineEventStart, timelineEventEnd } from './timelineEvents';
 
 export type DefensiveExchangeRole = 'penetrate_loop' | 'loop_penetrate' | 'rush_replace' | 'drop_replace' | 'carry_transfer' | 'rotate_replace';
@@ -30,6 +30,32 @@ export const DEFENSIVE_EXCHANGE_CONCEPTS = [
   ['rush_replace', 'Rush and replace · coverage exchange'],
   ['carry_transfer', 'Carry and transfer · coverage handoff'],
 ] as const;
+
+const INTERIOR_POSITIONS = new Set(['DT', 'NT', 'DL', 'TACKLE', 'NOSE', '3T', '4I', '4T', '0T', '1T']);
+const EDGE_POSITIONS = new Set(['DE', 'EDGE', 'END', 'OLB', '5T', '6T', '7T', '9T', 'RUSH']);
+const LINEBACKER_POSITIONS = new Set(['LB', 'ILB', 'MLB', 'WLB', 'WILL', 'SAM', 'MIKE', 'JACK', 'BUCK', 'LINEBACKER']);
+
+function playerPositionFamily(player: PlayPlayer | undefined): 'interior' | 'edge' | 'linebacker' | 'unknown' {
+  const tokens = [player?.position, player?.role, player?.alignment_key].filter(Boolean).map((value) => String(value).trim().toUpperCase());
+  if (tokens.some((token) => INTERIOR_POSITIONS.has(token))) return 'interior';
+  if (tokens.some((token) => EDGE_POSITIONS.has(token))) return 'edge';
+  if (tokens.some((token) => LINEBACKER_POSITIONS.has(token))) return 'linebacker';
+  return 'unknown';
+}
+
+export function defensiveExchangePresetCompatibility(value: string, first: PlayPlayer | undefined, second: PlayPlayer | undefined): { compatible: boolean; reasons: string[] } {
+  if (!['tex', 'et', 'cross_dog'].includes(value)) return { compatible: true, reasons: [] };
+  const firstFamily = playerPositionFamily(first);
+  const secondFamily = playerPositionFamily(second);
+  if (value === 'cross_dog') {
+    return firstFamily === 'linebacker' && secondFamily === 'linebacker'
+      ? { compatible: true, reasons: [] }
+      : { compatible: false, reasons: [`Cross-dog expects two linebacker-family partners; selected ${firstFamily} and ${secondFamily}.`] };
+  }
+  return new Set([firstFamily, secondFamily]).size === 2 && new Set([firstFamily, secondFamily]).has('interior') && new Set([firstFamily, secondFamily]).has('edge')
+    ? { compatible: true, reasons: [] }
+    : { compatible: false, reasons: [`${value.toUpperCase()} expects one interior defensive lineman and one edge defender; selected ${firstFamily} and ${secondFamily}.`] };
+}
 
 export function exchangeConceptPatch(
   concept: string,

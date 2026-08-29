@@ -621,3 +621,11 @@ terminology flexibility while blocking semantic drift from downstream
 teaching, export, and release consumers. Full Python regression coverage
 passes; live coordinator review and organization-specific position taxonomy
 remain pending.
+
+Named exchange UI guard addendum (2026-08-28): the defensive two-assignment
+authoring panel now performs immediate position-family compatibility feedback
+for TEX, ET, and cross-dog selections. Incompatible pairs receive an
+accessible coach-review warning before the reciprocal preset is applied, while
+the server-side validator remains authoritative and preserves the warning for
+review. Focused exchange/inspector coverage passes; organization-specific
+position aliases and live coordinator validation remain pending.

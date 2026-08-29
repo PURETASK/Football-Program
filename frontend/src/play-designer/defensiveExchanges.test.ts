@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { clearDefensiveExchangePairPatch, defensiveExchangeLinks, defensiveExchangePairPatch, defensiveExchangePresetPatch, defensiveExchangeProgress, exchangeConceptPatch, exchangePatch, reciprocalExchangePatch } from './defensiveExchanges';
+import { clearDefensiveExchangePairPatch, defensiveExchangeLinks, defensiveExchangePairPatch, defensiveExchangePresetCompatibility, defensiveExchangePresetPatch, defensiveExchangeProgress, exchangeConceptPatch, exchangePatch, reciprocalExchangePatch } from './defensiveExchanges';
 import type { PlayDesign } from '../types';
 
 describe('defensive exchange relationships', () => {
@@ -29,6 +29,12 @@ describe('defensive exchange relationships', () => {
       ['RUSH-1', expect.objectContaining({ exchange_with: 'DROP-1', exchange_role: 'rush_replace', phase: 'exchange' })],
       ['DROP-1', expect.objectContaining({ exchange_with: 'RUSH-1', exchange_role: 'drop_replace', phase: 'exchange' })],
     ]);
+  });
+
+  it('explains named exchange partner compatibility before authoring', () => {
+    expect(defensiveExchangePresetCompatibility('tex', { id: 'DT', position: 'DT' }, { id: 'DE', position: 'DE' })).toEqual({ compatible: true, reasons: [] });
+    expect(defensiveExchangePresetCompatibility('cross_dog', { id: 'DT', position: 'DT' }, { id: 'WILL', position: 'WILL' }).compatible).toBe(false);
+    expect(defensiveExchangePresetCompatibility('cross_dog', { id: 'MIKE', position: 'MIKE' }, { id: 'WILL', position: 'WILL' })).toEqual({ compatible: true, reasons: [] });
   });
 
   it('materializes named TEX and replacement patterns as reciprocal pair patches', () => {
