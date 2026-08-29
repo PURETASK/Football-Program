@@ -113,6 +113,15 @@ class MediaWorkerTests(unittest.TestCase):
             self.assertEqual(failed["status"], "failed")
             self.assertEqual(failed["last_error"]["code"], "MEDIA-THUMBNAIL-FAILED")
 
+    def test_malformed_job_input_is_rejected_without_type_error(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repository = TenantRepository(JsonRepository(Path(directory) / "state.json"), organization_id="ORG-MEDIA", actor="ANALYST")
+            jobs = MediaProcessingJobService(repository)
+            job = jobs.create_job(job_id=None, asset_id=None, operation=None, payload=None, requested_by=None, max_attempts="three")
+            self.assertEqual(job["status"], "invalid")
+            self.assertIn("payload must be an object", job["issues"])
+            self.assertIn("job id must be a string", job["issues"])
+
 
 if __name__ == "__main__":
     unittest.main()

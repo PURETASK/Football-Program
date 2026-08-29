@@ -22,17 +22,28 @@ class MediaProcessingJobService:
 
     def create_job(self, *, job_id: str, asset_id: str, operation: str, payload: dict[str, Any], requested_by: str, max_attempts: int = 3) -> dict[str, Any]:
         issues: list[str] = []
-        if not job_id.startswith("MEDIA-JOB-"):
+        job_value = job_id if isinstance(job_id, str) else ""
+        asset_value = asset_id if isinstance(asset_id, str) else ""
+        operation_value = operation if isinstance(operation, str) else ""
+        requester_value = requested_by if isinstance(requested_by, str) else ""
+        payload_value = payload if isinstance(payload, dict) else {}
+        if not isinstance(job_id, str):
+            issues.append("job id must be a string")
+        if not job_value.startswith("MEDIA-JOB-"):
             issues.append("job id must start with MEDIA-JOB-")
-        if not asset_id.startswith("FILM-"):
+        if not isinstance(asset_id, str):
+            issues.append("asset id must be a string")
+        if not asset_value.startswith("FILM-"):
             issues.append("asset id must start with FILM-")
-        if operation not in JOB_OPERATIONS:
+        if operation_value not in JOB_OPERATIONS:
             issues.append("unsupported media operation")
-        if not requested_by or max_attempts <= 0:
+        if not isinstance(payload, dict):
+            issues.append("payload must be an object")
+        if not requester_value or not isinstance(max_attempts, int) or isinstance(max_attempts, bool) or max_attempts <= 0:
             issues.append("requester and positive max_attempts are required")
         job = {
-            "id": job_id, "organization_id": self.repository.organization_id, "asset_id": asset_id,
-            "operation": operation, "payload": payload, "requested_by": requested_by,
+            "id": job_value, "organization_id": self.repository.organization_id, "asset_id": asset_value,
+            "operation": operation_value, "payload": payload_value, "requested_by": requester_value,
             "status": "queued" if not issues else "invalid", "attempt": 0, "max_attempts": max_attempts,
             "created_at": _now(), "updated_at": _now(), "issues": issues,
         }

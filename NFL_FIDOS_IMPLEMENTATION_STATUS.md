@@ -469,3 +469,11 @@ formation, personnel, and rule-profile compatibility lists before they reach
 the editor palette. The canonical 128-asset registry passes the hardened
 contract; organization-specific catalog administration and deployment-scale
 validation remain open.
+
+Media job boundary addendum (2026-08-29): media processing job creation now
+fails closed for malformed IDs, operations, payloads, requesters, and retry
+limits, returning structured invalid records instead of allowing type errors to
+reach the worker. Existing path authorization, bounded ffprobe/transform
+execution, retry state, and output lineage remain intact. Focused media-worker
+coverage and the full Python regression suite pass; external media tooling,
+managed storage, and deployment-worker certification remain open.
