@@ -1,7 +1,7 @@
 import unittest
 
 from src.nfl_fidos.play_creation import normalize_term, validate_legality, validate_play_design
-from src.nfl_fidos.play_assignment_graph import build_assignment_graph, validate_assignment_graph
+from src.nfl_fidos.play_assignment_graph import build_assignment_graph, build_gap_ownership_map, validate_assignment_graph
 from src.nfl_fidos.play_legality import profile_metadata, validate_advanced_legality, validate_rule_profile_catalog
 from src.nfl_fidos.play_timeline import default_phases, normalize_timeline_design, validate_timeline
 
@@ -135,6 +135,26 @@ class PlayCreationTests(unittest.TestCase):
             "target_element_id": "E-ROUTE", "depends_on": [], "start_ms": 0, "end_ms": 500,
         })
         self.assertEqual(validate_assignment_graph(candidate), [])
+
+    def test_gap_ownership_map_preserves_assigned_unassigned_and_conflicted_states(self):
+        candidate = design("defense")
+        candidate["declared_gaps"] = ["A", "B", "C"]
+        candidate["elements"] = [
+            {"id": "FIT-A", "kind": "fit", "player_id": "MIKE", "gap_owner": "A", "responsibility": "spill", "points": [{"x": 20, "y": 20}, {"x": 20, "y": 25}]},
+            {"id": "FIT-B1", "kind": "fit", "player_id": "WILL", "gap_owner": "B", "responsibility": "box", "points": [{"x": 30, "y": 20}, {"x": 30, "y": 25}]},
+            {"id": "FIT-B2", "kind": "fit", "player_id": "SAM", "gap_owner": "B", "responsibility": "force", "points": [{"x": 35, "y": 20}, {"x": 35, "y": 25}]},
+        ]
+
+        result = build_gap_ownership_map(candidate)
+
+        self.assertEqual(result["status"], "conflicted")
+        self.assertEqual(result["assigned_count"], 1)
+        self.assertEqual(result["unassigned_count"], 1)
+        self.assertEqual(result["conflicted_count"], 1)
+        by_gap = {item["gap"]: item for item in result["entries"]}
+        self.assertEqual(by_gap["A"]["owners"][0]["player_id"], "MIKE")
+        self.assertEqual(by_gap["B"]["owner_count"], 2)
+        self.assertEqual(by_gap["C"]["status"], "unassigned")
 
     def test_advanced_legality_reports_route_collision_with_policy(self):
         candidate = design()

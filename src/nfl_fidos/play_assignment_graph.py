@@ -205,15 +205,63 @@ def build_assignment_graph(design: dict[str, Any]) -> dict[str, Any]:
         if isinstance(element.get("target_player_id"), str):
             edges.append({"source": element["id"], "target": element["target_player_id"], "relation": "targets_player"})
     findings = validate_assignment_graph(design)
+    gap_ownership = build_gap_ownership_map(design)
     return {
         "version": str(design.get("assignment_model_version") or "1.0"),
         "nodes": nodes,
         "edges": edges,
         "findings": findings,
+        "gap_ownership": gap_ownership,
         "summary": {
             "node_count": len(nodes),
             "edge_count": len(edges),
             "blocking_count": sum(1 for issue in findings if issue.get("severity", "error") == "error"),
             "warning_count": sum(1 for issue in findings if issue.get("severity") == "warning"),
         },
+    }
+
+
+def build_gap_ownership_map(design: dict[str, Any]) -> dict[str, Any]:
+    """Build a renderer- and teaching-safe defensive gap ownership map.
+
+    The map deliberately preserves conflicts instead of choosing a winner.
+    That lets the canvas, validation panel, teaching view, and exports show
+    unresolved ownership honestly while still displaying the authored path and
+    responsibility for each owner.
+    """
+    raw_elements = design.get("elements") if isinstance(design.get("elements"), list) else []
+    elements = [item for item in raw_elements if isinstance(item, dict)]
+    ownership: dict[str, list[dict[str, Any]]] = {}
+    declared = design.get("declared_gaps", design.get("gaps", []))
+    declared_gaps = [str(item).strip() for item in declared if isinstance(item, str) and item.strip()] if isinstance(declared, list) else []
+    for element in elements:
+        if element.get("kind") not in {"fit", "rush", "block", "stunt", "rotation"}:
+            continue
+        gap = element.get("gap_owner") or element.get("fit_gap") or element.get("gap")
+        if not isinstance(gap, str) or not gap.strip():
+            continue
+        gap = gap.strip()
+        points = element.get("points") if isinstance(element.get("points"), list) else []
+        ownership.setdefault(gap, []).append({
+            "element_id": element.get("id"),
+            "player_id": element.get("player_id"),
+            "responsibility": element.get("responsibility") or element.get("fit_rule") or element.get("assignment"),
+            "kind": element.get("kind"),
+            "path": points,
+            "exchange_with": element.get("exchange_with"),
+        })
+    for gap in declared_gaps:
+        ownership.setdefault(gap, [])
+    entries = []
+    for gap in sorted(ownership):
+        owners = ownership[gap]
+        status = "unassigned" if not owners else "conflicted" if len(owners) > 1 else "assigned"
+        entries.append({"gap": gap, "status": status, "owners": owners, "owner_count": len(owners)})
+    return {
+        "version": "1.0",
+        "entries": entries,
+        "assigned_count": sum(1 for item in entries if item["status"] == "assigned"),
+        "unassigned_count": sum(1 for item in entries if item["status"] == "unassigned"),
+        "conflicted_count": sum(1 for item in entries if item["status"] == "conflicted"),
+        "status": "conflicted" if any(item["status"] == "conflicted" for item in entries) else "incomplete" if any(item["status"] == "unassigned" for item in entries) else "complete",
     }

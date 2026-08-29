@@ -492,3 +492,11 @@ exposing another organization’s event. A dedicated collision regression test
 passes, and the full Python suite now totals 666 passing tests; production
 database deployment, independent tenant-isolation testing, and operational
 security review remain open.
+
+Gap ownership map addendum (2026-08-29): the structured Play Designer
+assignment graph now emits a canonical defensive gap-ownership payload with
+assigned, unassigned, and conflicted entries, preserving player, assignment,
+responsibility, exchange, and path context for canvas, teaching, and export
+consumers. The payload never selects a winner for conflicting owners; it keeps
+the unresolved state visible for coach review. Focused play-creation, service,
+and API coverage passes; visual browser/device certification remains pending.

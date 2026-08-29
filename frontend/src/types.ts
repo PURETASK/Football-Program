@@ -635,6 +635,14 @@ export interface PlayAssignmentGraph {
   nodes: PlayAssignmentGraphNode[];
   edges: PlayAssignmentGraphEdge[];
   findings: ValidationIssue[];
+  gap_ownership?: {
+    version: string;
+    entries: Array<{ gap: string; status: 'assigned' | 'unassigned' | 'conflicted' | string; owner_count: number; owners: Array<{ element_id?: string; player_id?: string; responsibility?: string; kind?: string; path?: Point[]; exchange_with?: string }> }>;
+    assigned_count: number;
+    unassigned_count: number;
+    conflicted_count: number;
+    status: 'complete' | 'incomplete' | 'conflicted' | string;
+  };
   summary: {
     node_count: number;
     edge_count: number;
