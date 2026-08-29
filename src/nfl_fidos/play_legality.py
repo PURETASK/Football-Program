@@ -83,6 +83,20 @@ def _number(value: Any, default: float) -> float:
         return default
 
 
+def _personnel_tokens(player: dict[str, Any]) -> set[str]:
+    """Return normalized position/personnel aliases for constraint matching."""
+    values: list[Any] = [player.get("position"), player.get("role"), player.get("personnel_group"), player.get("personnel")]
+    aliases = player.get("aliases")
+    values.extend(aliases if isinstance(aliases, list) else [aliases])
+    tokens: set[str] = set()
+    for value in values:
+        if not isinstance(value, str) or not value.strip():
+            continue
+        token = "_".join(value.strip().lower().replace("-", " ").split())
+        tokens.add(token)
+    return tokens
+
+
 def _orientation(a: tuple[float, float], b: tuple[float, float], c: tuple[float, float]) -> float:
     return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
 
@@ -354,7 +368,8 @@ def validate_advanced_legality(design: dict[str, Any], *, rule_profile: str | No
                 issues.append(_finding("LEGALITY-ROTATION-TARGET-UNDECLARED", "A rotation assignment has no destination zone or rotation responsibility.", f"{path}.zone", profile=profile, source=source, severity="warning", observed=None, expected="zone, rotation, or responsibility"))
     if design.get("personnel_constraints") and isinstance(design["personnel_constraints"], dict):
         for field, expected in design["personnel_constraints"].items():
-            observed = sum(1 for player in players if player.get("position") == field or player.get("role") == field)
+            constraint_token = "_".join(str(field).strip().lower().replace("-", " ").split())
+            observed = sum(1 for player in players if constraint_token in _personnel_tokens(player))
             if isinstance(expected, int) and observed != expected:
                 issues.append(_finding("LEGALITY-PERSONNEL-CONSTRAINT", "Declared personnel count does not match the formation players.", f"personnel_constraints.{field}", profile=profile, source=source, severity="error", observed=observed, expected=expected))
     return issues

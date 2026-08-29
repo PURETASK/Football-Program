@@ -646,3 +646,10 @@ stem/break depth metadata after a geometry change, preventing branch contracts
 from drifting before validation, teaching, or export. Focused inspector and
 route-authoring regression coverage passes; device-level and organization
 workflow certification remain pending.
+
+Profile-aware personnel matching addendum (2026-08-29): advanced legality
+personnel constraints now normalize case, spaces, and hyphens and match
+position, role, personnel-group, and explicitly authored player aliases. This
+keeps formation counts reliable when a program uses equivalent roster language
+and retains explainable mismatch findings for unresolved labels; local league
+adoption and human officiating review remain external.

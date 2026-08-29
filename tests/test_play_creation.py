@@ -415,6 +415,19 @@ class PlayCreationTests(unittest.TestCase):
         self.assertIn("LEGALITY-LOCAL-CONSTRAINT-FIELD", codes)
         self.assertIn("LEGALITY-LOCAL-CONSTRAINT-TYPE", codes)
 
+    def test_personnel_constraints_match_normalized_roles_and_player_aliases(self):
+        candidate = design()
+        candidate["personnel_constraints"] = {"wide receiver": 1, "Y-Receiver": 1}
+        candidate["players"][0]["position"] = "Wide-Receiver"
+        candidate["players"][1]["role"] = "WR"
+        candidate["players"][1]["aliases"] = ["Y-Receiver"]
+        self.assertNotIn("LEGALITY-PERSONNEL-CONSTRAINT", {issue["code"] for issue in validate_advanced_legality(candidate)})
+
+        candidate["players"][1]["aliases"] = []
+        mismatch = next(issue for issue in validate_advanced_legality(candidate) if issue["code"] == "LEGALITY-PERSONNEL-CONSTRAINT")
+        self.assertEqual(mismatch["path"], "personnel_constraints.Y-Receiver")
+        self.assertEqual(mismatch["observed"], 0)
+
     def test_no_contact_profiles_only_reject_explicit_contact_assignments(self):
         candidate = design()
         candidate["rule_profile"] = "youth"
