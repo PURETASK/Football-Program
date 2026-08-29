@@ -228,7 +228,14 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
     if (!session || saveState === 'saving') return;
     setSaveState('saving');
     setSaveMessage('Saving an immutable server snapshot…');
-    void writeOfflineDraft(session, state.present);
+    let offlineDraftSaved = false;
+    try {
+      // Complete the local recovery write before the network request. This
+      // guarantees that an outage cannot win a race with draft preservation.
+      offlineDraftSaved = await writeOfflineDraft(session, state.present);
+    } catch {
+      offlineDraftSaved = false;
+    }
     try {
       const saved = await savePlayDesign(session, state.present, state.serverRevision);
       savedDesignRef.current = saved;
@@ -246,7 +253,10 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
         if (serverDesign) setConflict(serverDesign);
       }
       setSaveState('error');
-      setSaveMessage(`${failure instanceof Error ? failure.message : 'The design could not be saved.'} Draft preserved securely for retry.`);
+      const recoveryMessage = offlineDraftSaved
+        ? 'Draft preserved securely for retry.'
+        : 'Offline draft preservation was unavailable; keep this window open and retry.';
+      setSaveMessage(`${failure instanceof Error ? failure.message : 'The design could not be saved.'} ${recoveryMessage}`);
     }
   }, [navigate, refreshPlayData, routeLocation.pathname, saveState, session, state.present, state.serverRevision]);
 
