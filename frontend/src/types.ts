@@ -429,6 +429,7 @@ export interface PlayAsset {
   compatible_rule_profiles?: string[];
   replacement_id?: string | null;
   compatibility?: PlayAssetCompatibility;
+  recommendation?: { family?: string; score?: number; reason?: string };
   alignment?: {
     term?: string;
     unit?: string;
@@ -471,6 +472,16 @@ export interface PlayTemplate {
   source_checksum?: string;
   parent_template_id?: string;
   inherited_assignments?: PlayTemplateAssignment[];
+  recommendation?: { family?: string; score?: number; reason?: string };
+}
+
+export interface PlayPositionOptions {
+  position: string;
+  unit: string;
+  family: string;
+  assets: PlayAsset[];
+  templates: PlayTemplate[];
+  status?: string;
 }
 
 export interface PlayTemplateAssignment {

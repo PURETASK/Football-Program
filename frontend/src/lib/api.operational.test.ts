@@ -1,7 +1,7 @@
 import { beforeEach, expect, vi } from 'vitest';
 
 import type { AppSession, PracticePlan } from '../types';
-import { fetchPlayRuleProfiles } from './api';
+import { fetchPlayPositionOptions, fetchPlayRuleProfiles } from './api';
 import { appendCollaborationComment, approvePlayLegalityOverride, createCollaborationThread, createDeliveryPacket, createPilotDeliveryPackage, createPlayTemplate, createPlayVariants, createPlayVariantReleaseBundle, evaluatePilotReadiness, exportPlayDesign, fetchAdminWorkspace, fetchCollaborationWorkspace, fetchCollaborationStream, fetchOrganizationPopulationReadiness, fetchPlayAssets, fetchPlayCollaborationStream, fetchPlayVariantBatches, fetchPlayVariantReleaseBundle, fetchStage25Acceptance, fetchPracticeAttendance, markCollaborationNotificationsRead, createFilmClip, createFilmObservation, createFilmVoiceNote, createGamePlanReleaseSnapshot, createPracticePlan, fetchFilmWorkspace, fetchMediaProcessingJob, fetchMediaProcessingJobs, fetchOperationsInbox, fetchPlayRoleView, fetchPlayVersionDiff, fetchPracticeDrills, fetchScoutingTendencies, markOperationsNotificationsRead, mergePlayBranch, preflightPlayDesignExport, recordAnalyticsOutcome, recordPlayMastery, recordPracticeAttendance, registerFilmAsset, requestPlayLegalityOverride, reviewGovernanceItem, selectPilotOrganization, submitPlayQuiz, submitStage25Acceptance, submitUsabilityFeedback, validatePlayDesignDraft } from './api';
 
 const SESSION: AppSession = {
@@ -37,6 +37,20 @@ describe('operational API wiring', () => {
     const profiles = await fetchPlayRuleProfiles(SESSION);
     expect(profiles).toEqual([{ id: 'flag', label: 'NFL FLAG', requires_local_rules: true }]);
     expect(fetchMock.mock.calls[0][0]).toBe('/v1/playbook/designs/rule-profiles?organization_id=ORG-TEST-001');
+  });
+
+  it('loads position-aware options with the full play context', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => response({ position: 'WR', unit: 'offense', family: 'eligible', status: 'ready', assets: [], templates: [] }));
+    const options = await fetchPlayPositionOptions(SESSION, 'WR', { unit: 'offense', formation: 'shotgun_trips', personnel: '11', rule_profile: 'nfl' });
+    expect(options.family).toBe('eligible');
+    const path = String(fetchMock.mock.calls[0][0]);
+    expect(path).toContain('/v1/playbook/designs/position-options?');
+    expect(path).toContain('organization_id=ORG-TEST-001');
+    expect(path).toContain('position=WR');
+    expect(path).toContain('formation=shotgun_trips');
+    expect(path).toContain('personnel=11');
+    expect(path).toContain('rule_profile=nfl');
+    expect((fetchMock.mock.calls[0][1]?.headers as Record<string, string>).Authorization).toBe('Bearer test-token');
   });
 
   it('posts the current unsaved play to the non-persisting validation route', async () => {

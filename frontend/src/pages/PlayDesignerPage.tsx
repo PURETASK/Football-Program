@@ -8,6 +8,7 @@ import { BrandMark } from '../components/BrandMark';
 import { SessionDialog } from '../components/SessionDialog';
 import {
   usePlayAssetsQuery,
+  usePlayPositionOptionsQuery,
   usePlayCommentsQuery,
   usePlayDesignsQuery,
   usePlayDraftValidationQuery,
@@ -145,6 +146,10 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
   const selectedElement = state.selected.length === 1 && state.selected[0].kind === 'element'
     ? (state.present.elements ?? []).find((element) => element.id === state.selected[0].id)
     : undefined;
+  const selectedPlayer = state.selected.length === 1 && state.selected[0].kind === 'player'
+    ? (state.present.players ?? []).find((player) => player.id === state.selected[0].id)
+    : undefined;
+  const positionOptionsQuery = usePlayPositionOptionsQuery(selectedPlayer, state.present);
   const activeValidation = draftValidationQuery.data ?? legalityQuery.data;
   const tutorialTarget = TUTORIAL_TARGETS[tutorialIndex] ?? 'toolbar';
 
@@ -736,6 +741,7 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
             onReorderElement={(id, direction) => dispatch({ type: 'reorder_element', id, direction })}
             assets={assets}
             templates={templates}
+            positionOptions={positionOptionsQuery.data}
             onChooseAsset={chooseAsset}
             onApplyTemplate={applyTemplate}
             onMaterializeAsset={materializeAsset}

@@ -46,6 +46,7 @@ import type {
   PlayMasteryResponse,
   PlayMergeResult,
   PlayPresence,
+  PlayPositionOptions,
   PlayRoleView,
   PlayTemplate,
   PlayTemplateLineageImpact,
@@ -128,6 +129,17 @@ export async function fetchPlayAssets(session: AppSession, context?: Pick<PlayDe
   });
   const payload = await request<{ assets: PlayAsset[] }>(`/v1/playbook/designs/assets?${params}`, session, { signal });
   return payload.assets ?? [];
+}
+
+export async function fetchPlayPositionOptions(session: AppSession, position: string, context: Pick<PlayDesign, 'unit' | 'formation' | 'personnel' | 'rule_profile'>, signal?: AbortSignal): Promise<PlayPositionOptions> {
+  const params = organizationParams(session, {
+    position,
+    unit: context.unit,
+    ...(context.formation ? { formation: context.formation } : {}),
+    ...(context.personnel ? { personnel: context.personnel } : {}),
+    ...(context.rule_profile ? { rule_profile: context.rule_profile } : {}),
+  });
+  return request<PlayPositionOptions>(`/v1/playbook/designs/position-options?${params}`, session, { signal });
 }
 
 export async function fetchPlayRuleProfiles(session: AppSession, signal?: AbortSignal): Promise<PlayRuleProfile[]> {

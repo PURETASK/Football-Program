@@ -6,6 +6,7 @@ import { acceptSequencedEvent } from './sequencedStream';
 import {
   fetchOperatorSummary,
   fetchPlayAssets,
+  fetchPlayPositionOptions,
   fetchPlayComments,
   fetchPlayDesigns,
   fetchPlayLegality,
@@ -58,6 +59,18 @@ export function usePlayAssetsQuery(context?: Pick<PlayDesign, 'unit' | 'formatio
     queryFn: ({ signal }) => fetchPlayAssets(session!, context, signal),
     enabled: Boolean(session),
     staleTime: 5 * 60_000,
+  });
+}
+
+export function usePlayPositionOptionsQuery(player: { position?: string; role?: string; alignment_key?: string } | undefined, context: Pick<PlayDesign, 'unit' | 'formation' | 'personnel' | 'rule_profile'>) {
+  const { session } = useSession();
+  const position = player?.position ?? player?.role ?? player?.alignment_key ?? '';
+  return useQuery({
+    queryKey: ['play-position-options', session?.organizationId, position, context.unit, context.formation, context.personnel, context.rule_profile],
+    queryFn: ({ signal }) => fetchPlayPositionOptions(session!, position, context, signal),
+    enabled: Boolean(session && position),
+    staleTime: 5 * 60_000,
+    retry: 1,
   });
 }
 

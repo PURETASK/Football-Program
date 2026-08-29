@@ -31,6 +31,7 @@ import type {
   PlayFieldContext,
   PlayLegalityReport,
   PlayAsset,
+  PlayPositionOptions,
   PlayPlayer,
   PlayRuleProfile,
   PlayPreSnapStep,
@@ -93,6 +94,7 @@ interface InspectorProps {
   canApproveLegalityOverride?: boolean;
   assets?: PlayAsset[];
   templates?: PlayTemplate[];
+  positionOptions?: PlayPositionOptions;
   onChooseAsset?: (asset: PlayAsset) => void;
   onApplyTemplate?: (template: PlayTemplate, mode: 'replace' | 'layer') => void;
   onMaterializeAsset?: (asset: PlayAsset) => void;
@@ -292,10 +294,11 @@ function SelectionInspector({
   onElement,
   assets,
   templates,
+  positionOptions,
   onChooseAsset,
   onApplyTemplate,
   onMaterializeAsset,
-}: Pick<InspectorProps, 'design' | 'selected' | 'onPlayer' | 'onElement' | 'assets' | 'templates' | 'onChooseAsset' | 'onApplyTemplate' | 'onMaterializeAsset'>) {
+}: Pick<InspectorProps, 'design' | 'selected' | 'onPlayer' | 'onElement' | 'assets' | 'templates' | 'positionOptions' | 'onChooseAsset' | 'onApplyTemplate' | 'onMaterializeAsset'>) {
   if (!selected.length) {
     return (
       <div className="inspector-empty">
@@ -358,6 +361,7 @@ function SelectionInspector({
           design={design}
           assets={assets ?? []}
           templates={templates ?? []}
+          positionOptions={positionOptions}
           onChooseAsset={onChooseAsset ?? (() => undefined)}
           onApplyTemplate={onApplyTemplate ?? (() => undefined)}
           onMaterializeAsset={onMaterializeAsset}

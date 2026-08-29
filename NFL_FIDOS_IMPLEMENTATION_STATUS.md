@@ -578,3 +578,12 @@ compatibility, lifecycle, and position-family preferences. The authenticated
 `/v1/playbook/designs/position-options` route returns bounded candidates with
 explainable scores and reasons for coach-facing recommendations; focused service
 and API tests pass, while organization-specific terminology remains pending.
+
+Position-options editor integration addendum (2026-08-28): the selected-player
+inspector now requests the authoritative position-options contract with the
+current formation, personnel, and rule-profile context. The Position Toolkit
+uses the server-ranked asset and template candidates when available, displays
+the catalog recommendation rationale, and falls back to the local registry
+during loading or offline conditions. API, inspector, and toolkit regression
+coverage passes; live organization terminology and device-level certification
+remain pending.
