@@ -100,6 +100,25 @@ def _stroke_style(element: dict[str, Any]) -> tuple[str, str, str]:
     return f"{weight:.2f}", dash, cap
 
 
+def _marker_attributes(element: dict[str, Any], marker_id: str = "arrow") -> str:
+    """Match canvas arrow semantics in exported SVG paths.
+
+    `arrow_style=none` is a deliberate coach choice (for example, a blocking
+    landmark or a coverage shell connector), so the export must not add an
+    arrow that is absent from the authored diagram.  Arrow ends default to
+    the historical finish-arrow behavior for legacy designs.
+    """
+    if str(element.get("arrow_style") or "").lower() == "none":
+        return ""
+    ends = str(element.get("arrow_ends") or "end").lower()
+    attributes: list[str] = []
+    if ends in {"start", "both"}:
+        attributes.append(f' marker-start="url(#{marker_id})"')
+    if ends in {"end", "both"}:
+        attributes.append(f' marker-end="url(#{marker_id})"')
+    return "".join(attributes)
+
+
 def _visible(design: dict[str, Any], role: str | None) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     players = [item for item in design.get("players", []) if isinstance(item, dict)]
     elements = [item for item in design.get("elements", []) if isinstance(item, dict)]
@@ -205,12 +224,13 @@ def _svg(design: dict[str, Any], *, role: str | None = None, black_white: bool =
         element_id = html.escape(_element_id(element, index))
         label = element.get("type") or element.get("assignment") or element.get("responsibility")
         label_text = str(label or kind)
-        field.append(f'<path d="{path}" fill="none" stroke="{color}" stroke-width="{stroke_width}" stroke-linecap="{cap}" stroke-linejoin="round"{dash_attr} marker-end="url(#arrow)" style="color:{color}" data-element-id="{element_id}" aria-label="{html.escape(label_text)}"/>')
+        field.append(f'<path d="{path}" fill="none" stroke="{color}" stroke-width="{stroke_width}" stroke-linecap="{cap}" stroke-linejoin="round"{dash_attr}{_marker_attributes(element)} style="color:{color}" data-element-id="{element_id}" aria-label="{html.escape(label_text)}"/>')
         for branch in element.get("branches", []) if isinstance(element.get("branches"), list) else []:
             if not isinstance(branch, dict) or len(branch.get("points", [])) < 2:
                 continue
             branch_label = f"{branch.get('label') or 'Alternate path'}: {branch.get('condition') or 'conditional'}"
-            field.append(f'<path d="{_svg_path(branch["points"])}" fill="none" stroke="{color}" stroke-width="{stroke_width}" stroke-linecap="{cap}" stroke-linejoin="round" stroke-dasharray="{dash if dash != "none" else "4 2"}" marker-end="url(#arrow)" opacity=".78" style="color:{color}" data-element-id="{element_id}" data-branch-id="{html.escape(str(branch.get("id") or "branch"))}" aria-label="{html.escape(branch_label)}"/>')
+            branch_marker_source = {**element, **branch}
+            field.append(f'<path d="{_svg_path(branch["points"])}" fill="none" stroke="{color}" stroke-width="{stroke_width}" stroke-linecap="{cap}" stroke-linejoin="round" stroke-dasharray="{dash if dash != "none" else "4 2"}"{_marker_attributes(branch_marker_source)} opacity=".78" style="color:{color}" data-element-id="{element_id}" data-branch-id="{html.escape(str(branch.get("id") or "branch"))}" aria-label="{html.escape(branch_label)}"/>')
         if label:
             last = points[-1]
             field.append(f'<text x="{float(last.get("x", 0)) + 1:.2f}" y="{float(last.get("y", 0)) + 3:.2f}" font-family="Arial,sans-serif" font-size="1.65" fill="{color}">{html.escape(str(label))}</text>')

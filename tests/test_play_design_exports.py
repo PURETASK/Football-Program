@@ -142,6 +142,20 @@ class PlayDesignExportTests(unittest.TestCase):
         self.assertIn("versus outside leverage", payload)
         self.assertIn("Alternate path", payload)
 
+    def test_svg_export_preserves_authored_arrow_end_semantics(self):
+        for ends, expected in (("start", 'marker-start="url(#arrow)"'), ("both", 'marker-start="url(#arrow)"'), ("both", 'marker-end="url(#arrow)"')):
+            candidate = design()
+            candidate["elements"][0].update({"arrow_ends": ends})
+            rendered = build_export(designs=[candidate], kind="play_card", format="svg")
+            payload = base64.b64decode(rendered["content_base64"]).decode("utf-8")
+            self.assertIn(expected, payload)
+        no_arrow = design()
+        no_arrow["elements"][0].update({"arrow_style": "none", "arrow_ends": "both"})
+        rendered = build_export(designs=[no_arrow], kind="play_card", format="svg")
+        payload = base64.b64decode(rendered["content_base64"]).decode("utf-8")
+        self.assertNotIn('marker-start="url(#arrow)"', payload)
+        self.assertNotIn('marker-end="url(#arrow)"', payload)
+
     def test_raster_and_pdf_exports_include_branch_geometry(self):
         candidate = design()
         candidate["elements"][0]["branches"] = [{"id": "BRANCH-RASTER", "label": "Pressure answer", "condition": "versus pressure", "points": [{"x": 20, "y": 30}, {"x": 30, "y": 18}]}]

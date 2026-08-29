@@ -485,3 +485,11 @@ which could make an unresolved local profile appear more authoritative than
 the available evidence supported. The correction is covered for both profiles
 and remains an authoring warning pending program-owner rule adoption; it does
 not claim complete jurisdictional rule coverage.
+
+Export drawing-semantics addendum — 2026-08-29: SVG artifacts now preserve
+the authored arrow-end contract from the live designer. Start, finish, both,
+and no-arrow modes are emitted as matching marker attributes, including on
+alternate route branches, so a shared or printed vector cannot silently add a
+finish arrow or remove an intentional start arrow. This closes a local
+renderer parity defect; PDF/raster device certification and production print
+validation remain open acceptance work.
