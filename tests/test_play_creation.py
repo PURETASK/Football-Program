@@ -25,6 +25,17 @@ class PlayCreationTests(unittest.TestCase):
     def test_valid_offensive_design(self):
         self.assertEqual(validate_play_design(design("offense")), [])
 
+    def test_route_semantics_require_controlled_vocabulary_and_bounded_depth(self):
+        candidate = design()
+        candidate["elements"][0].update({"route_family": "dropback", "break_type": "dig", "stem_depth_yards": 12, "break_depth_yards": 14, "finish_direction": "inside", "option_rule": "leverage"})
+        self.assertEqual(validate_play_design(candidate), [])
+
+        candidate["elements"][0].update({"route_family": "invented", "break_type": "none", "break_depth_yards": 70, "finish_direction": "sideways", "option_rule": "invented"})
+        codes = {issue["code"] for issue in validate_play_design(candidate)}
+        self.assertIn("DESIGN-ROUTE-SEMANTIC", codes)
+        self.assertIn("DESIGN-ROUTE-DEPTH", codes)
+        self.assertIn("DESIGN-ROUTE-BREAK-CONTEXT", codes)
+
     def test_offensive_blocking_primitives_require_valid_targets_and_protection_context(self):
         candidate = design()
         candidate["elements"] = [

@@ -26,6 +26,10 @@ ARROW_STYLES = {"route", "motion", "run", "block", "read", "coverage", "rush", "
 BLOCKING_PRIMITIVES = {"base", "reach", "down", "pull", "trap", "wrap", "fold", "combo", "climb", "scoop", "insert", "arc", "screen_release"}
 PROTECTION_MODES = {"man", "full_slide", "half_slide_left", "half_slide_right", "scan", "screen"}
 TARGETED_BLOCKING_PRIMITIVES = {"pull", "trap", "wrap", "fold", "insert", "arc"}
+ROUTE_FAMILIES = {"quick", "dropback", "intermediate", "vertical", "screen", "crossing", "sight"}
+ROUTE_BREAKS = {"none", "speed_out", "comeback", "curl", "dig", "over", "post", "corner", "whip", "choice", "option"}
+ROUTE_FINISHES = {"vertical", "inside", "outside", "settle", "runaway"}
+ROUTE_OPTION_RULES = {"none", "leverage", "safety", "coverage", "sight"}
 
 
 def _issue(code: str, message: str, path: str, severity: str = "error") -> dict[str, str]:
@@ -97,6 +101,17 @@ def validate_play_design(design: dict[str, Any]) -> list[dict[str, str]]:
                 term = normalize_term(str(element.get("type", "")))
                 if term not in vocabulary:
                     issues.append(_issue("DESIGN-VOCABULARY", f"Unsupported {kind} type: {element.get('type')}", f"{path}.type"))
+            if kind == "route":
+                for field, allowed in (("route_family", ROUTE_FAMILIES), ("break_type", ROUTE_BREAKS), ("finish_direction", ROUTE_FINISHES), ("option_rule", ROUTE_OPTION_RULES)):
+                    value = element.get(field)
+                    if value is not None and value not in allowed:
+                        issues.append(_issue("DESIGN-ROUTE-SEMANTIC", f"Unsupported route {field}: {value}", f"{path}.{field}"))
+                for field in ("stem_depth_yards", "break_depth_yards"):
+                    value = element.get(field)
+                    if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0 or value > 60):
+                        issues.append(_issue("DESIGN-ROUTE-DEPTH", f"Route {field} must be a number from 0 through 60", f"{path}.{field}"))
+                if element.get("break_depth_yards") is not None and element.get("break_type") in {None, "none"}:
+                    issues.append(_issue("DESIGN-ROUTE-BREAK-CONTEXT", "Break depth is declared without a route break type", f"{path}.break_type", "warning"))
             if kind == "coverage" and normalize_term(str(element.get("coverage", ""))) not in DEFENSE_COVERAGES:
                 issues.append(_issue("DESIGN-COVERAGE", "Coverage must use a normalized coverage key", f"{path}.coverage"))
             if kind in {"route", "motion", "run", "block", "coverage", "rush", "fit", "stunt", "rotation"}:

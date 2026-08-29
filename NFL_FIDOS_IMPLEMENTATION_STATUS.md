@@ -527,3 +527,11 @@ be explicit; block, partner, and protection references must resolve to an
 assignment in the same play. Invalid primitive, self-reference, missing-target,
 and stale-reference cases are covered by focused tests; organization-specific
 coaching terminology and production officiating review remain external.
+
+Route semantics integrity addendum (2026-08-29): structural Play Designer
+validation now checks the editor's controlled route-family, break, finish, and
+option vocabularies, bounds stem and break depths to 0–60 yards, and flags
+break-depth metadata without a declared break type. This keeps direct geometry
+editing and semantic route metadata aligned before review, publication, or
+export; focused route and full regression validation remain required for each
+future vocabulary extension.
