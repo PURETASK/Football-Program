@@ -113,6 +113,47 @@ def _path_intersects(first: list[dict[str, Any]], second: list[dict[str, Any]]) 
     return False
 
 
+def _segment_intersection_point(a: tuple[float, float], b: tuple[float, float], c: tuple[float, float], d: tuple[float, float]) -> tuple[float, float] | None:
+    """Return a deterministic intersection point for two intersecting segments."""
+    denominator = (a[0] - b[0]) * (c[1] - d[1]) - (a[1] - b[1]) * (c[0] - d[0])
+    if abs(denominator) < 1e-9:
+        # Collinear/overlapping corridors have no unique crossing point. Use
+        # the midpoint of the overlapping bounding box as a stable marker.
+        x_min = max(min(a[0], b[0]), min(c[0], d[0]))
+        x_max = min(max(a[0], b[0]), max(c[0], d[0]))
+        y_min = max(min(a[1], b[1]), min(c[1], d[1]))
+        y_max = min(max(a[1], b[1]), max(c[1], d[1]))
+        if x_min <= x_max and y_min <= y_max:
+            return ((x_min + x_max) / 2, (y_min + y_max) / 2)
+        return None
+    first_factor = ((a[0] - c[0]) * (c[1] - d[1]) - (a[1] - c[1]) * (c[0] - d[0])) / denominator
+    return (a[0] + first_factor * (b[0] - a[0]), a[1] + first_factor * (b[1] - a[1]))
+
+
+def _path_collision_corridors(first: list[dict[str, Any]], second: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Describe every geometric crossing for coach-facing diagnostics."""
+    first_points = [_point(item) for item in first]
+    second_points = [_point(item) for item in second]
+    if any(item is None for item in first_points + second_points):
+        return []
+    corridors: list[dict[str, Any]] = []
+    for first_index in range(1, len(first_points)):
+        for second_index in range(1, len(second_points)):
+            a, b = first_points[first_index - 1], first_points[first_index]
+            c, d = second_points[second_index - 1], second_points[second_index]
+            if not _segments_intersect(a, b, c, d):
+                continue
+            point = _segment_intersection_point(a, b, c, d)
+            if point is None:
+                continue
+            corridors.append({
+                "point": {"x": round(point[0], 3), "y": round(point[1], 3)},
+                "first_segment": first_index - 1,
+                "second_segment": second_index - 1,
+            })
+    return corridors
+
+
 def _timing_overlap(first: dict[str, Any], second: dict[str, Any]) -> bool:
     first_timing = first.get("timing", {}) if isinstance(first.get("timing"), dict) else {}
     second_timing = second.get("timing", {}) if isinstance(second.get("timing"), dict) else {}
@@ -250,9 +291,10 @@ def validate_advanced_legality(design: dict[str, Any], *, rule_profile: str | No
             second = elements[second_index]
             if first.get("player_id") and first.get("player_id") == second.get("player_id") and _timing_overlap(first, second) and first.get("exclusive_assignment") and second.get("exclusive_assignment"):
                 issues.append(_finding("LEGALITY-ASSIGNMENT-CONFLICT", "One player has overlapping exclusive assignments.", f"elements[{index}].player_id", profile=profile, source=source, severity="error", observed=[first.get("id"), second.get("id")], expected="non-overlapping exclusive assignments"))
-            if design.get("route_collision_policy") == "error" and first.get("kind") == second.get("kind") == "route" and _timing_overlap(first, second) and _path_intersects(first.get("points", []), second.get("points", [])):
-                issues.append(_finding("LEGALITY-ROUTE-COLLISION", "Two route paths intersect during overlapping timing windows.", f"elements[{index}].points", profile=profile, source=source, severity="error", observed=[first.get("id"), second.get("id")], expected="separated route corridors"))
-            elif first.get("kind") == second.get("kind") == "route" and _timing_overlap(first, second) and _path_intersects(first.get("points", []), second.get("points", [])):
+            corridors = _path_collision_corridors(first.get("points", []), second.get("points", [])) if first.get("kind") == second.get("kind") == "route" and _timing_overlap(first, second) else []
+            if design.get("route_collision_policy") == "error" and corridors:
+                issues.append(_finding("LEGALITY-ROUTE-COLLISION", "Two route paths intersect during overlapping timing windows.", f"elements[{index}].points", profile=profile, source=source, severity="error", observed={"routes": [first.get("id"), second.get("id")], "corridors": corridors}, expected="separated route corridors"))
+            elif corridors:
                 intentional = first.get("collision_intent") == second.get("collision_intent") == "intentional"
                 first_note = str(first.get("collision_note", "")).strip()
                 second_note = str(second.get("collision_note", "")).strip()
@@ -264,7 +306,7 @@ def validate_advanced_legality(design: dict[str, Any], *, rule_profile: str | No
                     expected = "separated route corridors or documented intentional crossing"
                     if intentional:
                         issues.append(_finding("LEGALITY-ROUTE-CROSSING-EXPLANATION", "Both routes are marked intentional, but each route must include a crossing explanation before approval.", f"elements[{index}].collision_note", profile=profile, source=source, severity="warning", observed={"first": bool(first_note), "second": bool(second_note)}, expected="non-empty collision_note on both routes"))
-                issues.append(_finding("LEGALITY-ROUTE-COLLISION", message, f"elements[{index}].points", profile=profile, source=source, severity="warning", observed={"routes": [first.get("id"), second.get("id")], "intentional": intentional, "documented": bool(first_note and second_note)}, expected=expected))
+                issues.append(_finding("LEGALITY-ROUTE-COLLISION", message, f"elements[{index}].points", profile=profile, source=source, severity="warning", observed={"routes": [first.get("id"), second.get("id")], "corridors": corridors, "intentional": intentional, "documented": bool(first_note and second_note)}, expected=expected))
 
     protections = [item for item in elements if item.get("kind") == "block" or item.get("assignment_type") in {"block", "protection", "combo"}]
     protection_keys: dict[str, list[str]] = {}

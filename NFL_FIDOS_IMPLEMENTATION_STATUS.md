@@ -500,3 +500,12 @@ responsibility, exchange, and path context for canvas, teaching, and export
 consumers. The payload never selects a winner for conflicting owners; it keeps
 the unresolved state visible for coach review. Focused play-creation, service,
 and API coverage passes; visual browser/device certification remains pending.
+
+Route-corridor diagnostics addendum (2026-08-29): advanced legality findings
+now include deterministic geometric collision corridors with intersection
+coordinates and the source segment indexes for each overlapping route pair.
+Intentional crossings continue to require documentation, while policy=error
+still produces a blocking finding. This gives canvas, teaching, and export
+surfaces actionable geometry instead of only route IDs; focused legality and
+full regression validation remain green, with physical device certification
+still pending.

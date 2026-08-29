@@ -166,6 +166,7 @@ class PlayCreationTests(unittest.TestCase):
         collision = next(issue for issue in findings if issue["code"] == "LEGALITY-ROUTE-COLLISION")
         self.assertEqual(collision["severity"], "error")
         self.assertTrue(collision["overrideable"])
+        self.assertEqual(collision["observed"]["corridors"][0]["point"], {"x": 20.0, "y": 17.5})
 
     def test_route_collision_requires_both_intentional_crossing_explanations(self):
         candidate = design()
@@ -181,6 +182,7 @@ class PlayCreationTests(unittest.TestCase):
         self.assertNotIn("LEGALITY-ROUTE-CROSSING-EXPLANATION", {issue["code"] for issue in findings})
         collision = next(issue for issue in findings if issue["code"] == "LEGALITY-ROUTE-COLLISION")
         self.assertTrue(collision["observed"]["documented"])
+        self.assertEqual(len(collision["observed"]["corridors"]), 1)
 
     def test_advanced_legality_reports_defensive_coverage_protection_and_fit_conflicts(self):
         candidate = design("defense")
