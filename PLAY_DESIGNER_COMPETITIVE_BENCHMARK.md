@@ -195,6 +195,14 @@ revision, and server snapshot required by the client three-way merge path.
 This strengthens local multi-editor evidence without claiming networked
 multi-browser or production-scale convergence.
 
+Export-matrix addendum — 2026-08-29: the local quality gate now renders a
+14-case matrix across play-card, call-sheet, wristband, and install-sheet
+families, including visual, data, HTML, and print layouts. Each artifact must
+self-verify its integrity, retain the requested layout, and carry non-empty
+payload metadata before the matrix passes. This strengthens renderer coverage
+without substituting for target printer/device certification or deployment
+environment validation.
+
 Repository verification for this reconciliation: the frontend suite passes
 279 tests across 49 files, the Python suite passes 693 tests, TypeScript
 typecheck and the production build pass, and the local Stage 0 runtime smoke

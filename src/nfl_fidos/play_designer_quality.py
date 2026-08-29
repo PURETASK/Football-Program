@@ -61,6 +61,37 @@ def _render_fingerprint() -> tuple[str, str]:
     return artifact["sha256"], hashlib.sha256(content).hexdigest()
 
 
+def run_export_matrix_rehearsal() -> dict[str, Any]:
+    """Render every supported local export family and verify its contract."""
+    design = _stress_design(3)
+    matrix = (
+        ("play_card", "svg", "single"),
+        ("play_card", "png", "single"),
+        ("play_card", "pdf", "single"),
+        ("play_card", "html", "single"),
+        ("play_card", "json", "single"),
+        ("call_sheet", "pdf", "table"),
+        ("call_sheet", "html", "table"),
+        ("call_sheet", "csv", "table"),
+        ("wristband", "pdf", "wristband_2col"),
+        ("wristband", "html", "wristband_2col"),
+        ("wristband", "csv", "wristband_2col"),
+        ("install_sheet", "pdf", "single"),
+        ("install_sheet", "html", "single"),
+        ("install_sheet", "csv", "single"),
+    )
+    results: list[dict[str, Any]] = []
+    for kind, format_name, layout in matrix:
+        try:
+            artifact = build_export(designs=[design], kind=kind, format=format_name, layout=layout, black_white=True)
+            integrity = artifact.get("integrity", {})
+            passed = integrity.get("status") == "verified" and artifact.get("bytes", 0) > 0 and artifact.get("layout") == layout
+            results.append({"kind": kind, "format": format_name, "layout": layout, "artifact_id": artifact.get("artifact_id"), "bytes": artifact.get("bytes", 0), "print_profile": artifact.get("print_profile"), "page_count": artifact.get("page_count"), "integrity": integrity.get("status"), "passed": passed})
+        except (TypeError, ValueError, KeyError, OSError) as exc:
+            results.append({"kind": kind, "format": format_name, "layout": layout, "passed": False, "error": str(exc)})
+    return {"status": "passed" if all(item["passed"] for item in results) else "blocked", "case_count": len(results), "passed_count": sum(1 for item in results if item["passed"]), "results": results, "external_state_changed": False}
+
+
 def run_play_designer_quality_gates(*, root: str | Path, element_count: int = 250) -> dict[str, Any]:
     root_path = Path(root).resolve()
     document = (root_path / "ui" / "operator-dashboard.html").read_text(encoding="utf-8")
@@ -76,6 +107,7 @@ def run_play_designer_quality_gates(*, root: str | Path, element_count: int = 25
         accessibility_issues.append(f"{parser.unlabelled_controls} static form controls have no accessible identifier")
     performance = run_large_play_rehearsal(element_count=element_count)
     convergence = run_convergence_rehearsal()
+    export_matrix = run_export_matrix_rehearsal()
     profile_catalog = validate_rule_profile_catalog()
     renderer_sha256, svg_sha256 = _render_fingerprint()
     baseline_path = root_path / "control" / "play-designer-visual-baseline.json"
@@ -90,6 +122,7 @@ def run_play_designer_quality_gates(*, root: str | Path, element_count: int = 25
         {"id": "PDQ-PRINT-ACCESSIBILITY", "status": "passed" if all(token in exports for token in ("accessible_text", "black_white", "Page ")) else "blocked", "issues": [] if all(token in exports for token in ("accessible_text", "black_white", "Page ")) else ["print export accessibility tokens are incomplete"]},
         {"id": "PDQ-LARGE-PLAY-PERFORMANCE", "status": performance["status"], **performance},
         {"id": "PDQ-COLLAB-CONVERGENCE-REHEARSAL", "status": convergence["status"], **convergence},
+        {"id": "PDQ-EXPORT-MATRIX-REHEARSAL", "status": export_matrix["status"], **export_matrix},
         {"id": "PDQ-RULE-PROFILE-CATALOG", "status": "passed" if profile_catalog["status"] == "valid" else "blocked", "catalog_status": profile_catalog["status"], "path": profile_catalog["path"], "profile_count": profile_catalog.get("profile_count", 0), "issues": profile_catalog["issues"]},
         {"id": "PDQ-VISUAL-REGRESSION", "status": "passed" if not visual_issues else "blocked", "issues": visual_issues, "renderer_sha256": renderer_sha256, "svg_sha256": svg_sha256, "baseline_path": str(baseline_path)},
     ]
