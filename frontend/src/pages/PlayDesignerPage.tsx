@@ -696,6 +696,7 @@ function PlayDesignerWorkspace({ initialDesign, designs, templates }: { initialD
             onFieldContext={(patch, translate) => dispatch({ type: 'apply_field_context', patch, translate })}
             onPlayer={(id, patch) => dispatch({ type: 'update_player', id, patch })}
             onElement={(id, patch) => dispatch({ type: 'update_element', id, patch })}
+            onReorderElement={(id, direction) => dispatch({ type: 'reorder_element', id, direction })}
             assets={assets}
             templates={templates}
             onChooseAsset={chooseAsset}

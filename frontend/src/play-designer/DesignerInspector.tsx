@@ -1,6 +1,8 @@
 import { lazy, Suspense, useState, type KeyboardEvent, type ReactNode } from 'react';
 import {
   AlertTriangle,
+  ArrowDown,
+  ArrowUp,
   CheckCircle2,
   Eye,
   EyeOff,
@@ -73,6 +75,7 @@ interface InspectorProps {
   onFieldContext: (patch: Partial<PlayFieldContext>, translate?: Point) => void;
   onPlayer: (id: string, patch: Partial<PlayPlayer>) => void;
   onElement: (id: string, patch: Partial<PlayElement>) => void;
+  onReorderElement?: (id: string, direction: 'up' | 'down' | 'front' | 'back') => void;
   onComment: (text: string, elementId?: string) => void;
   onRequestReview: (decisionRef: string) => void;
   onPublish: (decisionRef: string) => void;
@@ -425,7 +428,7 @@ function ExchangePairAuthoring({ elements, onElement }: { elements: [PlayElement
   </InspectorSection>;
 }
 
-function LayersPanel({ design, selected, onSelect, onPlayer, onElement }: Pick<InspectorProps, 'design' | 'selected' | 'onSelect' | 'onPlayer' | 'onElement'>) {
+function LayersPanel({ design, selected, onSelect, onPlayer, onElement, onReorderElement }: Pick<InspectorProps, 'design' | 'selected' | 'onSelect' | 'onPlayer' | 'onElement' | 'onReorderElement'>) {
   return (
     <div className="layer-stack">
       <InspectorSection title={`Players · ${(design.players ?? []).length}`}>
@@ -446,6 +449,8 @@ function LayersPanel({ design, selected, onSelect, onPlayer, onElement }: Pick<I
               <button type="button" className="layer-row__name" onClick={() => onSelect({ kind: 'element', id: element.id })}><span className={`layer-line layer-line--${element.kind}`} />{element.type ?? element.kind}</button>
               <button type="button" aria-label={`${element.hidden ? 'Show' : 'Hide'} ${element.type ?? element.kind}`} onClick={() => onElement(element.id, { hidden: !element.hidden })}>{element.hidden ? <EyeOff size={14} /> : <Eye size={14} />}</button>
               <button type="button" aria-label={`${element.locked ? 'Unlock' : 'Lock'} ${element.type ?? element.kind}`} onClick={() => onElement(element.id, { locked: !element.locked })}>{element.locked ? <Lock size={14} /> : <Unlock size={14} />}</button>
+              <button type="button" aria-label={`Bring ${element.type ?? element.kind} forward`} title="Bring forward" disabled={!onReorderElement} onClick={() => onReorderElement?.(element.id, 'up')}><ArrowUp size={14} /></button>
+              <button type="button" aria-label={`Send ${element.type ?? element.kind} backward`} title="Send backward" disabled={!onReorderElement} onClick={() => onReorderElement?.(element.id, 'down')}><ArrowDown size={14} /></button>
             </div>
           ))}
         </div>

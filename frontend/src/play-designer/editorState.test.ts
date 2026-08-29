@@ -91,6 +91,17 @@ describe('play designer editor state', () => {
     expect(state.present.elements?.[0].group_id).toBe('GROUP-ORIGINAL');
   });
 
+  it('reorders assignment layers with undoable draw-order changes', () => {
+    const source = design();
+    source.elements!.push({ id: 'RUN-2', kind: 'run', points: [{ x: 50, y: 30 }, { x: 50, y: 12 }] });
+    let state = createEditorState(source);
+    state = editorReducer(state, { type: 'reorder_element', id: 'ROUTE-X', direction: 'front' });
+    expect(state.present.elements?.map((element) => element.id)).toEqual(['RUN-2', 'ROUTE-X']);
+    state = editorReducer(state, { type: 'reorder_element', id: 'ROUTE-X', direction: 'down' });
+    expect(state.present.elements?.map((element) => element.id)).toEqual(['ROUTE-X', 'RUN-2']);
+    expect(state.past).toHaveLength(2);
+  });
+
   it('mirrors selected geometry across the field centerline', () => {
     let state = createEditorState(design());
     state = editorReducer(state, { type: 'select', selection: { kind: 'player', id: 'X' } });

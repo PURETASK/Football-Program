@@ -46,6 +46,7 @@ export type EditorAction =
   | { type: 'paste_clipboard' }
   | { type: 'mirror_selected' }
   | { type: 'group_selected'; groupId: string }
+  | { type: 'reorder_element'; id: string; direction: 'up' | 'down' | 'front' | 'back' }
   | { type: 'undo' }
   | { type: 'redo' }
   | { type: 'replace_design'; design: PlayDesign }
@@ -418,6 +419,19 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
       const players = (state.present.players ?? []).map((player) => selectedPlayers.has(player.id) ? { ...player, group_id: action.groupId } : player);
       const elements = (state.present.elements ?? []).map((element) => selectedElements.has(element.id) ? { ...element, group_id: action.groupId } : element);
       return commit(state, { ...state.present, players, elements });
+    }
+    case 'reorder_element': {
+      const elements = [...(state.present.elements ?? [])];
+      const index = elements.findIndex((element) => element.id === action.id);
+      if (index < 0) return state;
+      const destination = action.direction === 'front' ? elements.length - 1
+        : action.direction === 'back' ? 0
+          : action.direction === 'up' ? Math.min(elements.length - 1, index + 1)
+            : Math.max(0, index - 1);
+      if (destination === index) return state;
+      const [element] = elements.splice(index, 1);
+      elements.splice(destination, 0, element);
+      return commit(state, { ...state.present, elements });
     }
     case 'undo': {
       const previous = state.past.at(-1);
