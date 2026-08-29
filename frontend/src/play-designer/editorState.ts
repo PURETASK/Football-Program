@@ -1,4 +1,4 @@
-import type { PlayAsset, PlayDesign, PlayElement, PlayFieldContext, PlayPlayer, Point } from '../types';
+import type { PlayAlignmentSlot, PlayAsset, PlayDesign, PlayElement, PlayFieldContext, PlayPlayer, Point } from '../types';
 import { elementPoints, mirrorPoints, normalizePoint, translatePoints } from './geometry';
 import { defensiveSlotAlignmentPatch } from './defensiveAlignment';
 
@@ -139,6 +139,17 @@ function playerAlignmentKey(player: PlayPlayer): string | undefined {
   return ALIGNMENT_KEYS.find((key) => id === key || id.endsWith(`-${key}`));
 }
 
+function resolveAlignmentSlot(player: PlayPlayer, slots: PlayAlignmentSlot[], used: Set<string>): PlayAlignmentSlot | undefined {
+  const explicitKey = playerAlignmentKey(player)?.toUpperCase();
+  if (explicitKey) {
+    const explicit = slots.find((slot) => slot.key.toUpperCase() === explicitKey && !used.has(slot.key));
+    if (explicit) return explicit;
+  }
+  const labels = new Set([player.position, player.role, player.label].filter(Boolean).map((value) => String(value).toUpperCase()));
+  const matches = slots.filter((slot) => !used.has(slot.key) && [slot.key, slot.position, slot.role].filter(Boolean).some((value) => labels.has(String(value).toUpperCase())));
+  return matches.length === 1 ? matches[0] : undefined;
+}
+
 function translatedElement(element: PlayElement, delta: Point, snap: boolean): PlayElement {
   const points = elementPoints(element);
   if (!points.length) return element;
@@ -243,17 +254,18 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
     case 'apply_alignment': {
       const slots = action.asset.alignment?.slots ?? [];
       if (!slots.length) return commit(state, { ...state.present, ...action.patch });
-      const slotByKey = new Map(slots.map((slot) => [slot.key.toUpperCase(), slot]));
       const presetBall = action.asset.alignment?.ball;
       const ballX = Number(state.present.field_context?.ball_x ?? 50);
       const ballY = Number(state.present.field_context?.ball_y ?? state.present.field_context?.line_of_scrimmage_y ?? 26.5);
       const alignmentOffset = { x: ballX - Number(presetBall?.x ?? 50), y: ballY - Number(presetBall?.y ?? 26.5) };
       const deltas = new Map<string, Point>();
+      const usedSlots = new Set<string>();
       const players = (state.present.players ?? []).map((player) => {
         if (player.locked) return player;
-        const key = playerAlignmentKey(player);
-        const slot = key ? slotByKey.get(key) : undefined;
+        const slot = resolveAlignmentSlot(player, slots, usedSlots);
         if (!slot) return player;
+        usedSlots.add(slot.key);
+        const key = slot.key;
         const target = normalizePoint({ x: slot.x + alignmentOffset.x, y: slot.y + alignmentOffset.y }, state.snap);
         if (player.start) deltas.set(player.id, { x: target.x - player.start.x, y: target.y - player.start.y });
         return {

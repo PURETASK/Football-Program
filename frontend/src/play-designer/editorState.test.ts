@@ -212,6 +212,16 @@ describe('play designer editor state', () => {
     expect(state.present.players?.[0]).toMatchObject({ defensive_technique: '3', defensive_alignment: 'outside_eye', alignment_key: '3T', start: { x: 42, y: 22 } });
   });
 
+  it('matches a uniquely identifiable player role when imported data has no alignment key', () => {
+    const asset: PlayAsset = {
+      id: 'ASSET-FRONT-ROLE-TEST', kind: 'front', category: 'front', term: 'role_front', unit: 'defense',
+      alignment: { slots: [{ key: 'MIKE', position: 'LB', role: 'MIKE', x: 50, y: 20 }] },
+    };
+    const defense = { ...design(), unit: 'defense' as const, players: [{ id: 'IMPORT-7', position: 'LB', role: 'MIKE', start: { x: 48, y: 24 } }], elements: [] };
+    const state = editorReducer(createEditorState(defense), { type: 'apply_alignment', asset, patch: { front: asset.term } });
+    expect(state.present.players?.[0]).toMatchObject({ alignment_key: 'MIKE', start: { x: 50, y: 20 } });
+  });
+
   it('moves the full unlocked call when the hash or line context changes', () => {
     let state = createEditorState(design());
     state = editorReducer(state, { type: 'apply_field_context', patch: { hash: 'right', ball_x: 62 }, translate: { x: 12, y: 0 } });
