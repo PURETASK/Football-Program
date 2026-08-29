@@ -218,6 +218,10 @@ def build_assignment_graph(design: dict[str, Any]) -> dict[str, Any]:
             edges.append({"source": element["id"], "target": element["exchange_with"], "relation": "exchange"})
         if isinstance(element.get("target_element_id"), str):
             edges.append({"source": element["id"], "target": element["target_element_id"], "relation": "targets_assignment"})
+        for field, relation in (("block_target_element_id", "blocks_assignment"), ("block_partner_element_id", "combo_partner"), ("protection_target_element_id", "protects_against")):
+            target = element.get(field)
+            if isinstance(target, str) and target:
+                edges.append({"source": element["id"], "target": target, "relation": relation})
         if isinstance(element.get("target_player_id"), str):
             edges.append({"source": element["id"], "target": element["target_player_id"], "relation": "targets_player"})
     findings = validate_assignment_graph(design)

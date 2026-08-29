@@ -556,3 +556,10 @@ primitive, responsibility, technique, landmark, gap, zone, target, exchange,
 and timing context in addition to IDs and edges. This keeps teaching, export,
 analytics, and future collaboration consumers from having to reconstruct
 football meaning from geometry alone.
+
+Assignment graph relationship addendum (2026-08-29): graph edges now include
+explicit block-target, combo-partner, and protection-threat relationships in
+addition to generic target, exchange, prerequisite, and player edges. The
+relationship vocabulary is preserved in the typed frontend contract so
+downstream teaching, export, analytics, and collaboration surfaces can walk
+the authored protection graph directly.

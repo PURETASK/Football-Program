@@ -201,6 +201,19 @@ class PlayCreationTests(unittest.TestCase):
         self.assertEqual(node["break_depth_yards"], 14)
         self.assertEqual(node["responsibility"], "clear middle")
 
+    def test_assignment_graph_connects_protection_target_partner_and_threat_edges(self):
+        candidate = normalize_timeline_design(design())
+        candidate["assignment_model_version"] = "1.0"
+        candidate["elements"] = [
+            {"id": "BLOCK-1", "kind": "block", "player_id": "P1", "blocking_primitive": "combo", "block_target_element_id": "THREAT", "block_partner_element_id": "BLOCK-2", "protection_target_element_id": "THREAT", "points": [{"x": 10, "y": 5}, {"x": 20, "y": 15}], "arrow_style": "block"},
+            {"id": "BLOCK-2", "kind": "block", "player_id": "P2", "blocking_primitive": "combo", "block_target_element_id": "THREAT", "block_partner_element_id": "BLOCK-1", "points": [{"x": 17, "y": 5}, {"x": 25, "y": 15}], "arrow_style": "block"},
+            {"id": "THREAT", "kind": "rush", "player_id": "P3", "points": [{"x": 30, "y": 5}, {"x": 25, "y": 15}], "arrow_style": "rush"},
+        ]
+        relations = {(edge["target"], edge["relation"]) for edge in build_assignment_graph(candidate)["edges"]}
+        self.assertIn(("THREAT", "blocks_assignment"), relations)
+        self.assertIn(("BLOCK-2", "combo_partner"), relations)
+        self.assertIn(("THREAT", "protects_against"), relations)
+
     def test_gap_ownership_map_preserves_assigned_unassigned_and_conflicted_states(self):
         candidate = design("defense")
         candidate["declared_gaps"] = ["A", "B", "C"]
