@@ -58,7 +58,7 @@ PROFESSIONAL_ASSIGNMENT_PATCH_FIELDS = frozenset({
     "phase", "read_key", "read_prompt", "exclusive_assignment", "asset_id", "start_ms", "end_ms", "timing", "points", "path",
     "depends_on", "exchange_with", "exchange_concept", "exchange_role", "exchange_trigger", "exchange_communication", "exchange_direction",
     "penetration_lane", "loop_landmark", "target_player_id", "target_element_id", "block_target_element_id", "block_partner_element_id",
-    "protection_mode", "protection_target_element_id", "protection_slide_direction", "protection_scan_order", "release_after_ms",
+    "blocking_primitive", "protection_mode", "protection_target_element_id", "protection_slide_direction", "protection_scan_order", "release_after_ms",
     "route_family", "stem_depth_yards", "break_type", "break_depth_yards", "finish_direction", "option_rule", "option_condition",
     "rush_lane", "blitz_path", "stunt", "rotation", "rotation_trigger", "rotation_from_zone", "rotation_to_zone",
     "rotation_replacement_player_id", "rotation_vacated_zone", "rotation_sequence", "rotation_communication", "collision_intent",

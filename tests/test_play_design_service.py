@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from src.nfl_fidos.play_design_service import PlayDesignService, load_asset_registry, validate_asset_registry
+from src.nfl_fidos.play_design_service import PROFESSIONAL_ASSIGNMENT_PATCH_FIELDS, PlayDesignService, load_asset_registry, validate_asset_registry
 from src.nfl_fidos.play_design_versioning import build_snapshot, verify_design_integrity, verify_release_integrity
 from src.nfl_fidos.play_design_collaboration import PlayDesignCollaborationService
 from src.nfl_fidos.repository import JsonRepository
@@ -44,6 +44,12 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertIn("route_family", assignment["properties"]["patch"]["properties"])
         for field in ("exchange_concept", "penetration_lane", "loop_landmark", "block_target_element_id", "protection_scan_order", "collision_note"):
             self.assertIn(field, assignment["properties"]["patch"]["properties"])
+
+    def test_variant_schema_covers_every_runtime_assignment_patch_field(self):
+        root = Path(__file__).resolve().parents[1]
+        contract = json.loads((root / "contracts" / "play-design-variant.schema.json").read_text(encoding="utf-8"))
+        declared = set(contract["$defs"]["assignmentPatch"]["properties"]["patch"]["properties"])
+        self.assertEqual(set(PROFESSIONAL_ASSIGNMENT_PATCH_FIELDS), declared)
 
     def test_registry_exposes_assets_and_templates(self):
         service = self.service()

@@ -696,3 +696,8 @@ professional assignment-field vocabulary. Route, exchange, rotation, blocking,
 protection, collision, and defensive responsibility metadata accepted by the
 Play Designer cannot be silently dropped at one API mutation boundary while
 remaining accepted at another; unsupported fields continue to fail closed.
+
+Schema parity guard addendum (2026-08-29): the variant contract test now
+compares the JSON Schema assignment-patch properties directly with the
+runtime professional-field allowlist. Any future field drift fails the
+regression suite before a template or batch-variant API change can ship.
