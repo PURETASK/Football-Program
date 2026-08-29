@@ -42,6 +42,8 @@ class PlayDesignServiceTests(unittest.TestCase):
         self.assertEqual(assignment["properties"]["patch"]["additionalProperties"], False)
         self.assertEqual(assignment["properties"]["element_id"]["minLength"], 1)
         self.assertIn("route_family", assignment["properties"]["patch"]["properties"])
+        for field in ("exchange_concept", "penetration_lane", "loop_landmark", "block_target_element_id", "protection_scan_order", "collision_note"):
+            self.assertIn(field, assignment["properties"]["patch"]["properties"])
 
     def test_registry_exposes_assets_and_templates(self):
         service = self.service()
