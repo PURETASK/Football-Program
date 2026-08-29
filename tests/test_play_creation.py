@@ -186,6 +186,21 @@ class PlayCreationTests(unittest.TestCase):
         })
         self.assertEqual(validate_assignment_graph(candidate), [])
 
+    def test_assignment_graph_nodes_preserve_professional_authoring_semantics(self):
+        candidate = normalize_timeline_design(design())
+        candidate["assignment_model_version"] = "1.0"
+        candidate["elements"][0].update({
+            "id": "ROUTE-SEMANTIC", "route_family": "dropback", "break_type": "dig",
+            "stem_depth_yards": 12, "break_depth_yards": 14, "responsibility": "clear middle",
+            "landmark": "near hash", "target_player_id": "P1",
+        })
+        node = next(item for item in build_assignment_graph(candidate)["nodes"] if item["id"] == "ROUTE-SEMANTIC")
+        self.assertEqual(node["route_family"], "dropback")
+        self.assertEqual(node["break_type"], "dig")
+        self.assertEqual(node["stem_depth_yards"], 12)
+        self.assertEqual(node["break_depth_yards"], 14)
+        self.assertEqual(node["responsibility"], "clear middle")
+
     def test_gap_ownership_map_preserves_assigned_unassigned_and_conflicted_states(self):
         candidate = design("defense")
         candidate["declared_gaps"] = ["A", "B", "C"]

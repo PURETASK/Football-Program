@@ -549,3 +549,10 @@ target-window overlap, and explicit synchronization groups for timing gaps.
 These checks preserve the existing event vocabulary and report coach-review
 warnings where team timing conventions vary, giving playback, teaching, and
 export consumers actionable synchronization evidence.
+
+Assignment graph semantic-context addendum (2026-08-29): graph nodes now carry
+the authored route family, break and depth contract, blocking/protection
+primitive, responsibility, technique, landmark, gap, zone, target, exchange,
+and timing context in addition to IDs and edges. This keeps teaching, export,
+analytics, and future collaboration consumers from having to reconstruct
+football meaning from geometry alone.
