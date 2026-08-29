@@ -1,7 +1,7 @@
 import unittest
 
 from src.nfl_fidos.play_creation import normalize_term, validate_legality, validate_play_design
-from src.nfl_fidos.play_assignment_graph import build_assignment_graph, build_gap_ownership_map, validate_assignment_graph
+from src.nfl_fidos.play_assignment_graph import build_assignment_graph, build_coverage_shell_map, build_gap_ownership_map, validate_assignment_graph
 from src.nfl_fidos.play_legality import profile_metadata, validate_advanced_legality, validate_rule_profile_catalog
 from src.nfl_fidos.play_timeline import default_phases, normalize_timeline_design, validate_timeline
 
@@ -155,6 +155,23 @@ class PlayCreationTests(unittest.TestCase):
         self.assertEqual(by_gap["A"]["owners"][0]["player_id"], "MIKE")
         self.assertEqual(by_gap["B"]["owner_count"], 2)
         self.assertEqual(by_gap["C"]["status"], "unassigned")
+
+    def test_coverage_shell_map_preserves_rotation_sequence_and_replacement_context(self):
+        candidate = design("defense")
+        candidate["coverage_zones"] = ["flat_left", "deep_middle"]
+        candidate["elements"] = [
+            {"id": "DROP-FLAT", "kind": "coverage", "player_id": "CB", "zone": "flat_left", "responsibility": "curl-flat", "points": [{"x": 15, "y": 28}, {"x": 13, "y": 20}]},
+            {"id": "ROTATE-MIDDLE", "kind": "rotation", "player_id": "SS", "rotation_to_zone": "deep_middle", "rotation_from_zone": "flat_right", "rotation_sequence": 2, "rotation_trigger": "motion", "rotation_replacement_player_id": "FS", "exchange_with": "DROP-FLAT", "points": [{"x": 65, "y": 15}, {"x": 50, "y": 8}]},
+        ]
+
+        result = build_coverage_shell_map(candidate)
+
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual(result["rotation_count"], 1)
+        middle = next(item for item in result["entries"] if item["zone"] == "deep_middle")
+        self.assertEqual(middle["owners"][0]["rotation_sequence"], 2)
+        self.assertEqual(middle["owners"][0]["vacated_zone"], "flat_right")
+        self.assertEqual(middle["owners"][0]["replacement_player_id"], "FS")
 
     def test_advanced_legality_reports_route_collision_with_policy(self):
         candidate = design()

@@ -643,6 +643,15 @@ export interface PlayAssignmentGraph {
     conflicted_count: number;
     status: 'complete' | 'incomplete' | 'conflicted' | string;
   };
+  coverage_shell?: {
+    version: string;
+    entries: Array<{ zone: string; status: 'assigned' | 'unassigned' | 'conflicted' | string; owner_count: number; owners: Array<{ element_id?: string; player_id?: string; kind?: string; responsibility?: string; rotation_sequence?: number; rotation_trigger?: string; vacated_zone?: string; replacement_player_id?: string; exchange_with?: string; path?: Point[]; start_ms?: number; end_ms?: number }> }>;
+    assigned_count: number;
+    unassigned_count: number;
+    conflicted_count: number;
+    rotation_count: number;
+    status: 'complete' | 'incomplete' | 'conflicted' | string;
+  };
   summary: {
     node_count: number;
     edge_count: number;

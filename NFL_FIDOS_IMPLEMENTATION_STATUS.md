@@ -509,3 +509,12 @@ still produces a blocking finding. This gives canvas, teaching, and export
 surfaces actionable geometry instead of only route IDs; focused legality and
 full regression validation remain green, with physical device certification
 still pending.
+
+Coverage-shell authority addendum (2026-08-29): the server-side assignment
+graph now emits a canonical coverage-shell map alongside gap ownership. Each
+declared zone preserves assigned, unassigned, or conflicted status plus player,
+path, timing, exchange, rotation sequence, trigger, vacated-zone, and
+replacement-defender context. This keeps API, teaching, and export consumers
+aligned with the interactive shell editor; focused Play Designer coverage and
+full regression validation remain green, while deployment-device certification
+remains pending.

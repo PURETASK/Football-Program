@@ -206,12 +206,14 @@ def build_assignment_graph(design: dict[str, Any]) -> dict[str, Any]:
             edges.append({"source": element["id"], "target": element["target_player_id"], "relation": "targets_player"})
     findings = validate_assignment_graph(design)
     gap_ownership = build_gap_ownership_map(design)
+    coverage_shell = build_coverage_shell_map(design)
     return {
         "version": str(design.get("assignment_model_version") or "1.0"),
         "nodes": nodes,
         "edges": edges,
         "findings": findings,
         "gap_ownership": gap_ownership,
+        "coverage_shell": coverage_shell,
         "summary": {
             "node_count": len(nodes),
             "edge_count": len(edges),
@@ -263,5 +265,57 @@ def build_gap_ownership_map(design: dict[str, Any]) -> dict[str, Any]:
         "assigned_count": sum(1 for item in entries if item["status"] == "assigned"),
         "unassigned_count": sum(1 for item in entries if item["status"] == "unassigned"),
         "conflicted_count": sum(1 for item in entries if item["status"] == "conflicted"),
+        "status": "conflicted" if any(item["status"] == "conflicted" for item in entries) else "incomplete" if any(item["status"] == "unassigned" for item in entries) else "complete",
+    }
+
+
+def build_coverage_shell_map(design: dict[str, Any]) -> dict[str, Any]:
+    """Build the canonical coverage-zone and rotation responsibility map."""
+    raw_elements = design.get("elements") if isinstance(design.get("elements"), list) else []
+    elements = [item for item in raw_elements if isinstance(item, dict)]
+    declared = design.get("coverage_zones", [])
+    zones = [str(item).strip() for item in declared if isinstance(item, str) and item.strip()] if isinstance(declared, list) else []
+    owners: dict[str, list[dict[str, Any]]] = {}
+    for element in elements:
+        if element.get("kind") not in {"coverage", "rotation"}:
+            continue
+        zone = element.get("rotation_to_zone") if element.get("kind") == "rotation" else element.get("zone")
+        zone = zone or element.get("zone")
+        if not isinstance(zone, str) or not zone.strip():
+            continue
+        zone = zone.strip()
+        timing = element.get("timing") if isinstance(element.get("timing"), dict) else {}
+        owners.setdefault(zone, []).append({
+            "element_id": element.get("id"),
+            "player_id": element.get("player_id"),
+            "kind": element.get("kind"),
+            "responsibility": element.get("responsibility") or element.get("assignment"),
+            "rotation_sequence": element.get("rotation_sequence"),
+            "rotation_trigger": element.get("rotation_trigger"),
+            "vacated_zone": element.get("rotation_vacated_zone") or element.get("rotation_from_zone"),
+            "replacement_player_id": element.get("rotation_replacement_player_id"),
+            "exchange_with": element.get("exchange_with"),
+            "path": element.get("points") if isinstance(element.get("points"), list) else element.get("path", []),
+            "start_ms": timing.get("start_ms", element.get("start_ms", 0)),
+            "end_ms": timing.get("end_ms", element.get("end_ms")),
+        })
+    for zone in zones:
+        owners.setdefault(zone, [])
+    entries = []
+    for zone in sorted(owners):
+        zone_owners = sorted(owners[zone], key=lambda item: (item.get("rotation_sequence") is None, item.get("rotation_sequence") or 0, str(item.get("element_id") or "")))
+        entries.append({
+            "zone": zone,
+            "status": "unassigned" if not zone_owners else "conflicted" if len(zone_owners) > 1 else "assigned",
+            "owner_count": len(zone_owners),
+            "owners": zone_owners,
+        })
+    return {
+        "version": "1.0",
+        "entries": entries,
+        "assigned_count": sum(1 for item in entries if item["status"] == "assigned"),
+        "unassigned_count": sum(1 for item in entries if item["status"] == "unassigned"),
+        "conflicted_count": sum(1 for item in entries if item["status"] == "conflicted"),
+        "rotation_count": sum(1 for item in elements if item.get("kind") == "rotation"),
         "status": "conflicted" if any(item["status"] == "conflicted" for item in entries) else "incomplete" if any(item["status"] == "unassigned" for item in entries) else "complete",
     }
