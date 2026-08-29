@@ -144,7 +144,7 @@ class PlayDesignExportTests(unittest.TestCase):
 
     def test_raster_and_pdf_exports_include_branch_geometry(self):
         candidate = design()
-        candidate["elements"][0]["branches"] = [{"id": "BRANCH-RASTER", "condition": "versus pressure", "points": [{"x": 20, "y": 30}, {"x": 30, "y": 18}]}]
+        candidate["elements"][0]["branches"] = [{"id": "BRANCH-RASTER", "label": "Pressure answer", "condition": "versus pressure", "points": [{"x": 20, "y": 30}, {"x": 30, "y": 18}]}]
         service = self.service()
         saved = service.save(design=candidate, actor="coach")
         png = service.export_artifact([saved["id"]], kind="play_card", format="png", actor="coach")

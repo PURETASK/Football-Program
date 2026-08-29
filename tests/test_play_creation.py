@@ -95,7 +95,20 @@ class PlayCreationTests(unittest.TestCase):
 
         malformed = design()
         malformed["elements"][0]["branches"] = [{"id": "BRANCH-SHORT", "points": [{"x": 10, "y": 20}]}]
-        self.assertIn("DESIGN-BRANCH-PATH", {issue["code"] for issue in validate_play_design(malformed)})
+        codes = {issue["code"] for issue in validate_play_design(malformed)}
+        self.assertIn("DESIGN-BRANCH-PATH", codes)
+        self.assertIn("DESIGN-BRANCH-REQUIRED", codes)
+
+    def test_alternate_paths_require_unique_identity_and_coaching_condition(self):
+        candidate = design()
+        candidate["elements"][0]["branches"] = [
+            {"id": "BRANCH-A", "label": "Alert", "condition": "If leverage changes", "points": [{"x": 10, "y": 5}, {"x": 20, "y": 20}]},
+            {"id": "BRANCH-A", "label": "Duplicate", "condition": "", "points": [{"x": 10, "y": 5}, {"x": 30, "y": 20}]},
+        ]
+        issues = validate_play_design(candidate)
+        codes = {issue["code"] for issue in issues}
+        self.assertIn("DESIGN-BRANCH-ID-DUPLICATE", codes)
+        self.assertIn("DESIGN-BRANCH-REQUIRED", codes)
 
     def test_legality_lints_motion_and_timeline(self):
         candidate = design()

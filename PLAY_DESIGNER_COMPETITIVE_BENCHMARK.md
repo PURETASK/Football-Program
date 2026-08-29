@@ -430,3 +430,9 @@ keeps the selected alternate polyline and semantic contract synchronized while
 preserving the primary path. Focused geometry and inspector tests verify the
 branch remains independently executable; multi-coach review and production
 browser certification remain open acceptance work.
+
+Alternate-path validation addendum — 2026-08-29: server-side structural
+validation now requires every alternate path to carry a unique non-empty id,
+coach-facing label, and non-empty decision condition, in addition to its
+bounded two-point geometry and route semantics. Duplicate branch identities and
+missing teaching conditions are now explainable findings before save/review.

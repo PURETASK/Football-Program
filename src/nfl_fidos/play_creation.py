@@ -135,6 +135,12 @@ def validate_play_design(design: dict[str, Any]) -> list[dict[str, str]]:
                             if not isinstance(branch, dict):
                                 issues.append(_issue("DESIGN-BRANCH-SHAPE", "Alternate path must be an object", branch_path))
                                 continue
+                            for field in ("id", "label", "condition"):
+                                if not isinstance(branch.get(field), str) or not branch.get(field, "").strip():
+                                    issues.append(_issue("DESIGN-BRANCH-REQUIRED", f"Alternate path requires a non-empty {field}", f"{branch_path}.{field}"))
+                            branch_ids = [item.get("id") for item in branches[:branch_index] if isinstance(item, dict) and isinstance(item.get("id"), str)]
+                            if branch.get("id") in branch_ids:
+                                issues.append(_issue("DESIGN-BRANCH-ID-DUPLICATE", f"Duplicate alternate path id: {branch.get('id')}", f"{branch_path}.id"))
                             branch_points = branch.get("points")
                             if not isinstance(branch_points, list) or len(branch_points) < 2:
                                 issues.append(_issue("DESIGN-BRANCH-PATH", "Alternate paths require at least two points", f"{branch_path}.points"))
