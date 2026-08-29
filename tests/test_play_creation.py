@@ -36,6 +36,14 @@ class PlayCreationTests(unittest.TestCase):
         self.assertIn("DESIGN-ROUTE-DEPTH", codes)
         self.assertIn("DESIGN-ROUTE-BREAK-CONTEXT", codes)
 
+    def test_route_branch_semantics_are_validated_with_parent_compatible_fields(self):
+        candidate = design()
+        candidate["elements"][0].update({"route_family": "dropback", "break_type": "dig", "stem_depth_yards": 12})
+        candidate["elements"][0]["branches"] = [{"id": "OPTION-A", "points": [{"x": 10, "y": 5}, {"x": 20, "y": 20}], "break_type": "made_up", "break_depth_yards": 61}]
+        codes = {issue["code"] for issue in validate_play_design(candidate)}
+        self.assertIn("DESIGN-ROUTE-SEMANTIC", codes)
+        self.assertIn("DESIGN-ROUTE-DEPTH", codes)
+
     def test_offensive_blocking_primitives_require_valid_targets_and_protection_context(self):
         candidate = design()
         candidate["elements"] = [

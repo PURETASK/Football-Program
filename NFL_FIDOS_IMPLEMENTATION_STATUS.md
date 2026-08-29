@@ -535,3 +535,10 @@ break-depth metadata without a declared break type. This keeps direct geometry
 editing and semantic route metadata aligned before review, publication, or
 export; focused route and full regression validation remain required for each
 future vocabulary extension.
+
+Route branch parity addendum (2026-08-29): the same controlled route semantics
+and depth bounds are now applied to alternate route branches, while omitted
+branch fields remain eligible to inherit the parent route contract during
+materialization. This prevents a malformed option path from bypassing the
+primary route validator; focused branch coverage and the full regression suite
+pass.

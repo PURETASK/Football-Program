@@ -41,6 +41,19 @@ def normalize_term(term: str) -> str:
     return "_".join(term.strip().lower().replace("/", " ").replace("-", " ").split())
 
 
+def _validate_route_semantics(element: dict[str, Any], path: str, issues: list[dict[str, str]]) -> None:
+    for field, allowed in (("route_family", ROUTE_FAMILIES), ("break_type", ROUTE_BREAKS), ("finish_direction", ROUTE_FINISHES), ("option_rule", ROUTE_OPTION_RULES)):
+        value = element.get(field)
+        if value is not None and value not in allowed:
+            issues.append(_issue("DESIGN-ROUTE-SEMANTIC", f"Unsupported route {field}: {value}", f"{path}.{field}"))
+    for field in ("stem_depth_yards", "break_depth_yards"):
+        value = element.get(field)
+        if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0 or value > 60):
+            issues.append(_issue("DESIGN-ROUTE-DEPTH", f"Route {field} must be a number from 0 through 60", f"{path}.{field}"))
+    if element.get("break_depth_yards") is not None and element.get("break_type") in {None, "none"}:
+        issues.append(_issue("DESIGN-ROUTE-BREAK-CONTEXT", "Break depth is declared without a route break type", f"{path}.break_type", "warning"))
+
+
 def validate_play_design(design: dict[str, Any]) -> list[dict[str, str]]:
     """Validate a full play-design envelope and return deterministic issues.
 
@@ -102,16 +115,7 @@ def validate_play_design(design: dict[str, Any]) -> list[dict[str, str]]:
                 if term not in vocabulary:
                     issues.append(_issue("DESIGN-VOCABULARY", f"Unsupported {kind} type: {element.get('type')}", f"{path}.type"))
             if kind == "route":
-                for field, allowed in (("route_family", ROUTE_FAMILIES), ("break_type", ROUTE_BREAKS), ("finish_direction", ROUTE_FINISHES), ("option_rule", ROUTE_OPTION_RULES)):
-                    value = element.get(field)
-                    if value is not None and value not in allowed:
-                        issues.append(_issue("DESIGN-ROUTE-SEMANTIC", f"Unsupported route {field}: {value}", f"{path}.{field}"))
-                for field in ("stem_depth_yards", "break_depth_yards"):
-                    value = element.get(field)
-                    if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0 or value > 60):
-                        issues.append(_issue("DESIGN-ROUTE-DEPTH", f"Route {field} must be a number from 0 through 60", f"{path}.{field}"))
-                if element.get("break_depth_yards") is not None and element.get("break_type") in {None, "none"}:
-                    issues.append(_issue("DESIGN-ROUTE-BREAK-CONTEXT", "Break depth is declared without a route break type", f"{path}.break_type", "warning"))
+                _validate_route_semantics(element, path, issues)
             if kind == "coverage" and normalize_term(str(element.get("coverage", ""))) not in DEFENSE_COVERAGES:
                 issues.append(_issue("DESIGN-COVERAGE", "Coverage must use a normalized coverage key", f"{path}.coverage"))
             if kind in {"route", "motion", "run", "block", "coverage", "rush", "fit", "stunt", "rotation"}:
@@ -137,6 +141,8 @@ def validate_play_design(design: dict[str, Any]) -> list[dict[str, str]]:
                             else:
                                 for point_index, point in enumerate(branch_points):
                                     _validate_point(point, f"{branch_path}.points[{point_index}]", issues)
+                            if kind == "route":
+                                _validate_route_semantics(branch, branch_path, issues)
                 if element.get("arrow_style") not in ARROW_STYLES:
                     issues.append(_issue("DESIGN-ARROW", "Movement elements require a canonical arrow style", f"{path}.arrow_style"))
             if design.get("unit") == "offense" and kind in {"block", "run"}:
