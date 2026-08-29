@@ -26,10 +26,21 @@ GRAPH_FIELDS = {
     "target_element_id",
     "depends_on",
     "exchange_with",
+    "exchange_concept",
     "exclusive_assignment",
 }
 
 LEVERAGE_VALUES = {"inside", "outside", "head_up", "top_down", "trail", "stack", "free"}
+
+EXCHANGE_CONCEPT_POSITION_RULES = {
+    "tex": "front_exchange",
+    "et": "front_exchange",
+    "cross_dog": "linebacker_exchange",
+    "cross_dog_fire": "linebacker_exchange",
+}
+INTERIOR_POSITIONS = {"DT", "NT", "DL", "TACKLE", "NOSE", "3T", "4I", "4T", "0T", "1T"}
+EDGE_POSITIONS = {"DE", "EDGE", "END", "OLB", "5T", "6T", "7T", "9T", "RUSH"}
+LINEBACKER_POSITIONS = {"LB", "ILB", "MLB", "WLB", "WILL", "SAM", "MIKE", "OLB", "JACK", "BUCK", "LINEBACKER"}
 
 
 def _issue(code: str, message: str, path: str, severity: str = "error", *, suggestion: str | None = None) -> dict[str, Any]:
@@ -53,6 +64,52 @@ def _timing(element: dict[str, Any]) -> tuple[int | None, int | None]:
     return (start if isinstance(start, int) and not isinstance(start, bool) else None, end if isinstance(end, int) and not isinstance(end, bool) else None)
 
 
+def _position_family(player: dict[str, Any] | None) -> str | None:
+    if not isinstance(player, dict):
+        return None
+    tokens = {str(player.get(field, "")).strip().upper() for field in ("position", "role", "alignment_key") if player.get(field)}
+    if tokens & INTERIOR_POSITIONS:
+        return "interior"
+    if tokens & EDGE_POSITIONS:
+        return "edge"
+    if tokens & LINEBACKER_POSITIONS:
+        return "linebacker"
+    return None
+
+
+def _validate_named_exchange_concept(
+    element: dict[str, Any],
+    partner: dict[str, Any],
+    path: str,
+    player_by_id: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    concept = str(element.get("exchange_concept") or "").strip().lower()
+    if not concept or concept not in EXCHANGE_CONCEPT_POSITION_RULES:
+        return []
+    findings: list[dict[str, Any]] = []
+    partner_concept = str(partner.get("exchange_concept") or "").strip().lower()
+    if partner_concept != concept:
+        findings.append(_issue("ASSIGNMENT-EXCHANGE-CONCEPT-RECIPROCITY", f"Named exchange concept {concept} is not recorded on both sides of the pair.", f"{path}.exchange_concept", "warning", suggestion="Apply the same named concept to both reciprocal assignments."))
+    if not str(element.get("exchange_trigger") or "").strip() or not str(element.get("exchange_communication") or "").strip():
+        findings.append(_issue("ASSIGNMENT-EXCHANGE-COMMUNICATION-MISSING", f"Named {concept} exchange requires a snap trigger and communication cue.", f"{path}.exchange_communication", "warning", suggestion="Record the trigger and the exact staff/player communication for the exchange."))
+    role = str(element.get("exchange_role") or "")
+    partner_role = str(partner.get("exchange_role") or "")
+    if {role, partner_role} != {"penetrate_loop", "loop_penetrate"} and concept in {"tex", "et", "cross_dog", "cross_dog_fire"}:
+        findings.append(_issue("ASSIGNMENT-EXCHANGE-ROLE-MISMATCH", f"Named {concept} exchange requires one penetrate_loop side and one loop_penetrate side.", f"{path}.exchange_role", "warning", suggestion="Set reciprocal penetration and loop responsibilities on the pair."))
+    first_family = _position_family(player_by_id.get(str(element.get("player_id"))))
+    second_family = _position_family(player_by_id.get(str(partner.get("player_id"))))
+    expected = EXCHANGE_CONCEPT_POSITION_RULES[concept]
+    if expected == "front_exchange":
+        valid = {first_family, second_family} == {"interior", "edge"}
+        message = f"Named {concept} exchange expects one interior defensive lineman and one edge defender; found {first_family or 'unknown'} and {second_family or 'unknown'}."
+    else:
+        valid = first_family == "linebacker" and second_family == "linebacker"
+        message = f"Named {concept} exchange expects two linebacker-family partners; found {first_family or 'unknown'} and {second_family or 'unknown'}."
+    if not valid:
+        findings.append(_issue("ASSIGNMENT-EXCHANGE-PARTNER-MISMATCH", message, f"{path}.exchange_with", "warning", suggestion="Choose position-compatible partners or change the named exchange concept; document an intentional exception in staff review."))
+    return findings
+
+
 def _graph_enabled(design: dict[str, Any], elements: list[dict[str, Any]]) -> bool:
     return bool(design.get("assignment_model_version")) or any(any(field in element for field in GRAPH_FIELDS) for element in elements)
 
@@ -69,6 +126,7 @@ def validate_assignment_graph(design: dict[str, Any]) -> list[dict[str, Any]]:
     issues: list[dict[str, Any]] = []
     players = design.get("players") if isinstance(design.get("players"), list) else []
     player_ids = {player.get("id") for player in players if isinstance(player, dict) and isinstance(player.get("id"), str)}
+    player_by_id = {str(player.get("id")): player for player in players if isinstance(player, dict) and isinstance(player.get("id"), str)}
     element_by_id = {element.get("id"): element for element in elements if isinstance(element.get("id"), str) and element.get("id")}
 
     for index, element in enumerate(elements):
@@ -112,6 +170,8 @@ def validate_assignment_graph(design: dict[str, Any]) -> list[dict[str, Any]]:
                 issues.append(_issue("ASSIGNMENT-EXCHANGE-REF", "Exchange target does not reference an assignment in this design", f"{path}.exchange_with", suggestion="Link the paired block, rush, stunt, fit, motion, or read assignment."))
             elif element_by_id[exchange_id].get("exchange_with") not in {None, element_id}:
                 issues.append(_issue("ASSIGNMENT-EXCHANGE-CONFLICT", "Exchange target is already paired with a different assignment", f"{path}.exchange_with", "warning", suggestion="Make the exchange reciprocal or choose a different partner."))
+            elif str(element_id) < str(exchange_id) and design.get("unit") == "defense":
+                issues.extend(_validate_named_exchange_concept(element, element_by_id[exchange_id], path, player_by_id))
 
         leverage = element.get("leverage")
         if leverage is not None and leverage not in LEVERAGE_VALUES:
@@ -208,6 +268,7 @@ def build_assignment_graph(design: dict[str, Any]) -> dict[str, Any]:
             "target_element_id": element.get("block_target_element_id") or element.get("target_element_id"),
             "target_player_id": element.get("target_player_id"),
             "exchange_with": element.get("exchange_with"),
+            "exchange_concept": element.get("exchange_concept"),
             "start_ms": start,
             "end_ms": end,
         })

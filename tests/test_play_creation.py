@@ -186,6 +186,41 @@ class PlayCreationTests(unittest.TestCase):
         })
         self.assertEqual(validate_assignment_graph(candidate), [])
 
+    def test_assignment_graph_validates_named_tex_partner_positions_and_reciprocal_roles(self):
+        candidate = design("defense")
+        candidate["assignment_model_version"] = "1.0"
+        candidate["players"] = [{"id": "DT", "position": "DT"}, {"id": "DE", "position": "DE"}]
+        candidate["elements"] = [
+            {"id": "A-TEX", "kind": "stunt", "player_id": "DT", "exchange_with": "B-TEX", "exchange_role": "penetrate_loop", "exchange_concept": "tex", "exchange_trigger": "on_snap", "exchange_communication": "TEX alert"},
+            {"id": "B-TEX", "kind": "stunt", "player_id": "DE", "exchange_with": "A-TEX", "exchange_role": "loop_penetrate", "exchange_concept": "tex", "exchange_trigger": "on_snap", "exchange_communication": "TEX alert"},
+        ]
+        self.assertEqual(validate_assignment_graph(candidate), [])
+        candidate["players"][1]["position"] = "CB"
+        codes = {issue["code"] for issue in validate_assignment_graph(candidate)}
+        self.assertIn("ASSIGNMENT-EXCHANGE-PARTNER-MISMATCH", codes)
+
+    def test_assignment_graph_requires_named_exchange_metadata_on_both_sides(self):
+        candidate = design("defense")
+        candidate["assignment_model_version"] = "1.0"
+        candidate["players"] = [{"id": "MIKE", "position": "MIKE"}, {"id": "WILL", "position": "WILL"}]
+        candidate["elements"] = [
+            {"id": "A-DOG", "kind": "rush", "player_id": "MIKE", "exchange_with": "B-DOG", "exchange_role": "penetrate_loop", "exchange_concept": "cross_dog"},
+            {"id": "B-DOG", "kind": "stunt", "player_id": "WILL", "exchange_with": "A-DOG", "exchange_role": "loop_penetrate", "exchange_concept": "cross_dog"},
+        ]
+        codes = {issue["code"] for issue in validate_assignment_graph(candidate)}
+        self.assertIn("ASSIGNMENT-EXCHANGE-COMMUNICATION-MISSING", codes)
+
+    def test_assignment_graph_rejects_non_reciprocal_named_exchange_concept(self):
+        candidate = design("defense")
+        candidate["assignment_model_version"] = "1.0"
+        candidate["players"] = [{"id": "DT", "position": "DT"}, {"id": "DE", "position": "DE"}]
+        candidate["elements"] = [
+            {"id": "A-ET", "kind": "stunt", "player_id": "DT", "exchange_with": "B-ET", "exchange_role": "penetrate_loop", "exchange_concept": "et", "exchange_trigger": "on_snap", "exchange_communication": "ET alert"},
+            {"id": "B-ET", "kind": "stunt", "player_id": "DE", "exchange_with": "A-ET", "exchange_role": "loop_penetrate"},
+        ]
+        codes = {issue["code"] for issue in validate_assignment_graph(candidate)}
+        self.assertIn("ASSIGNMENT-EXCHANGE-CONCEPT-RECIPROCITY", codes)
+
     def test_assignment_graph_nodes_preserve_professional_authoring_semantics(self):
         candidate = normalize_timeline_design(design())
         candidate["assignment_model_version"] = "1.0"
