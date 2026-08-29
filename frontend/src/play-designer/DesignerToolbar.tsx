@@ -120,7 +120,7 @@ export function DesignerToolbar({
         <button type="button" disabled={!selectionCount} aria-label="Copy selection" title="Copy selection (Ctrl+C)" onClick={onCopy}><Copy size={16} /></button>
         <button type="button" aria-label="Paste selection" title="Paste selection (Ctrl+V)" onClick={onPaste}><ClipboardPaste size={16} /></button>
         <button type="button" disabled={!selectionCount} aria-label="Mirror selection" title="Mirror selection" onClick={onMirror}><Link2 size={16} /></button>
-        <button type="button" disabled={selectionCount < 2} aria-label="Group selection" title="Group selection (Ctrl+G)" onClick={onGroup}><Users size={16} /></button>
+        <button type="button" disabled={!selectionCount} aria-label="Group selection" title="Group selection (Ctrl+G)" onClick={onGroup}><Users size={16} /></button>
         <button type="button" disabled={!selectionCount} className="toolbar-danger" aria-label="Delete selection" title="Delete" onClick={onDelete}><Trash2 size={16} /></button>
         <span className="toolbar-divider" />
         <button type="button" className={snap ? 'is-active' : ''} aria-pressed={snap} title="Snap to one-yard grid" onClick={onToggleSnap}><Grid3X3 size={16} /><span>Snap</span></button>

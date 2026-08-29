@@ -82,6 +82,7 @@ export interface PlayPlayer {
   label?: string;
   locked?: boolean;
   hidden?: boolean;
+  group_id?: string;
 }
 
 export interface PlayAlignmentSlot {

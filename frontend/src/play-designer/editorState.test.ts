@@ -70,6 +70,15 @@ describe('play designer editor state', () => {
     expect(state.present.elements?.[1].points?.[0]).toEqual({ x: 13, y: 33 });
   });
 
+  it('groups a selected player together with every linked assignment', () => {
+    let state = createEditorState(design());
+    state = editorReducer(state, { type: 'select', selection: { kind: 'player', id: 'X' } });
+    state = editorReducer(state, { type: 'group_selected', groupId: 'GROUP-X' });
+    expect(state.present.players?.[0].group_id).toBe('GROUP-X');
+    expect(state.present.elements?.[0].group_id).toBe('GROUP-X');
+    expect(state.past).toHaveLength(1);
+  });
+
   it('mirrors selected geometry across the field centerline', () => {
     let state = createEditorState(design());
     state = editorReducer(state, { type: 'select', selection: { kind: 'player', id: 'X' } });

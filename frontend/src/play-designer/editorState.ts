@@ -385,12 +385,17 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
       return commit(state, { ...state.present, players, elements });
     }
     case 'group_selected': {
+      const selectedPlayers = new Set(state.selected.filter((item) => item.kind === 'player').map((item) => item.id));
       const selectedElements = new Set(state.selected.filter((item) => item.kind === 'element').map((item) => item.id));
-      if (selectedElements.size < 2) return state;
-      const elements = (state.present.elements ?? []).map((element) =>
-        selectedElements.has(element.id) ? { ...element, group_id: action.groupId } : element,
-      );
-      return commit(state, { ...state.present, elements });
+      // Selecting a player means selecting that player's complete authored
+      // package. This keeps grouping consistent with move, copy, and mirror.
+      (state.present.elements ?? []).forEach((element) => {
+        if (selectedPlayers.has(element.player_id ?? '')) selectedElements.add(element.id);
+      });
+      if (!selectedPlayers.size && selectedElements.size < 2) return state;
+      const players = (state.present.players ?? []).map((player) => selectedPlayers.has(player.id) ? { ...player, group_id: action.groupId } : player);
+      const elements = (state.present.elements ?? []).map((element) => selectedElements.has(element.id) ? { ...element, group_id: action.groupId } : element);
+      return commit(state, { ...state.present, players, elements });
     }
     case 'undo': {
       const previous = state.past.at(-1);
