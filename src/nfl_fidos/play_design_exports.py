@@ -245,13 +245,24 @@ def _accessible_text(design: dict[str, Any], *, role: str | None = None) -> str:
                 lines.append(f"   Alternate path {branch.get('label') or branch.get('id') or 'branch'}; condition {branch.get('condition') or 'unspecified'}; timing {branch.get('start_ms', timing.get('start_ms', element.get('start_ms', 0)))}-{branch.get('end_ms', timing.get('end_ms', element.get('end_ms', 'end')))} ms.")
     timeline = design.get("timeline") if isinstance(design.get("timeline"), dict) else {}
     events = timeline.get("events") if isinstance(timeline.get("events"), list) else []
+    elements_by_id = {item.get("id"): item for item in design.get("elements", []) if isinstance(item, dict) and item.get("id")}
     for event in sorted((item for item in events if isinstance(item, dict)), key=lambda item: (item.get("start_ms", item.get("at_ms", item.get("ms", 0))), str(item.get("id", "")))):
         kind = event.get("kind") or event.get("type") or "cue"
         start = event.get("start_ms", event.get("at_ms", event.get("ms", 0)))
         end = event.get("end_ms")
         clock = f"{start}-{end} ms" if end is not None else f"at {start} ms"
         detail = event.get("label") or event.get("note") or event.get("description") or event.get("element_id") or "shared"
-        lines.append(f"Timeline {kind}: {detail}; {clock}.")
+        branch_detail = ""
+        branch_id = event.get("branch_id")
+        if branch_id:
+            element = elements_by_id.get(event.get("element_id"))
+            branches = element.get("branches", []) if isinstance(element, dict) and isinstance(element.get("branches"), list) else []
+            branch = next((candidate for candidate in branches if isinstance(candidate, dict) and candidate.get("id") == branch_id), None)
+            if branch:
+                branch_detail = f"; path {branch.get('label') or branch_id} (condition: {branch.get('condition') or 'unspecified'})"
+            else:
+                branch_detail = f"; path {branch_id}"
+        lines.append(f"Timeline {kind}: {detail}{branch_detail}; {clock}.")
     narration = timeline.get("narration") if isinstance(timeline.get("narration"), list) else []
     for cue in sorted((item for item in narration if isinstance(item, dict)), key=lambda item: (item.get("start_ms", 0), str(item.get("id", "")))):
         lines.append(f"Narration ({cue.get('role') or 'coach'}) {cue.get('start_ms', 0)}-{cue.get('end_ms', 'end')} ms: {cue.get('text') or 'Teaching cue.'}")

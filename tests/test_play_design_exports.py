@@ -190,6 +190,21 @@ class PlayDesignExportTests(unittest.TestCase):
         self.assertIn("Timeline read: Read the apex defender; 300-800 ms.", payload)
         self.assertIn("Narration (coach) 350-900 ms: Confirm the flat defender widens.", payload)
 
+    def test_accessible_export_text_identifies_branch_specific_timeline_events(self):
+        candidate = design()
+        candidate["elements"][0]["id"] = "ROUTE-CHOICE"
+        candidate["elements"][0]["branches"] = [{
+            "id": "BR-ALERT", "label": "Alert path", "condition": "If the safety rotates",
+            "points": [{"x": 30, "y": 30}, {"x": 50, "y": 12}],
+        }]
+        candidate["timeline"]["events"] = [{
+            "id": "READ-ALERT", "kind": "read", "element_id": "ROUTE-CHOICE", "branch_id": "BR-ALERT",
+            "start_ms": 400, "end_ms": 800, "label": "Choose the answer",
+        }]
+        rendered = build_export(designs=[candidate], kind="play_card", format="svg")
+        payload = base64.b64decode(rendered["content_base64"]).decode("utf-8")
+        self.assertIn("Timeline read: Choose the answer; path Alert path (condition: If the safety rotates); 400-800 ms.", payload)
+
     def test_defensive_export_preserves_technique_and_alignment_labels(self):
         candidate = design()
         candidate["unit"] = "defense"
