@@ -30,6 +30,20 @@ python scripts/stage0_rehearsal.py --no-media --output .\\runtime\\stage0-owner-
 This report is review evidence only. It does not record owner approval,
 advance the stage, activate production, or contact an external provider.
 
+For one point-in-time review artifact that combines the Stage 0 control audit,
+owner packet, synthetic record inventory, source-file hashes, and safety flags,
+run:
+
+```powershell
+$env:PYTHONPATH = (Resolve-Path '.\\src').Path
+python scripts/stage0_review_bundle.py --skip-evals --output .\\runtime\\stage0-review-bundle.json
+```
+
+Omit `--skip-evals` when the full evaluation suite should be included. This
+command is read-only with respect to application data: it does not seed or
+delete records, record approval, advance the stage, enable production, or
+contact an external provider.
+
 ## Open the authenticated dashboard
 
 Set a local secret in the same PowerShell session used to run the server:
