@@ -587,3 +587,11 @@ the catalog recommendation rationale, and falls back to the local registry
 during loading or offline conditions. API, inspector, and toolkit regression
 coverage passes; live organization terminology and device-level certification
 remain pending.
+
+Route-handle deletion integrity addendum (2026-08-28): direct keyboard and
+double-click removal of primary or alternate route handles now updates the
+remaining route geometry and recomputes synchronized stem/break depth metadata,
+including inherited branch semantics. This prevents stale route contracts from
+reaching legality validation, teaching views, or exports after a coach edits a
+path. Focused route/canvas coverage passes; broader device and production
+workflow certification remains pending.

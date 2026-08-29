@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { routeAuthoringPatch, routeBranchGeometryPatch, routeConstructionPatch, routeGeometryPatch } from './routeAuthoring';
+import { routeAuthoringPatch, routeBranchGeometryPatch, routeBranchPointRemovalPatch, routeConstructionPatch, routeGeometryPatch, routePointRemovalPatch } from './routeAuthoring';
 
 describe('route construction authoring', () => {
   it('stores stem, break, finish, and option semantics in the route phase', () => {
@@ -45,5 +45,28 @@ describe('route construction authoring', () => {
     const patch = routeBranchGeometryPatch(element, { id: 'D1', unit: 'offense' }, 'R1-OPT', [{ x: 20, y: 20 }, { x: 30, y: 18 }, { x: 42, y: 14 }], 1);
     expect(patch).toMatchObject({ phase: 'route', branches: [expect.objectContaining({ id: 'R1-OPT', break_depth_yards: 2, route_family: 'dropback', break_type: 'dig' })] });
     expect(patch.branches?.[0].points).toEqual([{ x: 20, y: 20 }, { x: 30, y: 18 }, { x: 42, y: 14 }]);
+  });
+
+  it('removes a primary handle while recomputing remaining stem and break depths', () => {
+    const element = {
+      id: 'R1', kind: 'route', route_family: 'dropback', break_type: 'dig',
+      stem_depth_yards: 8, break_depth_yards: 12,
+      points: [{ x: 20, y: 32 }, { x: 22, y: 24 }, { x: 28, y: 18 }, { x: 34, y: 12 }, { x: 40, y: 8 }],
+    };
+    expect(routePointRemovalPatch(element, { id: 'D1', unit: 'offense' }, 1)).toMatchObject({
+      phase: 'route', stem_depth_yards: 14, break_depth_yards: 20,
+      points: [{ x: 20, y: 32 }, { x: 28, y: 18 }, { x: 34, y: 12 }, { x: 40, y: 8 }],
+    });
+  });
+
+  it('removes an alternate-path handle while preserving inherited route semantics', () => {
+    const element = {
+      id: 'R1', kind: 'route', route_family: 'dropback', break_type: 'dig',
+      points: [{ x: 20, y: 32 }, { x: 20, y: 20 }],
+      branches: [{ id: 'R1-OPT', label: 'Alert', condition: 'If leverage changes', points: [{ x: 20, y: 20 }, { x: 28, y: 16 }, { x: 34, y: 12 }, { x: 42, y: 12 }] }],
+    };
+    expect(routeBranchPointRemovalPatch(element, { id: 'D1', unit: 'offense' }, 'R1-OPT', 1)).toMatchObject({
+      phase: 'route', branches: [expect.objectContaining({ route_family: 'dropback', break_type: 'dig', stem_depth_yards: 8, break_depth_yards: 8, points: [{ x: 20, y: 20 }, { x: 34, y: 12 }, { x: 42, y: 12 }] })],
+    });
   });
 });

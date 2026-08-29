@@ -137,6 +137,31 @@ export function routeGeometryPatch(
   return patch;
 }
 
+function hasRouteContract(element: PlayElement): boolean {
+  return [element.route_family, element.stem_depth_yards, element.break_type, element.break_depth_yards, element.finish_direction, element.option_rule]
+    .some((value) => value !== undefined);
+}
+
+function syncRemainingRouteDepths(element: PlayElement, points: Point[], patch: Partial<PlayElement>): void {
+  if (!hasRouteContract(element) || points.length < 2) return;
+  const start = points[0];
+  const depth = (index: number) => Math.round(Math.abs(points[index].y - start.y) * 10) / 10;
+  if (points.length >= 3) patch.stem_depth_yards = depth(1);
+  if (points.length >= 3) patch.break_depth_yards = depth(points.length - 2);
+}
+
+/** Remove a route handle without leaving its semantic stem/break depths stale. */
+export function routePointRemovalPatch(element: PlayElement, design: PlayDesign, pointIndex: number): Partial<PlayElement> {
+  const points = elementPoints(element);
+  if (points.length <= 2 || pointIndex <= 0 || pointIndex >= points.length - 1) return {};
+  const remaining = points.filter((_, index) => index !== pointIndex);
+  const patch: Partial<PlayElement> = element.points ? { points: remaining } : { path: remaining };
+  syncRemainingRouteDepths(element, remaining, patch);
+  patch.phase = 'route';
+  void design;
+  return patch;
+}
+
 /** Persist direct edits to an alternate route path without losing its branch contract. */
 export function routeBranchGeometryPatch(
   element: PlayElement,
@@ -162,6 +187,26 @@ export function routeBranchGeometryPatch(
       nextBranch.break_type ??= element.break_type;
       nextBranch.finish_direction ??= element.finish_direction;
     }
+  }
+  void design;
+  return { phase: 'route', branches: element.branches?.map((candidate) => candidate.id === branchId ? nextBranch : candidate) };
+}
+
+/** Remove an alternate-path handle while preserving the branch's route contract. */
+export function routeBranchPointRemovalPatch(element: PlayElement, design: PlayDesign, branchId: string, pointIndex: number): Partial<PlayElement> {
+  const branch = element.branches?.find((candidate) => candidate.id === branchId);
+  if (!branch || branch.points.length <= 2 || pointIndex <= 0 || pointIndex >= branch.points.length - 1) return {};
+  const points = branch.points.filter((_, index) => index !== pointIndex);
+  const nextBranch = { ...branch, points };
+  const hasContract = [branch.route_family, branch.stem_depth_yards, branch.break_type, branch.break_depth_yards, branch.finish_direction].some((value) => value !== undefined)
+    || hasRouteContract(element);
+  if (hasContract && points.length >= 3) {
+    const start = points[0];
+    nextBranch.stem_depth_yards = Math.round(Math.abs(points[1].y - start.y) * 10) / 10;
+    nextBranch.break_depth_yards = Math.round(Math.abs(points[points.length - 2].y - start.y) * 10) / 10;
+    nextBranch.route_family ??= element.route_family;
+    nextBranch.break_type ??= element.break_type;
+    nextBranch.finish_direction ??= element.finish_direction;
   }
   void design;
   return { phase: 'route', branches: element.branches?.map((candidate) => candidate.id === branchId ? nextBranch : candidate) };

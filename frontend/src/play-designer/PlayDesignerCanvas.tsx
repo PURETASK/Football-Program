@@ -27,7 +27,7 @@ import { defensiveExchangeLinks, defensiveExchangeProgress } from './defensiveEx
 import { defensiveAlignmentLabel } from './defensiveAlignment';
 import { branchProgress } from './routeBranches';
 import { timelineEventEnd, timelineEventKind, timelineEventStart } from './timelineEvents';
-import { routeBranchGeometryPatch, routeGeometryPatch } from './routeAuthoring';
+import { routeBranchGeometryPatch, routeBranchPointRemovalPatch, routeGeometryPatch, routePointRemovalPatch } from './routeAuthoring';
 
 interface CanvasProps {
   design: PlayDesign;
@@ -491,7 +491,8 @@ export function PlayDesignerCanvas({
     if (event.key === 'Delete' || event.key === 'Backspace') {
       if (points.length <= 2) return;
       event.preventDefault();
-      onUpdateElement(element.id, { points: points.filter((_, index) => index !== pointIndex) });
+      const patch = routePointRemovalPatch(element, design, pointIndex);
+      if (Object.keys(patch).length) onUpdateElement(element.id, patch);
       return;
     }
     if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) return;
@@ -511,7 +512,8 @@ export function PlayDesignerCanvas({
     if (event.key === 'Delete' || event.key === 'Backspace') {
       if (branch.points.length <= 2) return;
       event.preventDefault();
-      onUpdateElement(element.id, { branches: element.branches?.map((item) => item.id === branchId ? { ...item, points: item.points.filter((_, index) => index !== pointIndex) } : item) });
+      const patch = routeBranchPointRemovalPatch(element, design, branchId, pointIndex);
+      if (Object.keys(patch).length) onUpdateElement(element.id, patch);
       return;
     }
     if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) return;
@@ -841,10 +843,13 @@ export function PlayDesignerCanvas({
                 aria-valuetext={`x ${point.x}, y ${point.y}`}
                 onKeyDown={(event) => editHandleWithKeyboard(event, selectedElement, index)}
                 onPointerDown={(event) => beginHandleDrag(event, selectedElement, index)}
-                onDoubleClick={(event) => {
-                  event.stopPropagation();
-                  const points = elementPoints(selectedElement);
-                  if (points.length > 2) onUpdateElement(selectedElement.id, { points: points.filter((_, pointIndex) => pointIndex !== index) });
+              onDoubleClick={(event) => {
+                event.stopPropagation();
+                const points = elementPoints(selectedElement);
+                if (points.length > 2) {
+                  const patch = routePointRemovalPatch(selectedElement, design, index);
+                  if (Object.keys(patch).length) onUpdateElement(selectedElement.id, patch);
+                }
                 }}
               />
             ))}
@@ -866,7 +871,10 @@ export function PlayDesignerCanvas({
               onPointerDown={(event) => beginBranchHandleDrag(event, selectedElement, branch.id, index, branch.points)}
               onDoubleClick={(event) => {
                 event.stopPropagation();
-                if (branch.points.length > 2) onUpdateElement(selectedElement.id, { branches: selectedElement.branches?.map((item) => item.id === branch.id ? { ...item, points: item.points.filter((_, pointIndex) => pointIndex !== index) } : item) });
+                if (branch.points.length > 2) {
+                  const patch = routeBranchPointRemovalPatch(selectedElement, design, branch.id, index);
+                  if (Object.keys(patch).length) onUpdateElement(selectedElement.id, patch);
+                }
               }}
             />))}
           </g>
