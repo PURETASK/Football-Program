@@ -6,6 +6,7 @@ import {
   List,
   Plus,
   Search,
+  Shield,
   ShieldCheck,
   Sparkles,
   Workflow,
@@ -48,9 +49,14 @@ export function PlaybookPage() {
     <div className="page-stack playbook-page">
       <PageHeader
         actions={
-          <Link className="button button--primary" to="/playbook/designer/new">
-            <Plus size={17} /> Create play
-          </Link>
+          <>
+            <Link aria-label="Create offense play" className="button button--primary" to="/playbook/designer/new?unit=offense">
+              <Plus size={17} /> Offense play
+            </Link>
+            <Link aria-label="Create defense play" className="button button--secondary" to="/playbook/designer/new?unit=defense">
+              <Shield size={17} /> Defense call
+            </Link>
+          </>
         }
         description="Browse the visual library, understand install state at a glance, and move directly into design or teaching workflows."
         eyebrow="Football system"
