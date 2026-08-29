@@ -124,6 +124,37 @@ function translatedElement(element: PlayElement, delta: Point, snap: boolean): P
   return element.points ? { ...element, points: translated } : { ...element, path: translated };
 }
 
+function translateElementGeometry(element: PlayElement, delta: Point, snap: boolean): PlayElement {
+  const translated = translatedElement(element, delta, snap);
+  if (element.branches?.length) {
+    translated.branches = element.branches.map((branch) => ({
+      ...branch,
+      points: translatePoints(branch.points, delta, snap),
+    }));
+  }
+  return translated;
+}
+
+function mirrorElementGeometry(element: PlayElement): PlayElement {
+  const next = { ...element };
+  if (element.points) next.points = mirrorPoints(element.points);
+  if (element.path) next.path = mirrorPoints(element.path);
+  if (element.branches?.length) next.branches = element.branches.map((branch) => ({ ...branch, points: mirrorPoints(branch.points) }));
+  if (element.finish_direction === 'inside') next.finish_direction = 'outside';
+  else if (element.finish_direction === 'outside') next.finish_direction = 'inside';
+  return next;
+}
+
+function remapElementReferences(element: PlayElement, ids: Map<string, string>): PlayElement {
+  const next = { ...element };
+  for (const key of ['target_element_id', 'block_target_element_id', 'block_partner_element_id', 'protection_target_element_id', 'exchange_with'] as const) {
+    const value = next[key];
+    if (typeof value === 'string' && ids.has(value)) next[key] = ids.get(value);
+  }
+  if (Array.isArray(next.depends_on)) next.depends_on = next.depends_on.map((id) => ids.get(id) ?? id);
+  return next;
+}
+
 function moveSelection(state: EditorState, playerIds: Set<string>, elementIds: Set<string>, delta: Point): EditorState {
   const movablePlayerIds = new Set(
     (state.present.players ?? [])
@@ -279,12 +310,17 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
         return [{ ...clone(player), id, start: player.start ? normalizePoint({ x: player.start.x + 3, y: player.start.y + 3 }, state.snap) : undefined }];
       });
       const selectedElementIds = new Set(state.selected.filter((item) => item.kind === 'element').map((item) => item.id));
-      const elementCopies = (state.present.elements ?? []).flatMap((element) => {
-        if (!selectedElementIds.has(element.id) && !playerIdMap.has(element.player_id ?? '')) return [];
+      const copiedSourceElements = (state.present.elements ?? []).filter((element) => selectedElementIds.has(element.id) || playerIdMap.has(element.player_id ?? ''));
+      const elementIdMap = new Map<string, string>();
+      copiedSourceElements.forEach((element) => {
         const id = uniqueCopyId(element.id, existingElementIds);
         existingElementIds.add(id);
-        const points = element.points?.map((point) => normalizePoint({ x: point.x + 3, y: point.y + 3 }, state.snap));
-        return [{ ...clone(element), id, player_id: playerIdMap.get(element.player_id ?? '') ?? element.player_id, points }];
+        elementIdMap.set(element.id, id);
+      });
+      const elementCopies = copiedSourceElements.map((element) => {
+        const id = elementIdMap.get(element.id)!;
+        const copy = remapElementReferences(translateElementGeometry(clone(element), { x: 3, y: 3 }, state.snap), elementIdMap);
+        return { ...copy, id, player_id: playerIdMap.get(element.player_id ?? '') ?? element.player_id };
       });
       const next = {
         ...state.present,
@@ -307,8 +343,8 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
           : player,
       );
       const elements = (state.present.elements ?? []).map((element) =>
-        (selectedElements.has(element.id) || selectedPlayers.has(element.player_id ?? '')) && element.points
-          ? { ...element, points: mirrorPoints(element.points) }
+        (selectedElements.has(element.id) || selectedPlayers.has(element.player_id ?? ''))
+          ? mirrorElementGeometry(element)
           : element,
       );
       return commit(state, { ...state.present, players, elements });

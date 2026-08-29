@@ -44,12 +44,36 @@ describe('play designer editor state', () => {
     expect(state.present.elements?.[1].player_id).toBe(state.present.players?.[1].id);
   });
 
+  it('duplicates legacy paths, alternate branches, and selected graph references as a self-contained package', () => {
+    const source = design();
+    source.players!.push({ id: 'Y', position: 'WR', start: { x: 90, y: 30 } });
+    source.elements!.push({ id: 'ROUTE-Y', kind: 'route', type: 'choice', player_id: 'Y', path: [{ x: 90, y: 30 }, { x: 80, y: 12 }], target_element_id: 'ROUTE-X', branches: [{ id: 'BR-Y', label: 'Out', condition: 'If leverage widens', points: [{ x: 90, y: 30 }, { x: 98, y: 12 }] }] });
+    let state = createEditorState(source);
+    state = editorReducer(state, { type: 'select_many', selections: [{ kind: 'player', id: 'X' }, { kind: 'player', id: 'Y' }] });
+    state = editorReducer(state, { type: 'duplicate_selected' });
+    const copies = state.present.elements!.filter((element) => element.id.includes('-COPY'));
+    expect(copies).toHaveLength(2);
+    expect(copies.find((element) => element.id.startsWith('ROUTE-Y'))).toMatchObject({ target_element_id: expect.stringMatching(/^ROUTE-X-COPY/) });
+    expect(copies.find((element) => element.id.startsWith('ROUTE-Y'))?.path?.[0]).toEqual({ x: 93, y: 33 });
+    expect(copies.find((element) => element.id.startsWith('ROUTE-Y'))?.branches?.[0].points[0]).toEqual({ x: 93, y: 33 });
+  });
+
   it('mirrors selected geometry across the field centerline', () => {
     let state = createEditorState(design());
     state = editorReducer(state, { type: 'select', selection: { kind: 'player', id: 'X' } });
     state = editorReducer(state, { type: 'mirror_selected' });
     expect(state.present.players?.[0].start?.x).toBe(90);
     expect(state.present.elements?.[0].points?.[0].x).toBe(90);
+  });
+
+  it('mirrors legacy paths, alternate branches, and inside/outside route semantics', () => {
+    const source = design();
+    source.elements = [{ id: 'ROUTE-X', kind: 'route', player_id: 'X', path: [{ x: 10, y: 30 }, { x: 35, y: 8 }], finish_direction: 'inside', branches: [{ id: 'BR-1', label: 'Choice', condition: 'If leverage changes', points: [{ x: 10, y: 30 }, { x: 4, y: 12 }] }] }];
+    let state = createEditorState(source);
+    state = editorReducer(state, { type: 'select', selection: { kind: 'element', id: 'ROUTE-X' } });
+    state = editorReducer(state, { type: 'mirror_selected' });
+    expect(state.present.elements?.[0]).toMatchObject({ path: [{ x: 90, y: 30 }, { x: 65, y: 8 }], finish_direction: 'outside' });
+    expect(state.present.elements?.[0].branches?.[0].points).toEqual([{ x: 90, y: 30 }, { x: 96, y: 12 }]);
   });
 
   it('deleting a player also removes assignments owned by that player', () => {
