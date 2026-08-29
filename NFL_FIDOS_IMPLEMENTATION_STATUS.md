@@ -416,3 +416,15 @@ metadata all passed for `PD-DEMO-OFF-DAGGER`. The rehearsal shuts down its
 server and reports `external_state_changed: false`; it is local synthetic
 evidence only and does not replace browser, deployment, pilot, or owner
 authorization evidence.
+
+Governed template lineage UI addendum (2026-08-29): the React Play Designer
+Concepts panel now connects organization-owned template lineage impact reports,
+bounded assignment-field proposals, and program-owner-only approval/propagation
+controls to the canonical API. The UI displays descendant depth, inherited and
+local override counts, proposal status, decision identity, and affected-package
+review state. The source fingerprint is rechecked by the server, system
+templates remain immutable, and child-local assignments remain preserved. Local
+verification passes the focused lineage interaction suite, TypeScript
+typecheck, and the production frontend build; provider-scale administration,
+multi-browser/network validation, pilot evidence, and owner authorization remain
+open.

@@ -352,3 +352,14 @@ every child, records the owner decision and batch approval metadata, emits
 collaboration events, and deliberately leaves child lifecycle and release
 creation under the existing per-design publish controls. No batch approval can
 bypass legality, checksum, or human-release requirements.
+
+Governed lineage UI addendum — 2026-08-29: the React Concepts panel now exposes
+the organization-owned lineage workflow end to end. Staff can inspect descendant
+impact, inherited counts, local overrides, and inheritance depth; select an
+assignment field and value to create a bounded proposal; and see the proposal
+status and decision identity. A program-owner session alone receives the
+approval control, which calls the existing fingerprint-rechecked propagation
+service and reports affected packages moved to review. System templates remain
+immutable, and child-local overrides remain preserved. Remaining acceptance work
+is provider-scale administration, network/multi-browser convergence, and real
+organization pilot evidence.
