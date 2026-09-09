@@ -964,6 +964,28 @@ export function approveOrganizationContext(session: AppSession, decisionRef: str
   });
 }
 
+export function createOrganizationContext(session: AppSession, values: {
+  name: string;
+  season: string;
+  teamId: string;
+  people: Array<Record<string, unknown>>;
+  terminologyVersion: string;
+  ruleProfile: string;
+}): Promise<FootballRecord> {
+  return request<FootballRecord>('/v1/organizations/context', session, {
+    method: 'POST',
+    body: organizationBody(session, {
+      name: values.name,
+      season: values.season,
+      team_id: values.teamId,
+      people: values.people,
+      terminology_version: values.terminologyVersion,
+      terminology_bundle: { rule_profile: values.ruleProfile, source: { kind: 'coach_setup', ref: 'COACH-SETUP-WIZARD' } },
+      source: { kind: 'coach_setup', ref: 'COACH-SETUP-WIZARD' },
+    }),
+  });
+}
+
 export function registerKnowledgeSource(session: AppSession, values: {
   sourceId: string;
   tier: string;

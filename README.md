@@ -121,6 +121,9 @@ python scripts/play_designer_http_rehearsal.py
 See [runbooks/demo-seed-data.md](runbooks/demo-seed-data.md) for the complete
 demo workflow. Delete only the marked synthetic seed after stopping the server:
 
+The end-to-end coach rehearsal is documented in
+[runbooks/coach-pilot-scenarios.md](runbooks/coach-pilot-scenarios.md).
+
 ```powershell
 python scripts/delete_demo_data.py `
   --confirm DELETE-SYNTHETIC-DEMO-DATA

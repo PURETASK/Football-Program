@@ -36,4 +36,19 @@ describe('workspace tutorials', () => {
     await user.click(screen.getByRole('button', { name: /Finish/ }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
+
+  it('persists completion and exposes restart', async () => {
+    const user = userEvent.setup();
+    window.localStorage.clear();
+    renderApp(<App />, { initialEntries: ['/playbook'] });
+    await user.click(screen.getByRole('button', { name: 'Open Playbook library tutorial' }));
+    await user.click(screen.getByRole('button', { name: /Next/ }));
+    await user.click(screen.getByRole('button', { name: /Next/ }));
+    await user.click(screen.getByRole('button', { name: /Finish/ }));
+    expect(window.localStorage.getItem('nfl-fidos-workspace-tutorial-complete-v1:playbook')).toBe('true');
+    await user.click(screen.getByRole('button', { name: 'Open Playbook library tutorial' }));
+    await user.click(screen.getByRole('button', { name: 'Restart tutorial' }));
+    expect(screen.getByRole('heading', { name: 'Find the right call' })).toBeInTheDocument();
+    expect(window.localStorage.getItem('nfl-fidos-workspace-tutorial-complete-v1:playbook')).toBeNull();
+  });
 });

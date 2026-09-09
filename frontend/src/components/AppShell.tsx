@@ -31,6 +31,7 @@ import { StatusPill, statusTone } from './StatusPill';
 import { WorkspaceTutorial, tutorialForPath } from './WorkspaceTutorial';
 import { useLocation } from 'react-router-dom';
 import { OperatingLens, OperatingLensButton, useOperatingLens } from './OperatingLens';
+import { CoachSetupWizard } from './CoachSetupWizard';
 
 interface NavigationItem {
   label: string;
@@ -71,6 +72,7 @@ export function AppShell() {
   const [commandOpen, setCommandOpen] = useState(false);
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const [lensOpen, setLensOpen] = useState(false);
+  const [setupOpen, setSetupOpen] = useState(false);
   const operatingLens = useOperatingLens();
   const closeSession = useCallback(() => setSessionOpen(false), []);
   const closeCommand = useCallback(() => setCommandOpen(false), []);
@@ -169,6 +171,7 @@ export function AppShell() {
           </div>
           <div className="topbar__actions">
             <OperatingLensButton label={operatingLens.label} onClick={() => setLensOpen(true)} />
+            <button className="setup-launcher" type="button" onClick={() => setSetupOpen(true)}><ClipboardList size={15} /><span>Coach setup</span></button>
             {tutorial ? <button className="icon-button tutorial-launcher" type="button" aria-label={`Open ${tutorial.title} tutorial`} title={`Learn ${tutorial.title}`} onClick={() => setTutorialOpen(true)}><BookOpenCheck size={18} /></button> : null}
             <button className="command-search" type="button" aria-label="Open command search" onClick={() => setCommandOpen(true)}>
               <Search size={17} />
@@ -194,6 +197,7 @@ export function AppShell() {
       <SessionDialog open={sessionOpen} onClose={closeSession} />
       {tutorial ? <WorkspaceTutorial model={tutorial} open={tutorialOpen} onClose={() => setTutorialOpen(false)} /> : null}
       <OperatingLens open={lensOpen} onClose={() => setLensOpen(false)} value={operatingLens.value} onChange={operatingLens.update} />
+      <CoachSetupWizard open={setupOpen} onClose={() => setSetupOpen(false)} session={session ?? undefined} />
     </div>
   );
 }

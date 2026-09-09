@@ -21,6 +21,23 @@ export interface WorkspaceTutorialModel {
   steps: WorkspaceTutorialStep[];
 }
 
+const TUTORIAL_COMPLETION_PREFIX = 'nfl-fidos-workspace-tutorial-complete-v1:';
+
+export function tutorialCompletionKey(modelKey: string): string {
+  return `${TUTORIAL_COMPLETION_PREFIX}${modelKey}`;
+}
+
+export function isTutorialComplete(modelKey: string): boolean {
+  try { return window.localStorage.getItem(tutorialCompletionKey(modelKey)) === 'true'; } catch { return false; }
+}
+
+function setTutorialComplete(modelKey: string, complete: boolean): void {
+  try {
+    if (complete) window.localStorage.setItem(tutorialCompletionKey(modelKey), 'true');
+    else window.localStorage.removeItem(tutorialCompletionKey(modelKey));
+  } catch { /* Storage can be unavailable in privacy-restricted browsers. */ }
+}
+
 const TODAY_TUTORIAL: WorkspaceTutorialModel = {
   key: 'today',
   title: 'Today command center',
@@ -73,6 +90,7 @@ export function tutorialForPath(pathname: string): WorkspaceTutorialModel | unde
 
 export function WorkspaceTutorial({ model, open, onClose }: { model: WorkspaceTutorialModel; open: boolean; onClose: () => void }) {
   const [stepIndex, setStepIndex] = useState(0);
+  const [completed, setCompleted] = useState(false);
   const dialogRef = useRef<HTMLElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const step = model.steps[stepIndex] ?? model.steps[0];
@@ -80,7 +98,7 @@ export function WorkspaceTutorial({ model, open, onClose }: { model: WorkspaceTu
   const progress = useMemo(() => `${stepIndex + 1} of ${model.steps.length}`, [model.steps.length, stepIndex]);
   useModalFocusTrap(open, dialogRef, closeButtonRef, onClose);
 
-  useEffect(() => { if (open) setStepIndex(0); }, [model.key, open]);
+  useEffect(() => { if (open) { setStepIndex(0); setCompleted(isTutorialComplete(model.key)); } }, [model.key, open]);
   useEffect(() => {
     if (!open) return undefined;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -115,7 +133,8 @@ export function WorkspaceTutorial({ model, open, onClose }: { model: WorkspaceTu
         <footer className="workspace-tutorial__footer">
           <button className="tutorial-secondary" type="button" disabled={stepIndex === 0} onClick={() => setStepIndex((value) => Math.max(0, value - 1))}><ArrowLeft size={15} /> Back</button>
           <span>{progress}</span>
-          {finalStep ? <button className="tutorial-primary" type="button" onClick={onClose}>Finish <Check size={15} /></button> : <button className="tutorial-primary" type="button" onClick={() => setStepIndex((value) => Math.min(model.steps.length - 1, value + 1))}>Next <ArrowRight size={15} /></button>}
+          {completed ? <button className="tutorial-secondary tutorial-restart" type="button" onClick={() => { setTutorialComplete(model.key, false); setCompleted(false); setStepIndex(0); }}>Restart tutorial</button> : null}
+          {finalStep ? <button className="tutorial-primary" type="button" onClick={() => { setTutorialComplete(model.key, true); setCompleted(true); onClose(); }}>Finish <Check size={15} /></button> : <button className="tutorial-primary" type="button" onClick={() => setStepIndex((value) => Math.min(model.steps.length - 1, value + 1))}>Next <ArrowRight size={15} /></button>}
         </footer>
       </section>
     </div>,
