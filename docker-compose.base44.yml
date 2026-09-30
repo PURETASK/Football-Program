@@ -18,7 +18,7 @@ services:
     env_file:
       - ./.env.base44-defaults
       - /run/base44/app.env
-    command: ["python", "-m", "nfl_fidos.server"]
+    command: ["sh", "-ec", "python scripts/seed_demo_data.py --no-media && exec python -m nfl_fidos.server"]
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"]
       interval: 10s
@@ -48,27 +48,6 @@ services:
       api:
         condition: service_healthy
     restart: on-failure
-
-  seed:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    working_dir: /app
-    volumes:
-      - ./:/app
-      - db-data:/data
-    environment:
-      - NFL_FIDOS_ENV=local
-      - NFL_FIDOS_DATABASE=/data/nfl_fidos.sqlite3
-      - NFL_FIDOS_FFMPEG=ffmpeg
-      - NFL_FIDOS_FFPROBE=ffprobe
-    env_file:
-      - ./.env.base44-defaults
-      - /run/base44/app.env
-    command: ["sh", "-ec", "python scripts/seed_demo_data.py --no-media"]
-    depends_on:
-      api:
-        condition: service_healthy
 
 volumes:
   db-data:

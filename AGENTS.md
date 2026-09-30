@@ -12,10 +12,9 @@
 docker compose -f docker-compose.base44.yml up -d --build
 ```
 
-Three services:
-- `api` — Python backend (built from `Dockerfile.dev`, source bind-mounted, `PYTHONPATH=/app/src`)
+Two services:
+- `api` — Python backend (built from `Dockerfile.dev`, source bind-mounted, `PYTHONPATH=/app/src`). Seeds demo data on startup (idempotent — returns "already_seeded" if data exists), then starts the server.
 - `web` — Vite dev server (node:22-alpine, `frontend/` bind-mounted, port 3000→5173)
-- `seed` — one-shot demo data seeder (runs after api is healthy, `--no-media`)
 
 ## Auth & Demo Data
 
