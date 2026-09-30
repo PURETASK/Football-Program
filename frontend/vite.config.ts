@@ -1,6 +1,8 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 
+const apiTarget = process.env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:8080';
+
 export default defineConfig({
   base: '/app/',
   plugins: [react()],
@@ -10,10 +12,12 @@ export default defineConfig({
     sourcemap: false,
   },
   server: {
+    host: true,
     port: 5173,
+    allowedHosts: true,
     proxy: {
-      '/health': 'http://127.0.0.1:8080',
-      '/v1': 'http://127.0.0.1:8080',
+      '/health': apiTarget,
+      '/v1': apiTarget,
     },
   },
   test: {

@@ -1,0 +1,13 @@
+{
+  "previewPort": 3000,
+  "healthPath": "/app/",
+  "startCommand": "docker compose -f docker-compose.base44.yml up -d",
+  "secrets": [
+    {
+      "name": "NFL_FIDOS_AUTH_SECRET",
+      "description": "Signing secret for the app's signed auth tokens. A development placeholder is generated automatically; replace with a real 32+ character secret for production.",
+      "requiredAtBoot": true,
+      "generatedForDevelopment": true
+    }
+  ]
+}
