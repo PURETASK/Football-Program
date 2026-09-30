@@ -14,7 +14,7 @@ COPY --from=frontend-builder /frontend/dist /app/frontend/dist
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ffmpeg \
     && rm -rf /var/lib/apt/lists/* \
-    && pip install --no-cache-dir .
+    && pip install --no-cache-dir -e .
 
 ENV NFL_FIDOS_ENV=production
 ENV NFL_FIDOS_AUTH_SECRET_FILE=/run/secrets/nfl_fidos_auth_secret

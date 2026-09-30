@@ -9,7 +9,7 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 from .evals import run_minimum_eval_suite
-from .auth import authorize_principal, verify_token
+from .auth import authorize_principal, issue_token, verify_token
 from .ontology import OntologyResolver
 from .team_ontology import TeamOntologyService
 from .play_compiler import compile_play
@@ -52,6 +52,7 @@ from .media_retention import plan_media_retention
 from .media_retention_scheduler import MediaRetentionScheduler
 from .media_retention_executor import execute_media_retention
 from .config import resolve_auth_secret
+from .demo_data import DEMO_ORGANIZATION_ID
 from .knowledge_search import KnowledgeRetrievalService
 from .media_transform_orchestrator import MediaTransformOrchestrator
 from .pilot_readiness import evaluate_pilot_readiness
@@ -89,7 +90,7 @@ def _response(status: str, data: Any, error: str | None = None) -> dict[str, Any
 
 
 def _authenticated(headers: dict[str, str] | None, *, action: str, organization_id: str) -> tuple[Any | None, tuple[int, dict[str, Any]] | None]:
-    authorization = (headers or {}).get("Authorization", "")
+    authorization = (headers or {}).get("Authorization", "") or (headers or {}).get("authorization", "")
     if not authorization.startswith("Bearer "):
         return None, (401, _response("error", None, "Bearer authentication is required"))
     try:
@@ -867,6 +868,17 @@ def handle_request(*, method: str, path: str, body: dict[str, Any] | None = None
         return 200, _response("ok", result)
     if parsed.path == "/health":
         return 200, _response("ok", {"service": "NFL-FIDOS", "scope": "NFL only"})
+    if parsed.path == "/v1/dev/demo-token" and method.upper() == "GET":
+        if os.environ.get("NFL_FIDOS_ENV", "local").lower() != "local":
+            return 404, _response("error", None, "Demo token issuance is only available in local development")
+        try:
+            secret = resolve_auth_secret()
+        except ValueError:
+            secret = ""
+        if not secret:
+            return 503, _response("error", None, "Authentication secret is not configured")
+        token = issue_token(subject="DEMO-COACH", role="program_owner", organization_id=DEMO_ORGANIZATION_ID, secret=secret, ttl_seconds=86400)
+        return 200, _response("ok", {"token": token, "organization_id": DEMO_ORGANIZATION_ID, "role": "program_owner"})
     if parsed.path == "/v1/control":
         root = Path(__file__).resolve().parents[2]
         with (root / "control" / "manifest.json").open(encoding="utf-8") as handle:
@@ -2536,7 +2548,7 @@ def handle_request(*, method: str, path: str, body: dict[str, Any] | None = None
         if not organization_id:
             return 400, _response("error", None, "organization_id query parameter is required")
         service = service or FootballIntelligenceService(JsonRepository(Path.cwd() / ".runtime" / "core-slice-state.json"))
-        authorization = (headers or {}).get("Authorization", "")
+        authorization = (headers or {}).get("Authorization", "") or (headers or {}).get("authorization", "")
         try:
             secret = resolve_auth_secret()
             principal = verify_token(authorization.removeprefix("Bearer ").strip(), secret=secret) if authorization.startswith("Bearer ") and secret else None

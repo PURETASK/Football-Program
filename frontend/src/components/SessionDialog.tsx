@@ -11,11 +11,32 @@ export function SessionDialog({ open, onClose }: { open: boolean; onClose: () =>
   const [organizationId, setOrganizationId] = useState(session?.organizationId ?? 'ORG-DEMO-FIDOS-001');
   const [token, setToken] = useState('');
   const [error, setError] = useState('');
+  const [quickConnecting, setQuickConnecting] = useState(false);
   const organizationRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLElement>(null);
   useModalFocusTrap(open, dialogRef, organizationRef, onClose);
 
   if (!open) return null;
+
+  const handleQuickConnect = async () => {
+    setQuickConnecting(true);
+    setError('');
+    try {
+      const response = await fetch('/v1/dev/demo-token');
+      const payload = await response.json();
+      if (!response.ok) {
+        setError(payload.error || 'Could not issue a demo token.');
+        return;
+      }
+      const { token: demoToken, organization_id: orgId } = payload.data;
+      setSession(createSession(orgId, demoToken));
+      onClose();
+    } catch {
+      setError('Could not reach the server for a demo token.');
+    } finally {
+      setQuickConnecting(false);
+    }
+  };
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -79,6 +100,16 @@ export function SessionDialog({ open, onClose }: { open: boolean; onClose: () =>
             Connect securely
           </button>
         </form>
+        {!session ? (
+          <button
+            className="button button--quiet button--full"
+            type="button"
+            onClick={handleQuickConnect}
+            disabled={quickConnecting}
+          >
+            {quickConnecting ? 'Connecting…' : 'Quick connect (demo)'}
+          </button>
+        ) : null}
         {session ? (
           <button
             className="button button--quiet button--full"

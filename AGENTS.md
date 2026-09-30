@@ -20,16 +20,24 @@ Two services:
 
 - The app requires a signed Bearer token. Tokens are issued with `NFL_FIDOS_AUTH_SECRET`.
 - A development placeholder secret is auto-generated via `generate_development_secrets` and delivered through `/run/base44/app.env`.
-- Demo data is seeded by the `seed` compose service using `scripts/seed_demo_data.py`.
-- To issue a demo token for the UI's "Connect your organization" dialog:
+- Demo data is seeded on API startup (idempotent — returns "already_seeded" if data exists).
+- **Quick connect**: The SessionDialog has a "Quick connect (demo)" button that calls `GET /v1/dev/demo-token` to auto-issue a demo token. This endpoint is gated to `NFL_FIDOS_ENV=local` only — it returns 404 in production.
+- To issue a demo token manually via CLI:
   ```bash
   docker compose -f docker-compose.base44.yml exec api python scripts/issue_demo_token.py --role program_owner --ttl-seconds 86400
   ```
   Use org ID `ORG-DEMO-FIDOS-001` (pre-filled in the dialog).
+- **Proxy note**: The Vite proxy (Node.js) lowercases header names. The backend's Authorization header lookup is case-insensitive to handle this.
 
 ## Vite Config
 
-`frontend/vite.config.ts` reads `VITE_API_PROXY_TARGET` (defaults to `http://127.0.0.1:8080`) so the proxy target works both locally and in compose (where it points to `http://api:8080`). `allowedHosts: true` accepts the preview's external hostname.
+`frontend/vite.config.ts` reads `VITE_API_PROXY_TARGET` (defaults to `http://127.0.0.1:8080`) so the proxy target works both locally and in compose (where it points to `http://api:8080`). `allowedHosts: true` accepts the preview's external hostname. A `rootRedirect` plugin redirects `/` to `/app/` in dev mode.
+
+## Production
+
+- The production `Dockerfile` builds the frontend (Node stage) and serves it from the Python server (single container, port 8080).
+- Uses `pip install -e .` (editable) so the server resolves `PROJECT_ROOT` to `/app/` and finds the built frontend at `/app/frontend/dist/`.
+- Requires `NFL_FIDOS_AUTH_SECRET` (32+ chars) via a secret manager file or env var.
 
 ## Verification
 
